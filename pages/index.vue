@@ -6,6 +6,6 @@
 
 <script>
 export default {
-  layout: "drive",
-}
+  layout: 'drive',
+};
 </script>
