@@ -1,5 +1,10 @@
 <template>
   <v-app id="inspire">
+    <new-dialog
+      :show-dialog="showNewFolderDialog"
+      @closeDialog="closeDialog"
+      @createFolder="createFolder"
+    />
     <v-navigation-drawer
       v-model="drawer"
       :clipped="$vuetify.breakpoint.lgAndUp"
@@ -7,20 +12,48 @@
       class="drawer"
     >
       <v-list dense shaped>
-        <v-btn
-          color="white"
-          rounded
-          height="50"
-          min-width="140"
-          class="mx-3 my-5"
-        >
-          <img
-            src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2236%22 height=%2236%22 viewBox=%220 0 36 36%22%3E%3Cpath fill=%22%2334A853%22 d=%22M16 16v14h4V20z%22/%3E%3Cpath fill=%22%234285F4%22 d=%22M30 16H20l-4 4h14z%22/%3E%3Cpath fill=%22%23FBBC05%22 d=%22M6 16v4h10l4-4z%22/%3E%3Cpath fill=%22%23EA4335%22 d=%22M20 16V6h-4v14z%22/%3E%3Cpath fill=%22none%22 d=%22M0 0h36v36H0z%22/%3E%3C/svg%3E"
-            alt=""
-            class="mr-3 ml-n7"
-          />
-          New
-        </v-btn>
+        <v-menu>
+          <template v-slot:activator="{ on }">
+            <v-btn
+              color="white"
+              rounded
+              height="50"
+              min-width="140"
+              class="mx-3 my-5"
+              v-on="on"
+            >
+              <img
+                src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2236%22 height=%2236%22 viewBox=%220 0 36 36%22%3E%3Cpath fill=%22%2334A853%22 d=%22M16 16v14h4V20z%22/%3E%3Cpath fill=%22%234285F4%22 d=%22M30 16H20l-4 4h14z%22/%3E%3Cpath fill=%22%23FBBC05%22 d=%22M6 16v4h10l4-4z%22/%3E%3Cpath fill=%22%23EA4335%22 d=%22M20 16V6h-4v14z%22/%3E%3Cpath fill=%22none%22 d=%22M0 0h36v36H0z%22/%3E%3C/svg%3E"
+                alt=""
+                class="mr-3 ml-n7"
+              />
+              New
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item @click="openNewFolderDialog">
+              <v-list-item-action>
+                <v-icon>mdi-folder-plus-outline</v-icon>
+              </v-list-item-action>
+              <v-list-item-content>
+                <v-list-item-title>
+                  New Folder
+                </v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-divider />
+            <v-list-item>
+              <v-list-item-action>
+                <v-icon>mdi-folder-upload-outline</v-icon>
+              </v-list-item-action>
+              <v-list-item-content>
+                <v-list-item-title>
+                  Upload Folder
+                </v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-menu>
         <template v-for="item in items">
           <v-row v-if="item.heading" :key="item.heading" align="center">
             <v-col cols="6">
@@ -38,6 +71,7 @@
             v-model="item.model"
             :prepend-icon="item.model ? item.icon : item['icon-alt']"
             append-icon=""
+            color="primary"
           >
             <template v-slot:activator>
               <v-list-item-content>
@@ -46,7 +80,13 @@
                 </v-list-item-title>
               </v-list-item-content>
             </template>
-            <v-list-item v-for="(child, i) in item.children" :key="i" link>
+            <v-list-item
+              v-for="(child, i) in item.children"
+              :key="i"
+              link
+              :to="item.to"
+              color="primary"
+            >
               <v-list-item-action v-if="child.icon">
                 <v-icon>{{ child.icon }}</v-icon>
               </v-list-item-action>
@@ -57,7 +97,13 @@
               </v-list-item-content>
             </v-list-item>
           </v-list-group>
-          <v-list-item v-else :key="item.text" link>
+          <v-list-item
+            v-else
+            :key="item.text"
+            link
+            :to="item.to"
+            color="primary"
+          >
             <v-list-item-action>
               <v-icon>{{ item.icon }}</v-icon>
             </v-list-item-action>
@@ -120,7 +166,9 @@
 </template>
 
 <script>
+import NewDialog from '@/components/NewFolder';
 export default {
+  components: { NewDialog },
   props: {
     source: {
       type: String,
@@ -134,27 +182,27 @@ export default {
       {
         icon: 'mdi-google-drive',
         text: 'My Drive',
-        to: '#',
+        to: '#1',
       },
       {
         icon: 'mdi-account-multiple-outline',
         text: 'Shared with me',
-        to: '#',
+        to: '#2',
       },
       {
         icon: 'mdi-clock-outline',
         text: 'Recent',
-        to: '#',
+        to: '#3',
       },
       {
         icon: 'mdi-star-outline',
         text: 'Starred',
-        to: '#',
+        to: '#4',
       },
       {
         icon: 'mdi-trash-can-outline',
         text: 'Bin',
-        to: '#',
+        to: '#5',
       },
       // {
       //   icon: 'mdi-chevron-up',
@@ -182,7 +230,20 @@ export default {
       // { icon: 'mdi-cellphone-link', text: 'App downloads' },
       // { icon: 'mdi-keyboard', text: 'Go to the old version' },
     ],
+    showNewFolderDialog: false,
   }),
+  methods: {
+    openNewFolderDialog() {
+      this.showNewFolderDialog = true;
+    },
+    closeDialog() {
+      this.showNewFolderDialog = false;
+    },
+    createFolder(e) {
+      console.log(e);
+      this.showNewFolderDialog = false;
+    },
+  },
 };
 </script>
 
