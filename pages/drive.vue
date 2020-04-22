@@ -1,12 +1,21 @@
 <template>
-  <v-container grid-list-md>
-    <p class="font-weight-medium">
+  <v-container grid-list-md class="my-drive">
+    <p class="font-weight-medium body-2">
       Folders
     </p>
-    <p class="font-weight-medium">
+    <div class="files mb-5">
+      <Folder folderName="Football" class="my-2" />
+      <Folder folderName="Wrestling" class="my-2" />
+      <Folder folderName="Basketball" class="my-2" />
+      <Folder folderName="Golf" class="my-2" />
+      <Folder folderName="Rugby" class="my-2" />
+      <Folder folderName="Volleyball" class="my-2" />
+      <Folder folderName="Tennis" class="my-2" />
+    </div>
+    <p class="font-weight-medium body-2">
       Files
     </p>
-    <div class="files">
+    <div class="files mb-5">
       <File
         format="xls"
         name="Letter of appreciation"
@@ -79,10 +88,11 @@
 
 <script>
 import File from '@/components/File';
+import Folder from '@/components/Folder';
 
 export default {
   layout: 'drive',
-  components: { File },
+  components: { File, Folder },
   data: () => ({
     tempDate: new Date(2020, 3, 22),
   }),
@@ -90,6 +100,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.my-drive {
+  padding: 20px;
+}
+
 .files {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));

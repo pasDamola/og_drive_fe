@@ -4,7 +4,7 @@
     <div class="file-info">
       <v-layout align-center>
         <img :src="getFileIcon()" alt="" />
-        <p class="mb-0 ml-3 body-2 font-weight-normal">
+        <p class="mb-0 ml-3 body-2 font-weight-medium">
           {{ name | truncate }}
         </p>
       </v-layout>
@@ -74,7 +74,6 @@ export default {
 
 <style lang="scss" scoped>
 .file {
-  border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 5px;
   width: 215px;
   height: 190px;
@@ -82,10 +81,13 @@ export default {
   padding: 0;
 
   &-preview {
-    background-color: #dadce0;
-    width: calc(100% + 1px);
+    border: 1px solid #dadce0;
+    background-color: rgba(218, 220, 224, 0.52);
+    width: 100%;
+    position: relative;
+    left: -1px;
     height: 100%;
-    border-radius: 5px 5px 0 0;
+    border-radius: 5px;
   }
 
   &-info {
@@ -93,11 +95,15 @@ export default {
     background-color: #fff;
     bottom: -1px;
     left: -1px;
-    right: -1px;
+    right: 1px;
     height: 40%;
     border-radius: 0 0 5px 5px;
     border: 1px solid #dadce0;
     padding: 13px 15px;
   }
+}
+
+.font-weight-medium {
+  opacity: 0.8;
 }
 </style>
