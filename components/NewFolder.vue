@@ -10,7 +10,12 @@
       </v-card-title>
 
       <v-card-text>
-        <v-text-field v-model="folderName" label="Folder Name" />
+        <v-text-field
+          id="newFolder"
+          ref="folderName"
+          v-model="folderName"
+          label="Folder Name"
+        />
       </v-card-text>
 
       <v-card-actions>
@@ -39,6 +44,15 @@ export default {
   data: () => ({
     folderName: 'New Folder',
   }),
+  watch: {
+    showDialog(val) {
+      if (val) {
+        setTimeout(() => {
+          document.querySelector('#newFolder').select();
+        }, 0);
+      }
+    },
+  },
   methods: {
     createFolder() {
       this.$emit('createFolder', this.folderName);

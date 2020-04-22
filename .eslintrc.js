@@ -25,6 +25,7 @@ module.exports = {
     'vue/max-attributes-per-line': 'off',
     'vue/html-self-closing': 'off',
     'quotes': [2, 'single'],
+    'vue/singleline-html-element-content-newline': 'off',
     'prettier/prettier': 'error',
   }
 }

@@ -1,6 +1,6 @@
 <template>
   <v-layout>
-    Hello World
+    Index Page
   </v-layout>
 </template>
 
