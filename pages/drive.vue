@@ -4,13 +4,13 @@
       Folders
     </p>
     <div class="files mb-5">
-      <Folder folderName="Football" class="my-2" />
-      <Folder folderName="Wrestling" class="my-2" />
-      <Folder folderName="Basketball" class="my-2" />
-      <Folder folderName="Golf" class="my-2" />
-      <Folder folderName="Rugby" class="my-2" />
-      <Folder folderName="Volleyball" class="my-2" />
-      <Folder folderName="Tennis" class="my-2" />
+      <Folder folder-name="Football" class="my-2" />
+      <Folder folder-name="Wrestling" class="my-2" />
+      <Folder folder-name="Basketball" class="my-2" />
+      <Folder folder-name="Golf" class="my-2" />
+      <Folder folder-name="Rugby" class="my-2" />
+      <Folder folder-name="Volleyball" class="my-2" />
+      <Folder folder-name="Tennis" class="my-2" />
     </div>
     <p class="font-weight-medium body-2">
       Files

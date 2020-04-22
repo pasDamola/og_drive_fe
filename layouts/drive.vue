@@ -124,7 +124,7 @@
       elevation="0"
     >
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
-      <v-toolbar-title style="width: 300px;" class="ml-0 pl-4">
+      <v-toolbar-title style="width: 260px;" class="ml-0 pl-4">
         <v-layout align-center>
           <img
             width="30px"
@@ -136,12 +136,16 @@
         </v-layout>
       </v-toolbar-title>
       <v-text-field
-        flat
-        solo-inverted
+        :solo="pressed"
+        :solo-inverted="!pressed"
+        :flat="!pressed"
         hide-details
         prepend-inner-icon="mdi-magnify"
         label="Search in drive"
         class="hidden-sm-and-down"
+        color="#555"
+        @focus="pressed = true"
+        @blur="pressed = false"
       />
       <v-spacer />
       <v-btn icon>
@@ -228,6 +232,7 @@ export default {
       // { icon: 'mdi-keyboard', text: 'Go to the old version' },
     ],
     showNewFolderDialog: false,
+    pressed: false,
   }),
   methods: {
     openNewFolderDialog() {
