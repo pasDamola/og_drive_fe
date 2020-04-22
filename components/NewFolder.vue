@@ -21,12 +21,12 @@
       <v-card-actions>
         <v-spacer></v-spacer>
 
-        <v-btn color="green darken-1" text @click="$emit('closeDialog')">
-          Disagree
+        <v-btn color="darken-1" text @click="$emit('closeDialog')">
+          Cancel
         </v-btn>
 
-        <v-btn color="green darken-1" text @click="createFolder">
-          Create Folder
+        <v-btn color="primary px-5" @click="createFolder">
+          Create
         </v-btn>
       </v-card-actions>
     </v-card>
