@@ -1,11 +1,11 @@
 <template>
   <v-layout>
-    Hello World
+    Index Page
   </v-layout>
 </template>
 
 <script>
 export default {
-  layout: "drive",
-}
+  layout: 'drive',
+};
 </script>
