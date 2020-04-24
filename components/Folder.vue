@@ -18,6 +18,7 @@ export default {
 
 <style lang="scss" scoped>
 .folder {
+  margin: 0 auto;
   border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 5px;
   width: 215px;

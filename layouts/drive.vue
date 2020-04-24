@@ -161,13 +161,34 @@
       </v-btn>
     </v-app-bar>
     <v-content>
+      <v-container class="py-0">
+        <v-toolbar flat dense class="toolbar">
+          <v-breadcrumbs :items="getBreadCrumbs" class="px-0">
+            <template v-slot:divider>
+              <v-icon>mdi-chevron-right</v-icon>
+            </template>
+            <template v-slot:item="{ item }">
+              <v-breadcrumbs-item
+                :href="item.href"
+                :disabled="item.disabled"
+                class="breadcrumb"
+              >
+                {{ item.text.toUpperCase() }}
+              </v-breadcrumbs-item>
+            </template>
+          </v-breadcrumbs>
+        </v-toolbar>
+        <v-divider />
+      </v-container>
       <router-view />
     </v-content>
   </v-app>
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import NewDialog from '@/components/NewFolder';
+
 export default {
   components: { NewDialog },
   props: {
@@ -234,6 +255,9 @@ export default {
     showNewFolderDialog: false,
     pressed: false,
   }),
+  computed: {
+    ...mapGetters(['getBreadCrumbs']),
+  },
   methods: {
     openNewFolderDialog() {
       this.showNewFolderDialog = true;
@@ -244,6 +268,9 @@ export default {
     createFolder(e) {
       console.log(e);
       this.showNewFolderDialog = false;
+    },
+    resetBreadCrumbs() {
+      this.$store.dispatch('resetBreadCrumbs');
     },
   },
 };
@@ -257,6 +284,18 @@ export default {
 .drawer::v-deep {
   .v-navigation-drawer__border {
     width: 0px;
+  }
+}
+
+.breadcrumb::v-deep {
+  a.v-breadcrumbs__item {
+    color: rgba($color: #000000, $alpha: 0.87);
+  }
+}
+
+.toolbar::v-deep {
+  .v-toolbar__content {
+    padding-left: 5px;
   }
 }
 </style>

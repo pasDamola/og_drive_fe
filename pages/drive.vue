@@ -102,6 +102,8 @@ export default {
 <style lang="scss" scoped>
 .my-drive {
   padding: 20px;
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 .files {

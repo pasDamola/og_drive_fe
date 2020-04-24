@@ -1,3 +1,4 @@
+// import '@mdi/font/css/materialdesignicons.css'
 import colors from 'vuetify/es5/util/colors';
 
 export default {
@@ -26,7 +27,10 @@ export default {
   /*
    ** Global CSS
    */
-  css: [],
+  css: [
+    '@mdi/font/css/materialdesignicons.css',
+    '~/assets/body.scss',
+  ],
   /*
    ** Plugins to load before mounting the App
    */

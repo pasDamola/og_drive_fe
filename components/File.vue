@@ -79,6 +79,7 @@ export default {
   height: 190px;
   position: relative;
   padding: 0;
+  margin: 0 auto;
 
   &-preview {
     border: 1px solid #dadce0;
