@@ -7,9 +7,10 @@ export const state = () => ({
   allfiles: [],
   breadCrumbs: [
     {
-      text: 'My drive',
+      text: 'mdi-home',
       href: '/',
       disabled: false,
+      icon: true,
     },
   ],
 });

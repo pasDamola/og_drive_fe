@@ -1,15 +1,20 @@
 <template>
   <div class="file">
-    <div class="file-preview"></div>
-    <div class="file-info">
-      <v-layout align-center>
-        <img :src="getFileIcon()" alt="" />
-        <p class="mb-0 ml-3 body-2 font-weight-medium">
-          {{ name | truncate }}
-        </p>
-      </v-layout>
-      <p class="caption my-2">You edited {{ formatDate }}</p>
-    </div>
+    <v-layout align-center justify-space-between>
+      <v-icon v-if="checked" size="20" color="primary" @click="checked = false">
+        mdi-checkbox-marked-circle-outline
+      </v-icon>
+      <v-icon v-else size="20" @click="checked = true">
+        mdi-circle-outline
+      </v-icon>
+      <v-icon size="20">mdi-dots-vertical</v-icon>
+    </v-layout>
+    <img :src="getFileIcon()" :alt="`${format} icon`" />
+    <p>{{ name | truncate }}</p>
+    <v-layout align-center justify-space-between class="file-details">
+      <p>1 MB</p>
+      <p>12.07.2019</p>
+    </v-layout>
   </div>
 </template>
 
@@ -38,6 +43,9 @@ export default {
       default: '',
     },
   },
+  data: () => ({
+    checked: false,
+  }),
   computed: {
     formatDate() {
       return Moment(this.lastEdited).fromNow();
@@ -46,11 +54,11 @@ export default {
   methods: {
     getFileIcon() {
       if (['doc', 'docm', 'dotm', 'docx', 'docb'].includes(this.format)) {
-        return '/images/document.png';
+        return '/images/docs.png';
       } else if (
         ['xls', 'xlsx', 'xlsm', 'xltx', 'xltm'].includes(this.format)
       ) {
-        return '/images/spreadsheet.png';
+        return '/images/sheet.png';
       } else if (
         [
           'pptx',
@@ -63,7 +71,7 @@ export default {
           'ppam',
         ].includes(this.format)
       ) {
-        return '/images/powerpoint.png';
+        return '/images/slides.png';
       } else if (this.format === 'pdf') {
         return '/images/pdf.png';
       }
@@ -76,31 +84,28 @@ export default {
 .file {
   border-radius: 5px;
   width: 215px;
-  height: 190px;
+  height: 220px;
   position: relative;
-  padding: 0;
+  padding: 20px;
   margin: 0 auto;
-
-  &-preview {
-    border: 1px solid #dadce0;
-    background-color: rgba(218, 220, 224, 0.52);
-    width: 100%;
-    position: relative;
-    left: -1px;
-    height: 100%;
-    border-radius: 5px;
+  background-color: #fff;
+  text-align: center;
+  img {
+    margin-top: 10px;
+    width: 80px;
   }
 
-  &-info {
-    position: absolute;
-    background-color: #fff;
-    bottom: -1px;
-    left: -1px;
-    right: 1px;
-    height: 40%;
-    border-radius: 0 0 5px 5px;
-    border: 1px solid #dadce0;
-    padding: 13px 15px;
+  > p {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 20px;
+  }
+
+  &-details {
+    opacity: 0.7;
+    p {
+      font-size: 134x;
+    }
   }
 }
 

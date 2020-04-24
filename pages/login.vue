@@ -47,7 +47,11 @@
   </v-layout>
 </template>
 <script>
-export default {};
+export default {
+  data: () => ({
+    isPassword: false,
+  }),
+};
 </script>
 <style lang="scss" scoped>
 .login {

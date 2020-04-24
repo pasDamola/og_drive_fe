@@ -1,13 +1,17 @@
 <template>
-  <v-container> Hello {{ $route.params.name }} </v-container>
+  <v-container>Hello {{ $route.params.name }}</v-container>
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 export default {
   layout: 'drive',
   data: () => ({
     routeName: '',
   }),
+  computed: {
+    ...mapGetters(['getBreadCrumbs']),
+  },
   mounted() {
     this.routeName = this.$route.params.name;
     this.$store.dispatch('addBreadCrumbs', {
@@ -22,4 +26,19 @@ export default {
 };
 </script>
 
-<style></style>
+<style lang="scss" scoped>
+.toolbar::v-deep {
+  min-height: 100px;
+  .v-toolbar__content {
+    display: block;
+    padding: 0;
+  }
+}
+
+.count {
+  margin-bottom: 0;
+  margin-left: 5px;
+  font-size: 1.5em;
+  opacity: 0.7;
+}
+</style>
