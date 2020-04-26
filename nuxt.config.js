@@ -1,3 +1,4 @@
+// import '@mdi/font/css/materialdesignicons.css'
 import colors from 'vuetify/es5/util/colors';
 
 export default {
@@ -26,7 +27,7 @@ export default {
   /*
    ** Global CSS
    */
-  css: [],
+  css: ['@mdi/font/css/materialdesignicons.css', '~/assets/body.scss'],
   /*
    ** Plugins to load before mounting the App
    */
@@ -56,6 +57,10 @@ export default {
           warning: colors.amber.base,
           error: colors.deepOrange.accent4,
           success: colors.green.accent3,
+          text: '#fff',
+        },
+        light: {
+          text: '#44566c',
         },
       },
     },

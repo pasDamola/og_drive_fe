@@ -5,29 +5,20 @@
       @closeDialog="closeDialog"
       @createFolder="createFolder"
     />
-    <v-navigation-drawer
-      v-model="drawer"
-      :clipped="$vuetify.breakpoint.lgAndUp"
-      app
-      class="drawer"
-    >
+    <v-navigation-drawer v-model="drawer" clipped app class="drawer">
       <v-list dense shaped>
         <v-menu>
           <template v-slot:activator="{ on }">
             <v-btn
-              color="white"
+              color="primary"
               rounded
               height="50"
-              min-width="140"
+              width="93%"
               class="mx-3 my-5"
               v-on="on"
             >
-              <img
-                src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2236%22 height=%2236%22 viewBox=%220 0 36 36%22%3E%3Cpath fill=%22%2334A853%22 d=%22M16 16v14h4V20z%22/%3E%3Cpath fill=%22%234285F4%22 d=%22M30 16H20l-4 4h14z%22/%3E%3Cpath fill=%22%23FBBC05%22 d=%22M6 16v4h10l4-4z%22/%3E%3Cpath fill=%22%23EA4335%22 d=%22M20 16V6h-4v14z%22/%3E%3Cpath fill=%22none%22 d=%22M0 0h36v36H0z%22/%3E%3C/svg%3E"
-                alt=""
-                class="mr-3 ml-n7"
-              />
-              New
+              <v-icon class="ml-n5 mx-5">mdi-upload</v-icon>
+              Upload
             </v-btn>
           </template>
           <v-list>
@@ -124,7 +115,7 @@
       elevation="0"
     >
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
-      <v-toolbar-title style="width: 260px;" class="ml-0 pl-4">
+      <!-- <v-toolbar-title style="width: 260px;" class="ml-0 pl-4">
         <v-layout align-center>
           <img
             width="30px"
@@ -134,40 +125,97 @@
           />
           <span class="hidden-sm-and-down">OG Drive</span>
         </v-layout>
-      </v-toolbar-title>
+      </v-toolbar-title> -->
       <v-text-field
         :solo="pressed"
         :solo-inverted="!pressed"
         :flat="!pressed"
         hide-details
+        background-color="#f8fafb"
         prepend-inner-icon="mdi-magnify"
         label="Search in drive"
-        class="hidden-sm-and-down"
+        class="hidden-sm-and-down search-bar"
         color="#555"
         @focus="pressed = true"
         @blur="pressed = false"
       />
       <v-spacer />
-      <v-btn icon>
-        <v-icon>mdi-bell</v-icon>
-      </v-btn>
-      <v-btn icon large>
-        <v-avatar size="35px" item>
-          <v-img
-            src="https://lh3.googleusercontent.com/-ykrfI9pPAck/AAAAAAAAAAI/AAAAAAAAAAA/AMZuucl91N61xVEOki3ANxwkYEEZd5HgGA.CMID/s64-c/photo.jpg"
-            alt="Vuetify"
-          />
-        </v-avatar>
+      <v-badge color="red" content="6" dot class="mx-5">
+        <v-icon>mdi-bell-outline</v-icon>
+      </v-badge>
+      <v-divider vertical />
+      <v-btn text large>
+        <v-layout align-center>
+          <v-avatar size="35px" item class="mx-2">
+            <v-img
+              src="https://lh3.googleusercontent.com/-ykrfI9pPAck/AAAAAAAAAAI/AAAAAAAAAAA/AMZuucl91N61xVEOki3ANxwkYEEZd5HgGA.CMID/s64-c/photo.jpg"
+              alt="Vuetify"
+            />
+          </v-avatar>
+          <span class="hidden-sm-and-down">Abdulqudus</span>
+          <v-icon>mdi-menu-down</v-icon>
+        </v-layout>
       </v-btn>
     </v-app-bar>
-    <v-content>
+    <v-content class="body">
+      <v-container class="pb-0">
+        <v-toolbar flat class="toolbar px-2" color="transparent">
+          <v-toolbar-title class="px-0">
+            <span class="row align-center mx-0 font-weight-black text--text">
+              <h2>
+                Files
+              </h2>
+              <p class="count">(50)</p>
+            </span>
+          </v-toolbar-title>
+          <v-toolbar-content>
+            <v-layout justify-space-between align-center>
+              <v-breadcrumbs :items="getBreadCrumbs" class="px-0">
+                <template v-slot:divider>
+                  <v-icon>mdi-chevron-right</v-icon>
+                </template>
+                <template v-slot:item="{ item }">
+                  <v-breadcrumbs-item
+                    :href="item.href"
+                    :disabled="item.disabled"
+                    class="breadcrumb"
+                  >
+                    <v-icon v-if="item.icon">{{ item.text }}</v-icon>
+                    <span v-else>{{ item.text.toUpperCase() }}</span>
+                  </v-breadcrumbs-item>
+                </template>
+              </v-breadcrumbs>
+              <div class="view">
+                <v-btn
+                  small
+                  fab
+                  elevation="0"
+                  color="rgba(68, 86, 108, 0.042)"
+                  class="mx-2"
+                >
+                  <v-icon size="20" color="rgba(68, 86, 108, 0.7)">
+                    mdi-view-grid
+                  </v-icon>
+                </v-btn>
+                <v-btn small fab elevation="0" color="rgba(68, 86, 108, 0.042)">
+                  <v-icon size="23" color="rgba(68, 86, 108, 0.7)">
+                    mdi-view-list
+                  </v-icon>
+                </v-btn>
+              </div>
+            </v-layout>
+          </v-toolbar-content>
+        </v-toolbar>
+      </v-container>
       <router-view />
     </v-content>
   </v-app>
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import NewDialog from '@/components/NewFolder';
+
 export default {
   components: { NewDialog },
   props: {
@@ -234,6 +282,9 @@ export default {
     showNewFolderDialog: false,
     pressed: false,
   }),
+  computed: {
+    ...mapGetters(['getBreadCrumbs']),
+  },
   methods: {
     openNewFolderDialog() {
       this.showNewFolderDialog = true;
@@ -245,6 +296,9 @@ export default {
       console.log(e);
       this.showNewFolderDialog = false;
     },
+    resetBreadCrumbs() {
+      this.$store.dispatch('resetBreadCrumbs');
+    },
   },
 };
 </script>
@@ -255,8 +309,39 @@ export default {
 }
 
 .drawer::v-deep {
+  box-shadow: 0px 2px 5px rgba($color: #000000, $alpha: 0.17);
   .v-navigation-drawer__border {
     width: 0px;
   }
+}
+
+.breadcrumb::v-deep {
+  a.v-breadcrumbs__item {
+    color: rgba($color: #000000, $alpha: 0.87);
+  }
+}
+
+.toolbar::v-deep {
+  min-height: 100px;
+  .v-toolbar__content {
+    display: block;
+    padding: 0;
+    height: 100%;
+  }
+}
+
+.count {
+  margin-bottom: 0;
+  margin-left: 5px;
+  font-size: 1.5em;
+  opacity: 0.7;
+}
+
+.search-bar {
+  max-width: 400px;
+}
+
+.body {
+  background-color: rgba(68, 86, 108, 0.042);
 }
 </style>

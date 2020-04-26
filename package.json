@@ -12,6 +12,7 @@
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore ."
   },
   "dependencies": {
+    "@mdi/font": "^5.1.45",
     "moment": "^2.24.0",
     "nuxt": "^2.0.0"
   },
