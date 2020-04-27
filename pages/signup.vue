@@ -162,7 +162,18 @@
         </v-stepper-content>
 
         <v-stepper-content step="3">
-          <v-card class="mb-12" color="grey lighten-1" height="200px"></v-card>
+          <input
+            id="user-photo"
+            type="file"
+            name="user-photo"
+            @change="handleImage"
+          />
+          <label for="user-photo" class="picture-upload">
+            <v-icon size="50" color="white">
+              mdi-camera-plus-outline
+            </v-icon>
+            <img id="user-image" src="" alt="User's image" />
+          </label>
 
           <v-btn color="primary" @click="signUp">
             Sign Up
@@ -178,7 +189,7 @@
 export default {
   data: () => ({
     isPasswordVisible: false,
-    formStepper: 1,
+    formStepper: 3,
     user: {
       ogId: '',
       email: '',
@@ -186,6 +197,8 @@ export default {
       full_name: '',
       username: '',
       password: '',
+      image: '',
+      role: 'user',
     },
     departments: ['Software', 'IT', 'Legal'],
     rules: {
@@ -240,6 +253,23 @@ export default {
       }
       this.formStepper = 3;
     },
+    handleImage(image) {
+      const files = image.target.files;
+      const imageElement = document.querySelector('#user-image');
+      if (files && files[0]) {
+        const reader = new FileReader();
+
+        reader.readAsDataURL(files[0]);
+
+        reader.onload = (e) => {
+          console.log(e);
+          imageElement.style.display = 'block';
+          imageElement.src = e.target.result;
+          // imageElement.style.backgroundImage = `url(${e.target.result})`;
+        };
+        this.user.image = files[0];
+      }
+    },
     signUp() {
       console.log(this.user);
     },
@@ -247,28 +277,51 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-.login {
-  width: 500px;
-  margin: 50px auto;
-  max-width: calc(100% - 30px);
-  padding: 0 15px;
-  img {
-    width: 40px;
-    margin: 30px 0;
+#user-photo {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+}
+
+#user-photo:hover + .picture-upload,
+#user-photo:focus + .picture-upload {
+  &::before {
+    background-color: rgba($color: #000, $alpha: 0.4);
   }
-  h3 {
-    color: black !important;
+}
+
+#user-image {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  display: none;
+}
+
+.picture-upload {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  margin: 20px auto;
+  display: block;
+  background-image: url('https://source.unsplash.com/random/600x600');
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  .v-icon {
+    position: absolute;
   }
-  form {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-  &-actions {
-    font-size: 0.85rem;
-    width: 230px;
-    max-width: 100%;
-    margin: 0 auto;
+  &::before {
+    transition: background-color 0.09s ease-in;
+    content: '';
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    position: absolute;
+    border-radius: 50%;
+    background-color: rgba($color: #000000, $alpha: 0.2);
   }
 }
 </style>

@@ -39,7 +39,11 @@ export default {
   /*
    ** Nuxt.js modules
    */
-  modules: [],
+  modules: ['@nuxtjs/axios'],
+  // Axios setup
+  axios: {
+    baseURL: 'https://guarded-cliffs-51823.herokuapp.com/',
+  },
   /*
    ** vuetify module configuration
    ** https://github.com/nuxt-community/vuetify-module
