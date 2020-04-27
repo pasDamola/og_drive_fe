@@ -64,7 +64,7 @@
       <a href="/login">Sign in instead</a>
     </v-layout>
   </v-layout> -->
-  <v-layout justify-center align-center>
+  <v-layout justify-center align-center column>
     <v-stepper v-model="formStepper">
       <v-stepper-header>
         <v-stepper-step :complete="formStepper > 1" step="1">
@@ -162,6 +162,14 @@
         </v-stepper-content>
 
         <v-stepper-content step="3">
+          <v-alert
+            v-if="error.status"
+            v-model="error.status"
+            type="error"
+            dismissible
+          >
+            {{ error.message }}
+          </v-alert>
           <input
             id="user-photo"
             type="file"
@@ -175,7 +183,7 @@
             <img id="user-image" src="" alt="User's image" />
           </label>
 
-          <v-btn color="primary" @click="signUp">
+          <v-btn color="primary" :loading="loading" @click="signUp">
             Sign Up
           </v-btn>
 
@@ -183,13 +191,17 @@
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
+    <p class="my-3 subtitle-2">
+      Already have an account? <router-link to="login">Sign in</router-link>
+    </p>
   </v-layout>
 </template>
 <script>
 export default {
   data: () => ({
     isPasswordVisible: false,
-    formStepper: 3,
+    formStepper: 1,
+    loading: false,
     user: {
       ogId: '',
       email: '',
@@ -201,6 +213,10 @@ export default {
       role: 'user',
     },
     departments: ['Software', 'IT', 'Legal'],
+    error: {
+      status: false,
+      message: '',
+    },
     rules: {
       required: (value) => !!value || 'Required.',
       password: (value) => value.length >= 8 || 'Required',
@@ -271,7 +287,24 @@ export default {
       }
     },
     signUp() {
-      console.log(this.user);
+      this.loading = true;
+      this.$axios
+        .post('users/register', this.user)
+        .then((res) => {
+          console.log(res);
+          this.loading = false;
+        })
+        .catch((err) => {
+          const {
+            data: { errors },
+          } = err.response;
+          const firstError = errors && Object.values(errors[0]);
+          if (firstError) {
+            this.error.message = firstError;
+          }
+          this.loading = false;
+          this.error.status = true;
+        });
     },
   },
 };
