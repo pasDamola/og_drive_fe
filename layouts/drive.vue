@@ -168,43 +168,41 @@
               <p class="count">(50)</p>
             </span>
           </v-toolbar-title>
-          <v-toolbar-content>
-            <v-layout justify-space-between align-center>
-              <v-breadcrumbs :items="getBreadCrumbs" class="px-0">
-                <template v-slot:divider>
-                  <v-icon>mdi-chevron-right</v-icon>
-                </template>
-                <template v-slot:item="{ item }">
-                  <v-breadcrumbs-item
-                    :href="item.href"
-                    :disabled="item.disabled"
-                    class="breadcrumb"
-                  >
-                    <v-icon v-if="item.icon">{{ item.text }}</v-icon>
-                    <span v-else>{{ item.text.toUpperCase() }}</span>
-                  </v-breadcrumbs-item>
-                </template>
-              </v-breadcrumbs>
-              <div class="view">
-                <v-btn
-                  small
-                  fab
-                  elevation="0"
-                  color="rgba(68, 86, 108, 0.042)"
-                  class="mx-2"
+          <v-layout justify-space-between align-center>
+            <v-breadcrumbs :items="getBreadCrumbs" class="px-0">
+              <template v-slot:divider>
+                <v-icon>mdi-chevron-right</v-icon>
+              </template>
+              <template v-slot:item="{ item }">
+                <v-breadcrumbs-item
+                  :href="item.href"
+                  :disabled="item.disabled"
+                  class="breadcrumb"
                 >
-                  <v-icon size="20" color="rgba(68, 86, 108, 0.7)">
-                    mdi-view-grid
-                  </v-icon>
-                </v-btn>
-                <v-btn small fab elevation="0" color="rgba(68, 86, 108, 0.042)">
-                  <v-icon size="23" color="rgba(68, 86, 108, 0.7)">
-                    mdi-view-list
-                  </v-icon>
-                </v-btn>
-              </div>
-            </v-layout>
-          </v-toolbar-content>
+                  <v-icon v-if="item.icon">{{ item.text }}</v-icon>
+                  <span v-else>{{ item.text.toUpperCase() }}</span>
+                </v-breadcrumbs-item>
+              </template>
+            </v-breadcrumbs>
+            <div class="view">
+              <v-btn
+                small
+                fab
+                elevation="0"
+                color="rgba(68, 86, 108, 0.042)"
+                class="mx-2"
+              >
+                <v-icon size="20" color="rgba(68, 86, 108, 0.7)">
+                  mdi-view-grid
+                </v-icon>
+              </v-btn>
+              <v-btn small fab elevation="0" color="rgba(68, 86, 108, 0.042)">
+                <v-icon size="23" color="rgba(68, 86, 108, 0.7)">
+                  mdi-view-list
+                </v-icon>
+              </v-btn>
+            </div>
+          </v-layout>
         </v-toolbar>
       </v-container>
       <router-view />

@@ -39,7 +39,7 @@ export default {
   /*
    ** Nuxt.js modules
    */
-  modules: ['@nuxtjs/axios'],
+  modules: ['@nuxtjs/axios', 'cookie-universal-nuxt',],
   // Axios setup
   axios: {
     baseURL: 'https://guarded-cliffs-51823.herokuapp.com/',

@@ -1,10 +1,10 @@
 // import UserService from '../services/UserService';
 // import Config from '../services/Config';
-
 export const state = () => ({
   // user: UserService.getUserFromLocalStorage(),
   // token_details: UserService.getTokenFromLocalStorage(),
   allfiles: [],
+  hello: 'hello',
   breadCrumbs: [
     {
       text: 'mdi-home',
@@ -17,6 +17,11 @@ export const state = () => ({
 
 export const getters = {
   getBreadCrumbs: (state) => state.breadCrumbs,
+  isLoggedIn: () => {
+    return function (that) {
+      return that.$cookies.get('token');
+    };
+  },
 };
 
 export const actions = {
@@ -28,6 +33,17 @@ export const actions = {
   },
   removeBreadCrumb({ commit }, payload) {
     commit('REMOVE_BREADCRUMB', payload);
+  },
+  // eslint-disable-next-line
+  saveAuth({ commit }, [user, token]) {
+    this.$cookies.set('user', user, {
+      path: '/',
+      maxAge: 30 * 7 * 24 * 60 * 60,
+    });
+    this.$cookies.set('token', token, {
+      path: '/',
+      maxAge: 30 * 7 * 24 * 60 * 60,
+    });
   },
 };
 

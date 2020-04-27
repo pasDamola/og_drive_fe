@@ -1,70 +1,6 @@
 <template>
-  <!-- <v-layout column class="login" justify-center align-center>
-    <h3 class="headline font-weight-bold text--black">
-      Create your OG Drive account
-    </h3>
-    <v-form>
-      <v-text-field
-        light
-        label="OG-ID"
-        placeholder="012345"
-        filled
-        color="#1da1f2"
-        background-color="rgb(245, 248, 250)"
-        hide-details
-        class="mx-3 my-5"
-      />
-      <v-text-field
-        light
-        label="Full Name"
-        placeholder="John Doe"
-        filled
-        color="#1da1f2"
-        background-color="rgb(245, 248, 250)"
-        hide-details
-        class="mx-3 my-5"
-      />
-      <v-text-field
-        light
-        label="Department"
-        placeholder="Software Development"
-        filled
-        color="#1da1f2"
-        background-color="rgb(245, 248, 250)"
-        hide-details
-        class="mx-3 my-5"
-      />
-      <div class="mx-3">
-        <v-text-field
-          hint="Password"
-          :type="isPassword ? 'password' : 'text'"
-          :append-icon="isPassword ? 'mdi-eye' : 'mdi-eye-off'"
-          label="Password"
-          placeholder=" "
-          light
-          filled
-          color="#1da1f2"
-          background-color="rgb(245, 248, 250)"
-          hide-details
-          @click:append="isPassword = !isPassword"
-        />
-      </div>
-      <v-btn
-        depressed
-        color="primary"
-        min-height="50"
-        rounded
-        class="my-4 mx-3"
-        @click="logIn()"
-      >
-        Create Account
-      </v-btn>
-    </v-form>
-    <v-layout class="my-4">
-      <a href="/login">Sign in instead</a>
-    </v-layout>
-  </v-layout> -->
   <v-layout justify-center align-center column>
+    <h1 class="title text-uppercase my-3">Create your account</h1>
     <v-stepper v-model="formStepper">
       <v-stepper-header>
         <v-stepper-step :complete="formStepper > 1" step="1">
@@ -94,6 +30,7 @@
               placeholder="191852"
               prepend-icon="mdi-account-key-outline"
               :rules="[rules.required, rules.isNumber]"
+              validate-on-blur
             />
             <v-text-field
               ref="email"
@@ -104,6 +41,7 @@
               placeholder="johndoe@email.com"
               prepend-icon="mdi-at"
               :rules="[rules.required, rules.email]"
+              validate-on-blur
             />
             <v-select
               ref="department"
@@ -113,6 +51,7 @@
               label="department"
               prepend-icon="mdi-account-group-outline"
               :rules="[rules.required]"
+              validate-on-blur
               single-line
             />
           </div>
@@ -131,6 +70,7 @@
               placeholder="John Doe"
               prepend-icon="mdi-account-outline"
               :rules="[rules.required, rules.isAlpha]"
+              validate-on-blur
             />
             <v-text-field
               ref="username"
@@ -140,6 +80,7 @@
               placeholder="JohnDoe123"
               prepend-icon="mdi-account-box-outline"
               :rules="[rules.required]"
+              validate-on-blur
             />
             <v-text-field
               ref="password"
@@ -150,6 +91,7 @@
               prepend-icon="mdi-account-lock-outline"
               :append-icon="isPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
               :rules="[rules.required, rules.password]"
+              validate-on-blur
               @click:append="isPasswordVisible = !isPasswordVisible"
             />
           </div>
