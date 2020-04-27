@@ -3,7 +3,8 @@
 export const state = () => ({
   // user: UserService.getUserFromLocalStorage(),
   // token_details: UserService.getTokenFromLocalStorage(),
-  allfiles: [],
+  allFiles: [],
+  allFolders: [],
   hello: 'hello',
   breadCrumbs: [
     {
@@ -22,6 +23,13 @@ export const getters = {
       return that.$cookies.get('token');
     };
   },
+  getUser: () => {
+    return function (that) {
+      return JSON.parse(JSON.stringify(that.$cookies.get('user')));
+    };
+  },
+  getFiles: (state) => state.allFiles,
+  getFolders: (state) => state.allFolders,
 };
 
 export const actions = {
@@ -44,7 +52,18 @@ export const actions = {
       path: '/',
       maxAge: 30 * 7 * 24 * 60 * 60,
     });
-    this.$axios.defaults.headers.common.Authorization = token;
+    this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+  },
+  async fetchFiles({ commit }, [user_id, level]) {
+    try {
+      const response = await this.$axios.post('files/user', { user_id, level });
+      if (response) {
+        commit('SAVE_USER_FILES', response.data);
+        return Promise.resolve(response.data);
+      }
+    } catch (error) {
+      return Promise.reject(error);
+    }
   },
 };
 
@@ -81,6 +100,10 @@ export const mutations = {
         disabled: false,
       },
     ];
+  },
+  SAVE_USER_FILES(state, payload) {
+    state.allFiles = payload.files;
+    state.allFolders = payload.directories;
   },
   //   LOAD_FILES(state, files) {
   //     state.allfiles = files;

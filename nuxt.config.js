@@ -31,7 +31,7 @@ export default {
   /*
    ** Plugins to load before mounting the App
    */
-  plugins: [],
+  plugins: ['~/plugins/fetchFiles.js'],
   /*
    ** Nuxt.js dev-modules
    */
@@ -39,7 +39,7 @@ export default {
   /*
    ** Nuxt.js modules
    */
-  modules: ['@nuxtjs/axios', 'cookie-universal-nuxt',],
+  modules: ['@nuxtjs/axios', 'cookie-universal-nuxt'],
   // Axios setup
   axios: {
     baseURL: 'https://guarded-cliffs-51823.herokuapp.com/',

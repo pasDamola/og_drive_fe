@@ -93,12 +93,14 @@ export default {
         .then(({ data }) => {
           this.loading = false;
           const userDetails = {
+            id: data.user._id,
             full_name: data.user.full_name,
             username: data.user.username,
             role: data.user.role,
           };
           const token = data.token;
           this.$store.dispatch('saveAuth', [userDetails, token]);
+          this.$router.push({ path: '/' });
         })
         .catch((err) => {
           this.loading = false;

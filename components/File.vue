@@ -13,7 +13,7 @@
     <p>{{ name | truncate }}</p>
     <v-layout align-center justify-space-between class="file-details">
       <p>1 MB</p>
-      <p>12.07.2019</p>
+      <p>{{ formatDate }}</p>
     </v-layout>
   </div>
 </template>
@@ -74,6 +74,8 @@ export default {
         return '/images/slides.png';
       } else if (this.format === 'pdf') {
         return '/images/pdf.png';
+      } else if (this.format === 'html') {
+        return '/images/html.png';
       }
     },
   },

@@ -28,7 +28,7 @@
     </p>
     <div class="files mb-5">
       <nuxt-link
-        v-for="(folder, index) in folders"
+        v-for="(folder, index) in getFolders"
         :key="index"
         :to="`folder/${folder.name.toLowerCase()}`"
         class="link"
@@ -41,69 +41,11 @@
     </p>
     <div class="files mb-5">
       <File
-        format="xls"
-        name="Letter of appreciation"
-        :last-edited="tempDate.toISOString()"
-        class="my-2"
-      />
-      <File
-        format="pdf"
-        name="Letter of appreciation"
-        :last-edited="tempDate.toISOString()"
-        class="my-2"
-      />
-      <File
-        format="docx"
-        name="Letter of appreciation"
-        :last-edited="tempDate.toISOString()"
-        class="my-2"
-      />
-      <File
-        format="xls"
-        name="Letter of appreciation"
-        :last-edited="tempDate.toISOString()"
-        class="my-2"
-      />
-      <File
-        format="docx"
-        name="Letter of appreciation"
-        :last-edited="tempDate.toISOString()"
-        class="my-2"
-      />
-      <File
-        format="xls"
-        name="Letter of appreciation"
-        :last-edited="tempDate.toISOString()"
-        class="my-2"
-      />
-      <File
-        format="ppt"
-        name="Letter of appreciation"
-        :last-edited="tempDate.toISOString()"
-        class="my-2"
-      />
-      <File
-        format="docx"
-        name="Letter of appreciation"
-        :last-edited="tempDate.toISOString()"
-        class="my-2"
-      />
-      <File
-        format="pptx"
-        name="Letter of appreciation"
-        :last-edited="tempDate.toISOString()"
-        class="my-2"
-      />
-      <File
-        format="xls"
-        name="Letter of appreciation"
-        :last-edited="tempDate.toISOString()"
-        class="my-2"
-      />
-      <File
-        format="pdf"
-        name="Letter of appreciation"
-        :last-edited="tempDate.toISOString()"
+        v-for="file in getFiles"
+        :key="file.file_url"
+        :format="file.file_extension"
+        :name="file.filename"
+        :last-edited="file.updatedAt"
         class="my-2"
       />
     </div>
@@ -122,40 +64,11 @@ export default {
   data: () => ({
     tempDate: new Date(2020, 3, 22),
     searchFiles: '',
-    folders: [
-      {
-        name: 'Football',
-      },
-      {
-        name: 'Wrestling',
-      },
-      {
-        name: 'Basketball',
-      },
-      {
-        name: 'Golf',
-      },
-      {
-        name: 'Rugby',
-      },
-      {
-        name: 'Volleyball',
-      },
-      {
-        name: 'Handball',
-      },
-      {
-        name: 'Table Tennis',
-      },
-      {
-        name: 'Badminton',
-      },
-    ],
     fileTypes: ['pdf', 'Spreadsheets', 'Presentations'],
     fileType: '',
   }),
   computed: {
-    ...mapGetters(['getBreadCrumbs']),
+    ...mapGetters(['getBreadCrumbs', 'getFiles', 'getFolders']),
   },
   methods: {
     openFolder() {},

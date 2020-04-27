@@ -5,6 +5,13 @@
       @closeDialog="closeDialog"
       @createFolder="createFolder"
     />
+    <Loader v-if="loading" />
+    <v-snackbar v-if="error.status" v-model="error.status">
+      {{ error.message }}
+      <v-btn color="pink" text @click="error.status = false">
+        Close
+      </v-btn>
+    </v-snackbar>
     <v-navigation-drawer v-model="drawer" clipped app class="drawer">
       <v-list dense shaped>
         <v-menu>
@@ -34,14 +41,22 @@
             </v-list-item>
             <v-divider />
             <v-list-item>
-              <v-list-item-action>
-                <v-icon>mdi-folder-upload-outline</v-icon>
-              </v-list-item-action>
-              <v-list-item-content>
-                <v-list-item-title>
-                  Upload Folder
-                </v-list-item-title>
-              </v-list-item-content>
+              <input
+                id="file-upload"
+                type="file"
+                name="file-upload"
+                @change="handleFileUpload"
+              />
+              <label for="file-upload" class="row pl-3">
+                <v-list-item-action>
+                  <v-icon>mdi-file-upload-outline</v-icon>
+                </v-list-item-action>
+                <v-list-item-content>
+                  <v-list-item-title>
+                    Upload File
+                  </v-list-item-title>
+                </v-list-item-content>
+              </label>
             </v-list-item>
           </v-list>
         </v-menu>
@@ -115,17 +130,6 @@
       elevation="0"
     >
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
-      <!-- <v-toolbar-title style="width: 260px;" class="ml-0 pl-4">
-        <v-layout align-center>
-          <img
-            width="30px"
-            src="https://www.gstatic.com/images/branding/product/1x/drive_48dp.png"
-            alt="OG Drive"
-            class="mr-1"
-          />
-          <span class="hidden-sm-and-down">OG Drive</span>
-        </v-layout>
-      </v-toolbar-title> -->
       <v-text-field
         :solo="pressed"
         :solo-inverted="!pressed"
@@ -213,9 +217,10 @@
 <script>
 import { mapGetters } from 'vuex';
 import NewDialog from '@/components/NewFolder';
+import Loader from '@/components/Loader';
 
 export default {
-  components: { NewDialog },
+  components: { NewDialog, Loader },
   props: {
     source: {
       type: String,
@@ -277,11 +282,21 @@ export default {
       // { icon: 'mdi-cellphone-link', text: 'App downloads' },
       // { icon: 'mdi-keyboard', text: 'Go to the old version' },
     ],
+    loading: false,
     showNewFolderDialog: false,
     pressed: false,
+    error: { status: false, message: '' },
   }),
   computed: {
-    ...mapGetters(['getBreadCrumbs']),
+    ...mapGetters(['getBreadCrumbs', 'isLoggedIn', 'getUser']),
+  },
+  mounted() {
+    console.log('Mounted');
+    const token = this.isLoggedIn(this);
+    const user = this.getUser(this);
+    this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+    this.loading = true;
+    this.fetchUserFiles(user.id, 0);
   },
   methods: {
     openNewFolderDialog() {
@@ -297,6 +312,29 @@ export default {
     resetBreadCrumbs() {
       this.$store.dispatch('resetBreadCrumbs');
     },
+    handleFileUpload(e) {
+      this.loading = true;
+      const user = JSON.parse(JSON.stringify(this.$cookies.get('user')));
+      const file = e.target.files;
+      const formData = new FormData();
+      formData.set('user_id', user.id);
+      if (file && file[0]) {
+        formData.set('file', file[0]);
+        this.$axios
+          .post('files/upload/single', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          })
+          .then((res) => {
+            console.log(res);
+            this.fetchUserFiles(user.id, 0);
+          })
+          .catch((err) => {
+            this.loading = false;
+            this.error.status = true;
+            this.error.message = err.response.data.message;
+          });
+      }
+    },
   },
 };
 </script>
@@ -304,6 +342,22 @@ export default {
 <style lang="scss" scoped>
 .app-bar {
   border-bottom: 0.6px solid rgba(0, 0, 0, 0.2) !important;
+}
+
+#file-upload {
+  width: 0.1px;
+  height: 0.1px;
+  position: absolute;
+  opacity: 0;
+
+  + label {
+    cursor: pointer;
+  }
+
+  &:hover + label,
+  &:focus + label {
+    background-color: rgba($color: #000000, $alpha: 0.03);
+  }
 }
 
 .drawer::v-deep {
