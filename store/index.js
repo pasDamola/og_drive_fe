@@ -44,6 +44,7 @@ export const actions = {
       path: '/',
       maxAge: 30 * 7 * 24 * 60 * 60,
     });
+    this.$axios.defaults.headers.common.Authorization = token;
   },
 };
 
