@@ -2,11 +2,12 @@
   <v-app id="inspire">
     <new-dialog
       :show-dialog="showNewFolderDialog"
+      :is-loading="buttonLoading"
       @closeDialog="closeDialog"
       @createFolder="createFolder"
     />
     <Loader v-if="loading" />
-    <v-snackbar v-if="error.status" v-model="error.status">
+    <v-snackbar v-if="error.status" v-model="error.status" :timeout="5000">
       {{ error.message }}
       <v-btn color="pink" text @click="error.status = false">
         Close
@@ -283,6 +284,7 @@ export default {
       // { icon: 'mdi-keyboard', text: 'Go to the old version' },
     ],
     loading: false,
+    buttonLoading: false,
     showNewFolderDialog: false,
     pressed: false,
     error: { status: false, message: '' },
@@ -306,7 +308,25 @@ export default {
       this.showNewFolderDialog = false;
     },
     createFolder(e) {
-      console.log(e);
+      this.buttonLoading = true;
+      const user = this.getUser(this);
+      const data = {
+        dirname: e,
+        user_id: user.id,
+        level: 0,
+      };
+      this.$axios
+        .post('directory/create', data)
+        .then(({ data }) => {
+          console.log(data);
+          this.buttonLoading = false;
+          this.loading = true;
+          this.fetchUserFiles(user.id, 0);
+        })
+        .catch((err) => {
+          this.buttonLoading = false;
+          console.log(err.response);
+        });
       this.showNewFolderDialog = false;
     },
     resetBreadCrumbs() {

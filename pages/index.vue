@@ -30,10 +30,14 @@
       <nuxt-link
         v-for="(folder, index) in getFolders"
         :key="index"
-        :to="`folder/${folder.name.toLowerCase()}`"
+        :to="`folder/${folder.dirname.toLowerCase()}`"
         class="link"
       >
-        <Folder :folder-name="folder.name" class="my-2" />
+        <Folder
+          :folder-name="folder.name"
+          class="my-2"
+          :last-updated="folder.updatedAt"
+        />
       </nuxt-link>
     </div>
     <p class="font-weight-medium body-2">
@@ -91,7 +95,12 @@ export default {
 
 .files {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(215px, 215px));
+  justify-content: center;
+
+  @media only screen and (min-width: 768px) {
+    justify-content: flex-start;
+  }
 }
 
 .shadow::v-deep {

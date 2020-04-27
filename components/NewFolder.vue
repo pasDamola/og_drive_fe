@@ -25,7 +25,7 @@
           Cancel
         </v-btn>
 
-        <v-btn color="primary px-5" @click="createFolder">
+        <v-btn color="primary px-5" :loading="isLoading" @click="createFolder">
           Create
         </v-btn>
       </v-card-actions>
@@ -37,6 +37,10 @@
 export default {
   props: {
     showDialog: {
+      type: Boolean,
+      default: false,
+    },
+    isLoading: {
       type: Boolean,
       default: false,
     },
