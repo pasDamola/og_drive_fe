@@ -118,6 +118,7 @@ import Folder from '@/components/Folder';
 export default {
   layout: 'drive',
   components: { File, Folder },
+  middleware: 'authenticated',
   data: () => ({
     tempDate: new Date(2020, 3, 22),
     searchFiles: '',

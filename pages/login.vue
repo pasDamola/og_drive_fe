@@ -1,81 +1,111 @@
 <template>
-  <v-layout v-if="!showLoader" column class="login" justify-center align-center>
-    <h3 class="headline font-weight-bold text--black">
-      Log in to OG Drive
-    </h3>
-    <v-form>
-      <v-text-field
-        light
-        label="Email"
-        placeholder="johndoe@outsoruceglobal.com"
-        filled
-        color="#1da1f2"
-        background-color="rgb(245, 248, 250)"
-        hide-details
-        class="mx-3 my-5"
-      />
-      <div class="mx-3">
-        <v-text-field
-          hint="Password"
-          :type="isPassword ? 'password' : 'text'"
-          :append-icon="isPassword ? 'mdi-eye' : 'mdi-eye-off'"
-          label="Password"
-          placeholder=" "
-          light
-          filled
-          color="#1da1f2"
-          background-color="rgb(245, 248, 250)"
-          hide-details
-          @click:append="isPassword = !isPassword"
-        />
-      </div>
-      <v-btn
-        depressed
-        color="primary"
-        min-height="50"
-        rounded
-        class="my-4 mx-3"
-        @click="logIn()"
+  <v-layout column justify-center align-center>
+    <h1 class="title text-uppercase my-3">Sign into OG Drive</h1>
+    <v-card max-width="100%" width="400">
+      <v-alert
+        v-if="error.status"
+        v-model="error.status"
+        type="error"
+        dismissible
       >
-        Log in
-      </v-btn>
-    </v-form>
-    <v-layout class="login-actions my-4" justify-space-between>
-      <a href="">Forgot password?</a>
-      <a href="/signup">Create Account</a>
-    </v-layout>
+        {{ error.message }}
+      </v-alert>
+      <v-form @submit.prevent.stop="logIn">
+        <v-text-field
+          v-model="user.ogId"
+          label="OG-ID"
+          name="id"
+          type="text"
+          placeholder="191852"
+          prepend-icon="mdi-account-outline"
+          class="mx-3 my-4"
+          :rules="[rules.isNumber]"
+          validate-on-blur
+        />
+        <div class="mx-3 my-4">
+          <v-text-field
+            v-model="user.password"
+            name="password"
+            :type="isPassword ? 'password' : 'text'"
+            :append-icon="isPassword ? 'mdi-eye' : 'mdi-eye-off'"
+            label="Password"
+            placeholder="********"
+            prepend-icon="mdi-account-lock-outline"
+            @click:append="isPassword = !isPassword"
+          />
+          <router-link
+            to="#"
+            class="forgot caption font-weight-bold float-right"
+          >
+            Forgot Password
+          </router-link>
+        </div>
+        <v-btn
+          depressed
+          color="primary"
+          min-width="150px"
+          min-height="40px"
+          :loading="loading"
+          type="submit"
+          class="my-4 mx-3"
+          :disabled="!isFormValid"
+          @click.stop.prevent="logIn"
+        >
+          Log in
+        </v-btn>
+      </v-form>
+    </v-card>
+    <p class="my-3 subtitle-2">
+      Don't have an account?
+      <router-link to="signup">Register here</router-link>
+    </p>
   </v-layout>
 </template>
 <script>
 export default {
   data: () => ({
-    isPassword: false,
+    isPassword: true,
+    user: {
+      ogId: '',
+      password: '',
+    },
+    loading: false,
+    error: {
+      status: false,
+      message: '',
+    },
+    rules: {
+      isNumber: (value) => {
+        return /^[0-9]+$/.test(value) || 'ID can only contain numbers';
+      },
+    },
   }),
+  computed: {
+    isFormValid() {
+      return this.user.ogId && this.user.password;
+    },
+  },
+  methods: {
+    logIn() {
+      this.loading = true;
+      this.$axios
+        .post('users/login', this.user)
+        .then(({ data }) => {
+          this.loading = false;
+          const userDetails = {
+            full_name: data.user.full_name,
+            username: data.user.username,
+            role: data.user.role,
+          };
+          const token = data.token;
+          this.$store.dispatch('saveAuth', [userDetails, token]);
+        })
+        .catch((err) => {
+          this.loading = false;
+          console.log(err.response);
+        });
+    },
+  },
 };
 </script>
-<style lang="scss" scoped>
-.login {
-  width: 500px;
-  margin: 50px auto;
-  max-width: calc(100% - 30px);
-  padding: 0 15px;
-  img {
-    width: 40px;
-    margin: 30px 0;
-  }
-  h3 {
-    color: black !important;
-  }
-  form {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-  &-actions {
-    font-size: 0.85rem;
-    width: 230px;
-    max-width: 100%;
-    margin: 0 auto;
-  }
-}
-</style>
+<style lang="scss" scoped></style>
