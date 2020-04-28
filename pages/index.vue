@@ -14,7 +14,7 @@
       <v-flex sm12 md3>
         <v-text-field
           v-model="searchFiles"
-          label="Solo"
+          label="Search Files"
           single-line
           solo
           prepend-inner-icon="mdi-magnify"
@@ -28,13 +28,13 @@
     </p>
     <div class="files mb-5">
       <nuxt-link
-        v-for="(folder, index) in getFolders"
+        v-for="(folder, index) in filteredFolders"
         :key="index"
-        :to="`folder/${folder.dirname.toLowerCase()}`"
+        :to="`folder/${folder._id}`"
         class="link"
       >
         <Folder
-          :folder-name="folder.name"
+          :folder-name="folder.dirname"
           class="my-2"
           :last-updated="folder.updatedAt"
         />
@@ -45,12 +45,13 @@
     </p>
     <div class="files mb-5">
       <File
-        v-for="file in getFiles"
+        v-for="file in filteredFiles"
         :key="file.file_url"
         :format="file.file_extension"
         :name="file.filename"
         :last-edited="file.updatedAt"
         class="my-2"
+        @filesSelected="handleMultipleFiles($event, file)"
       />
     </div>
   </v-container>
@@ -60,6 +61,7 @@
 import { mapGetters } from 'vuex';
 import File from '@/components/File';
 import Folder from '@/components/Folder';
+import { EventBus } from '../plugins/eventBus';
 
 export default {
   layout: 'drive',
@@ -70,12 +72,44 @@ export default {
     searchFiles: '',
     fileTypes: ['pdf', 'Spreadsheets', 'Presentations'],
     fileType: '',
+    selectedFiles: [],
   }),
   computed: {
     ...mapGetters(['getBreadCrumbs', 'getFiles', 'getFolders']),
+    filteredFiles() {
+      const files = this.getFiles.filter((el) => {
+        return el.filename
+          .toLowerCase()
+          .includes(this.searchFiles.toLowerCase());
+      });
+      return files;
+    },
+    filteredFolders() {
+      const folders = this.getFolders.filter((el) => {
+        return el.dirname
+          .toLowerCase()
+          .includes(this.searchFiles.toLowerCase());
+      });
+      return folders;
+    },
   },
   methods: {
     openFolder() {},
+    handleMultipleFiles(e, file) {
+      if (e === true) {
+        this.selectedFiles.push(file._id);
+      } else {
+        this.selectedFiles = this.selectedFiles.filter((el) => {
+          return el !== file._id;
+        });
+      }
+      if (this.selectedFiles.length > 0) {
+        EventBus.$emit('showAction', this.selectedFiles);
+      } else {
+        EventBus.$emit('hideAction');
+      }
+      // this.showAction = true;
+    },
   },
 };
 </script>
@@ -97,6 +131,7 @@ export default {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(215px, 215px));
   justify-content: center;
+  gap: 15px;
 
   @media only screen and (min-width: 768px) {
     justify-content: flex-start;

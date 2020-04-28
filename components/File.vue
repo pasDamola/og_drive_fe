@@ -51,6 +51,11 @@ export default {
       return Moment(this.lastEdited).fromNow();
     },
   },
+  watch: {
+    checked(val) {
+      this.$emit('filesSelected', val);
+    },
+  },
   methods: {
     getFileIcon() {
       if (['doc', 'docm', 'dotm', 'docx', 'docb'].includes(this.format)) {

@@ -3,8 +3,14 @@
     <new-dialog
       :show-dialog="showNewFolderDialog"
       :is-loading="buttonLoading"
-      @closeDialog="closeDialog"
+      @closeDialog="closeDialog('showNewFolderDialog')"
       @createFolder="createFolder"
+    />
+    <move-dialog
+      :show-dialog="showMoveFolderDialog"
+      :is-loading="buttonLoading"
+      @closeDialog="closeDialog('showMoveFolderDialog')"
+      @moveFolder="moveFolder"
     />
     <Loader v-if="loading" />
     <v-snackbar v-if="error.status" v-model="error.status" :timeout="5000">
@@ -166,12 +172,20 @@
       <v-container class="pb-0">
         <v-toolbar flat class="toolbar px-2" color="transparent">
           <v-toolbar-title class="px-0">
-            <span class="row align-center mx-0 font-weight-black text--text">
-              <h2>
-                Files
-              </h2>
-              <p class="count">(50)</p>
-            </span>
+            <v-layout justify-space-between full-width>
+              <span class="row align-center mx-0 font-weight-black text--text">
+                <h2>
+                  Files
+                </h2>
+                <p class="count">(50)</p>
+              </span>
+              <v-layout v-if="showAction" class="full-width" justify-end>
+                <v-btn color="primary" @click="showMoveFolderDialog = true">
+                  Move
+                </v-btn>
+                <v-btn text>Delete</v-btn>
+              </v-layout>
+            </v-layout>
           </v-toolbar-title>
           <v-layout justify-space-between align-center>
             <v-breadcrumbs :items="getBreadCrumbs" class="px-0">
@@ -218,10 +232,12 @@
 <script>
 import { mapGetters } from 'vuex';
 import NewDialog from '@/components/NewFolder';
+import MoveDialog from '@/components/MoveFolder';
 import Loader from '@/components/Loader';
+import { EventBus } from '../plugins/eventBus';
 
 export default {
-  components: { NewDialog, Loader },
+  components: { NewDialog, Loader, MoveDialog },
   props: {
     source: {
       type: String,
@@ -286,26 +302,35 @@ export default {
     loading: false,
     buttonLoading: false,
     showNewFolderDialog: false,
+    showMoveFolderDialog: false,
     pressed: false,
+    showAction: false,
     error: { status: false, message: '' },
+    fileIds: [],
   }),
   computed: {
     ...mapGetters(['getBreadCrumbs', 'isLoggedIn', 'getUser']),
   },
   mounted() {
-    console.log('Mounted');
     const token = this.isLoggedIn(this);
     const user = this.getUser(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     this.loading = true;
     this.fetchUserFiles(user.id, 0);
+    EventBus.$on('showAction', (files) => {
+      this.fileIds = files;
+      this.showAction = true;
+    });
+    EventBus.$on('hideAction', () => {
+      this.showAction = false;
+    });
   },
   methods: {
     openNewFolderDialog() {
       this.showNewFolderDialog = true;
     },
-    closeDialog() {
-      this.showNewFolderDialog = false;
+    closeDialog(e) {
+      this[e] = false;
     },
     createFolder(e) {
       this.buttonLoading = true;
@@ -354,6 +379,28 @@ export default {
             this.error.message = err.response.data.message;
           });
       }
+    },
+    moveFolder(e) {
+      console.log(e);
+      this.buttonLoading = true;
+      const data = {
+        file_id: this.fileIds,
+        directory_id: e,
+      };
+      this.$axios
+        .put('files/move/bulk', data)
+        .then(() => {
+          const user = this.getUser(this);
+          this.loading = true;
+          this.buttonLoading = false;
+          this.fetchUserFiles(user.id, 0);
+        })
+        .catch((err) => {
+          this.buttonLoading = false;
+          this.error.status = true;
+          this.error.message = err.response.data.message;
+        });
+      this.showMoveFolderDialog = false;
     },
   },
 };
