@@ -14,6 +14,18 @@ const mixin = {
           console.log(err);
         });
     },
+    fetchUsers() {
+      this.$store
+        .dispatch('fetchUsers')
+        .then((res) => {
+          this.loading = false;
+          console.log(res);
+        })
+        .catch((err) => {
+          this.loading = false;
+          console.log(err);
+        });
+    },
   },
 };
 
