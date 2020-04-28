@@ -15,8 +15,7 @@
         <Card
           color="primary"
           icon="mdi-folder"
-          title="Folders"
-          value="75.521"
+          :title="`${allDirectories.length} Folders`"
           sub-icon="mdi-tag"
           sub-text="Tracked from Google Analytics"
         />
@@ -26,7 +25,7 @@
         <Card
           color="success"
           icon="mdi-file"
-          title="Files"
+          :title="`${allFiles.length} Files`"
           value="$ 34,245"
           sub-icon="mdi-calendar"
           sub-text="Last 24 Hours"
@@ -59,12 +58,27 @@ export default {
     allUsers() {
       return this.$store.state.allUsers;
     },
-    ...mapGetters(['getUsers', 'getFiles', 'isLoggedIn', 'getFolders']),
+    allFiles() {
+      return this.$store.state.totalFiles;
+    },
+    allDirectories() {
+      return this.$store.state.totalDirectories;
+    },
+    ...mapGetters([
+      'getUsers',
+      'getFiles',
+      'isLoggedIn',
+      'getFolders',
+      'getTotalFiles',
+      'getTotalDirectories',
+    ]),
   },
   mounted() {
     const token = this.isLoggedIn(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     this.fetchUsers();
+    this.fetchAllFiles();
+    this.fetchAllDirectories();
   },
 };
 </script>

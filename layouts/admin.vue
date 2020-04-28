@@ -1,53 +1,7 @@
 <template>
   <v-app id="inspire">
-    <new-dialog
-      :show-dialog="showNewFolderDialog"
-      :is-loading="buttonLoading"
-      @closeDialog="closeDialog"
-      @createFolder="createFolder"
-    />
-    <Loader v-if="loading" />
-    <v-snackbar v-if="error.status" v-model="error.status" :timeout="5000">
-      {{ error.message }}
-      <v-btn color="pink" text @click="error.status = false">
-        Close
-      </v-btn>
-    </v-snackbar>
     <v-navigation-drawer v-model="drawer" clipped app class="drawer">
       <v-list dense shaped>
-        <v-menu>
-          <v-list>
-            <v-list-item @click="openNewFolderDialog">
-              <v-list-item-action>
-                <v-icon>mdi-folder-plus-outline</v-icon>
-              </v-list-item-action>
-              <v-list-item-content>
-                <v-list-item-title>
-                  New Folder
-                </v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-            <v-divider />
-            <v-list-item>
-              <input
-                id="file-upload"
-                type="file"
-                name="file-upload"
-                @change="handleFileUpload"
-              />
-              <label for="file-upload" class="row pl-3">
-                <v-list-item-action>
-                  <v-icon>mdi-file-upload-outline</v-icon>
-                </v-list-item-action>
-                <v-list-item-content>
-                  <v-list-item-title>
-                    Upload File
-                  </v-list-item-title>
-                </v-list-item-content>
-              </label>
-            </v-list-item>
-          </v-list>
-        </v-menu>
         <template v-for="item in items">
           <v-row v-if="item.heading" :key="item.heading" align="center">
             <v-col cols="6">
@@ -79,7 +33,6 @@
               :key="i"
               link
               :to="item.to"
-              color="primary"
             >
               <v-list-item-action v-if="child.icon">
                 <v-icon>{{ child.icon }}</v-icon>
@@ -131,7 +84,7 @@
               alt="Vuetify"
             />
           </v-avatar>
-          <span class="hidden-sm-and-down">Abdulqudus</span>
+          <span class="hidden-sm-and-down">{{ getUser.username }}</span>
           <v-icon>mdi-menu-down</v-icon>
         </v-layout>
       </v-btn>
@@ -145,11 +98,8 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import NewDialog from '@/components/NewFolder';
-import Loader from '@/components/Loader';
 
 export default {
-  components: { NewDialog, Loader },
   props: {
     source: {
       type: String,
@@ -169,11 +119,6 @@ export default {
         icon: 'mdi-account',
         text: 'User Accounts',
         to: '/admin/allusers',
-      },
-      {
-        icon: 'mdi-logout',
-        text: 'Logout',
-        to: '#5',
       },
       // {
       //   icon: 'mdi-chevron-up',
@@ -208,12 +153,17 @@ export default {
     error: { status: false, message: '' },
   }),
   computed: {
+    getUser() {
+      console.log(this.$store.getters.getUser);
+      return this.$store.getters.getUser;
+    },
     ...mapGetters(['getBreadCrumbs', 'isLoggedIn', 'getUser']),
   },
   mounted() {
     console.log('Mounted');
     const token = this.isLoggedIn(this);
     const user = this.getUser(this);
+    console.log(user);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     this.loading = true;
     this.fetchUserFiles(user.id, 0);
