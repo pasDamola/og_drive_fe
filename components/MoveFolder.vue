@@ -29,10 +29,10 @@
         <v-btn
           color="primary px-5"
           :loading="isLoading"
-          @click="moveFolder"
           :disabled="!folder"
+          @click="moveFolder"
         >
-          Create
+          Move
         </v-btn>
       </v-card-actions>
     </v-card>

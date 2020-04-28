@@ -52,6 +52,7 @@
                 id="file-upload"
                 type="file"
                 name="file-upload"
+                multiple
                 @change="handleFileUpload"
               />
               <label for="file-upload" class="row pl-3">
@@ -183,7 +184,7 @@
                 <v-btn color="primary" @click="showMoveFolderDialog = true">
                   Move
                 </v-btn>
-                <v-btn text>Delete</v-btn>
+                <v-btn text @click="deleteFiles">Delete</v-btn>
               </v-layout>
             </v-layout>
           </v-toolbar-title>
@@ -309,7 +310,7 @@ export default {
     fileIds: [],
   }),
   computed: {
-    ...mapGetters(['getBreadCrumbs', 'isLoggedIn', 'getUser']),
+    ...mapGetters(['getBreadCrumbs', 'isLoggedIn', 'getUser', 'getLevel']),
   },
   mounted() {
     const token = this.isLoggedIn(this);
@@ -324,6 +325,7 @@ export default {
     EventBus.$on('hideAction', () => {
       this.showAction = false;
     });
+    this.$store.dispatch('fetchFolders', user.id);
   },
   methods: {
     openNewFolderDialog() {
@@ -333,13 +335,24 @@ export default {
       this[e] = false;
     },
     createFolder(e) {
+      const parentDir = this.$route.params.name || '';
       this.buttonLoading = true;
       const user = this.getUser(this);
-      const data = {
-        dirname: e,
-        user_id: user.id,
-        level: 0,
-      };
+      let data;
+      if (!parentDir) {
+        data = {
+          dirname: e,
+          user_id: user.id,
+          level: 0,
+        };
+      } else {
+        data = {
+          dirname: e,
+          user_id: user.id,
+          level: this.getLevel + 1,
+          parent_dir: parentDir,
+        };
+      }
       this.$axios
         .post('directory/create', data)
         .then(({ data }) => {
@@ -347,10 +360,12 @@ export default {
           this.buttonLoading = false;
           this.loading = true;
           this.fetchUserFiles(user.id, 0);
+          this.$store.dispatch('fetchFolders', user.id);
         })
         .catch((err) => {
           this.buttonLoading = false;
-          console.log(err.response);
+          this.error.status = true;
+          this.error.message = err.response.data.message;
         });
       this.showNewFolderDialog = false;
     },
@@ -359,11 +374,13 @@ export default {
     },
     handleFileUpload(e) {
       this.loading = true;
-      const user = JSON.parse(JSON.stringify(this.$cookies.get('user')));
+      const user = this.getUser(this);
       const file = e.target.files;
-      const formData = new FormData();
+      let formData = new FormData();
       formData.set('user_id', user.id);
-      if (file && file[0]) {
+      if (file.length > 1) {
+        this.handleMultipleFileUpload(user.id, file);
+      } else {
         formData.set('file', file[0]);
         this.$axios
           .post('files/upload/single', formData, {
@@ -380,8 +397,28 @@ export default {
           });
       }
     },
+    handleMultipleFileUpload(id, files) {
+      const formData = new FormData();
+      formData.set('user_id', id);
+      [...files].forEach((file) => {
+        formData.append('files', file);
+      });
+      this.$axios
+        .post('files/upload/bulk', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
+        .then((res) => {
+          console.log(res);
+          this.fetchUserFiles(id, 0);
+        })
+        .catch((err) => {
+          console.log(err.response);
+          this.loading = false;
+          this.error.status = true;
+          this.error.message = err.response.data.message;
+        });
+    },
     moveFolder(e) {
-      console.log(e);
       this.buttonLoading = true;
       const data = {
         file_id: this.fileIds,
@@ -401,6 +438,19 @@ export default {
           this.error.message = err.response.data.message;
         });
       this.showMoveFolderDialog = false;
+    },
+    deleteFiles() {
+      this.$axios
+        .delete('/files/bulk', { data: { file_id: this.fileIds } })
+        .then(() => {
+          const user = this.getUser(this);
+          this.loading = true;
+          this.fetchUserFiles(user.id, 0);
+        })
+        .catch((err) => {
+          this.error.status = true;
+          this.error.message = err.response.data.message;
+        });
     },
   },
 };

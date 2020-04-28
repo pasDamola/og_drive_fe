@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import { EventBus } from './eventBus';
 
 const mixin = {
   methods: {
@@ -13,6 +14,21 @@ const mixin = {
           this.loading = false;
           console.log(err);
         });
+    },
+    handleMultipleFiles(e, file) {
+      if (e === true) {
+        this.selectedFiles.push(file._id);
+      } else {
+        this.selectedFiles = this.selectedFiles.filter((el) => {
+          return el !== file._id;
+        });
+      }
+      if (this.selectedFiles.length > 0) {
+        EventBus.$emit('showAction', this.selectedFiles);
+      } else {
+        EventBus.$emit('hideAction');
+      }
+      // this.showAction = true;
     },
   },
 };

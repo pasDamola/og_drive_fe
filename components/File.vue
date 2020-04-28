@@ -81,6 +81,8 @@ export default {
         return '/images/pdf.png';
       } else if (this.format === 'html') {
         return '/images/html.png';
+      } else if (this.format === 'png') {
+        return '/images/png.png';
       }
     },
   },

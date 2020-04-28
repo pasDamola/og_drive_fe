@@ -1,5 +1,12 @@
 <template>
   <v-container grid-list-md class="my-drive">
+    <Loader v-if="loading" />
+    <v-snackbar v-if="error.status" v-model="error.status" :timeout="5000">
+      {{ error.message }}
+      <v-btn color="pink" text @click="error.status = false">
+        Close
+      </v-btn>
+    </v-snackbar>
     <v-layout align-center justify-space-between row wrap>
       <v-flex sm12 md2>
         <v-select
@@ -27,18 +34,15 @@
       Folders
     </p>
     <div class="files mb-5">
-      <nuxt-link
+      <Folder
         v-for="(folder, index) in filteredFolders"
         :key="index"
-        :to="`folder/${folder._id}`"
-        class="link"
-      >
-        <Folder
-          :folder-name="folder.dirname"
-          class="my-2"
-          :last-updated="folder.updatedAt"
-        />
-      </nuxt-link>
+        :folder-name="folder.dirname"
+        :folder-id="folder._id"
+        class="my-2"
+        :last-updated="folder.updatedAt"
+        @deleteFolder="deleteFolder"
+      />
     </div>
     <p class="font-weight-medium body-2">
       Files
@@ -61,11 +65,11 @@
 import { mapGetters } from 'vuex';
 import File from '@/components/File';
 import Folder from '@/components/Folder';
-import { EventBus } from '../plugins/eventBus';
+import Loader from '@/components/Loader';
 
 export default {
-  layout: 'drive',
-  components: { File, Folder },
+  layout: 'Drive',
+  components: { File, Folder, Loader },
   middleware: 'authenticated',
   data: () => ({
     tempDate: new Date(2020, 3, 22),
@@ -73,9 +77,23 @@ export default {
     fileTypes: ['pdf', 'Spreadsheets', 'Presentations'],
     fileType: '',
     selectedFiles: [],
+    loading: false,
+    error: { status: false, message: '' },
   }),
+  mounted() {
+    const token = this.isLoggedIn(this);
+    this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+    const user = this.getUser(this);
+    this.$store.dispatch('fetchFolders', user.id);
+  },
   computed: {
-    ...mapGetters(['getBreadCrumbs', 'getFiles', 'getFolders']),
+    ...mapGetters([
+      'getBreadCrumbs',
+      'getFiles',
+      'isLoggedIn',
+      'getFolders',
+      'getUser',
+    ]),
     filteredFiles() {
       const files = this.getFiles.filter((el) => {
         return el.filename
@@ -85,7 +103,8 @@ export default {
       return files;
     },
     filteredFolders() {
-      const folders = this.getFolders.filter((el) => {
+      const subFolders = this.getFolders.filter((folder) => !folder.parent_dir);
+      const folders = subFolders.filter((el) => {
         return el.dirname
           .toLowerCase()
           .includes(this.searchFiles.toLowerCase());
@@ -94,21 +113,20 @@ export default {
     },
   },
   methods: {
-    openFolder() {},
-    handleMultipleFiles(e, file) {
-      if (e === true) {
-        this.selectedFiles.push(file._id);
-      } else {
-        this.selectedFiles = this.selectedFiles.filter((el) => {
-          return el !== file._id;
+    deleteFolder(e) {
+      this.loading = true;
+      const user = this.getUser(this);
+      this.$axios
+        .delete(`directory/deleteDirectory/${e}`)
+        .then(({ data }) => {
+          console.log(data);
+          this.fetchUserFiles(user.id, 0);
+        })
+        .catch((err) => {
+          this.loading = false;
+          this.error.status = true;
+          this.error.message = err.response.data.message;
         });
-      }
-      if (this.selectedFiles.length > 0) {
-        EventBus.$emit('showAction', this.selectedFiles);
-      } else {
-        EventBus.$emit('hideAction');
-      }
-      // this.showAction = true;
     },
   },
 };
@@ -131,7 +149,7 @@ export default {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(215px, 215px));
   justify-content: center;
-  gap: 15px;
+  gap: 10px;
 
   @media only screen and (min-width: 768px) {
     justify-content: flex-start;

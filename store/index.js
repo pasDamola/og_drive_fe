@@ -14,6 +14,7 @@ export const state = () => ({
       icon: true,
     },
   ],
+  level: 0,
 });
 
 export const getters = {
@@ -30,6 +31,7 @@ export const getters = {
   },
   getFiles: (state) => state.allFiles,
   getFolders: (state) => state.allFolders,
+  getLevel: (state) => state.level,
 };
 
 export const actions = {
@@ -65,9 +67,20 @@ export const actions = {
       return Promise.reject(error);
     }
   },
+  saveCurrentLevel({ commit }, payload) {
+    commit('SAVE_LEVEL', payload);
+  },
+  fetchFolders({ commit }, payload) {
+    this.$axios.post('users/directories', { user_id: payload }).then((res) => {
+      commit('SAVE_USER_FOLDERS', res.data);
+    });
+  },
 };
 
 export const mutations = {
+  SAVE_LEVEL(state, payload) {
+    state.level = payload;
+  },
   ADD_BREADCRUMB(state, payload) {
     const breadCrumbs = [...state.breadCrumbs];
     // Enable breadcrumbs
@@ -85,12 +98,10 @@ export const mutations = {
   },
   REMOVE_BREADCRUMB(state, payload) {
     const breadCrumbs = [...state.breadCrumbs];
-    console.log(payload);
     // Remove current page from breadcrumb
     state.breadCrumbs = [
       ...breadCrumbs.filter((breadCrumb) => breadCrumb.href !== payload),
     ];
-    console.log(state.breadCrumbs);
   },
   RESET_BREADCRUMB(state) {
     state.breadCrumbs = [
@@ -103,6 +114,8 @@ export const mutations = {
   },
   SAVE_USER_FILES(state, payload) {
     state.allFiles = payload.files;
+  },
+  SAVE_USER_FOLDERS(state, payload) {
     state.allFolders = payload.directories;
   },
   //   LOAD_FILES(state, files) {
