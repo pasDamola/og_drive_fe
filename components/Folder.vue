@@ -18,15 +18,21 @@
     <p>{{ folderName }}</p>
     <v-layout align-center justify-space-between class="folder-details">
       <p>1 MB</p>
-      <p>12.07.2019</p>
+      <p>{{ formatDate }}</p>
     </v-layout>
   </div>
 </template>
 
 <script>
+import Moment from 'moment';
+
 export default {
   props: {
     folderName: {
+      type: String,
+      default: '',
+    },
+    lastUpdated: {
       type: String,
       default: '',
     },
@@ -34,6 +40,11 @@ export default {
   data: () => ({
     checked: false,
   }),
+  computed: {
+    formatDate() {
+      return Moment(this.lastUpdated).fromNow();
+    },
+  },
 };
 </script>
 
