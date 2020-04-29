@@ -14,7 +14,7 @@
       </v-icon>
       <v-menu offset-y>
         <template v-slot:activator="{ on }">
-          <v-btn icon v-on.prevent.stop="on">
+          <v-btn icon v-on="on">
             <v-icon size="20">mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
@@ -25,7 +25,7 @@
         </v-list>
       </v-menu>
     </v-layout>
-    <nuxt-link :to="`folder/${folderId}`" class="link">
+    <nuxt-link :to="`/folder/${folderId}`" class="link">
       <img src="/images/folder.png" alt="Folder icon" />
     </nuxt-link>
     <p>{{ folderName }}</p>

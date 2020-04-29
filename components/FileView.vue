@@ -1,12 +1,6 @@
 <template>
-  <v-container grid-list-md class="my-drive">
+  <div grid-list-md class="my-drive">
     <Loader v-if="loading" />
-    <v-snackbar v-if="error.status" v-model="error.status" :timeout="5000">
-      {{ error.message }}
-      <v-btn color="pink" text @click="error.status = false">
-        Close
-      </v-btn>
-    </v-snackbar>
     <v-layout align-center justify-space-between row wrap>
       <v-flex sm12 md2>
         <v-select
@@ -58,38 +52,42 @@
         @filesSelected="handleMultipleFiles($event, file)"
       />
     </div>
-  </v-container>
+  </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex';
+import Loader from '@/components/Loader';
 import File from '@/components/File';
 import Folder from '@/components/Folder';
-import Loader from '@/components/Loader';
+import { EventBus } from '../plugins/eventBus';
 
 export default {
   layout: 'Drive',
   components: { File, Folder, Loader },
-  middleware: 'authenticated',
+  props: {
+    folders: {
+      type: Array,
+      default: () => {},
+    },
+    fileKey: {
+      type: String,
+      default: '',
+    },
+  },
   data: () => ({
-    tempDate: new Date(2020, 3, 22),
+    routeName: '',
+    loading: false,
     searchFiles: '',
     fileTypes: ['pdf', 'Spreadsheets', 'Presentations'],
     fileType: '',
     selectedFiles: [],
-    loading: false,
-    error: { status: false, message: '' },
+    allFiles: [],
   }),
   computed: {
-    ...mapGetters([
-      'getBreadCrumbs',
-      'getFiles',
-      'isLoggedIn',
-      'getFolders',
-      'getUser',
-    ]),
+    ...mapGetters(['getFolders', 'isLoggedIn']),
     filteredFiles() {
-      const files = this.getFiles.filter((el) => {
+      const files = this.allFiles.filter((el) => {
         return el.filename
           .toLowerCase()
           .includes(this.searchFiles.toLowerCase());
@@ -97,7 +95,9 @@ export default {
       return files;
     },
     filteredFolders() {
-      const subFolders = this.getFolders.filter((folder) => !folder.parent_dir);
+      const subFolders = this.getFolders.filter(
+        (folder) => folder.parent_dir === this.$route.params.name
+      );
       const folders = subFolders.filter((el) => {
         return el.dirname
           .toLowerCase()
@@ -109,8 +109,15 @@ export default {
   mounted() {
     const token = this.isLoggedIn(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
-    const user = this.getUser(this);
-    this.$store.dispatch('fetchFolders', user.id);
+    this.getFolderDetails();
+    console.log('Mounted');
+    EventBus.$on('addedNewFile', this.getFolderDetails);
+  },
+  beforeDestroy() {
+    this.$store.dispatch(
+      'removeBreadCrumb',
+      `/folder/${this.$route.params.name}`
+    );
   },
   methods: {
     deleteFolder(e) {
@@ -118,14 +125,35 @@ export default {
       const user = this.getUser(this);
       this.$axios
         .delete(`directory/deleteDirectory/${e}`)
-        .then(({ data }) => {
-          console.log(data);
-          this.fetchUserFiles(user.id, 0);
+        .then(() => {
+          EventBus.$emit('hideAction');
+          this.getFolderDetails();
+          this.$store.dispatch('fetchFolders', user.id);
         })
         .catch((err) => {
+          EventBus.$emit('hideAction');
           this.loading = false;
           this.error.status = true;
           this.error.message = err.response.data.message;
+        });
+    },
+    getFolderDetails() {
+      this.loading = true;
+      this.$axios
+        .get(`directory/${this.$route.params.name}`)
+        .then(({ data }) => {
+          this.loading = false;
+          this.$store.dispatch('addBreadCrumbs', {
+            text: data.directory.dirname,
+            href: `/folder/${this.$route.params.name}`,
+            disabled: true,
+          });
+          this.$store.dispatch('saveCurrentLevel', data.directory.level);
+          this.allFiles = data.files;
+        })
+        .catch((err) => {
+          this.loading = false;
+          console.log(err.response);
         });
     },
   },
@@ -133,6 +161,21 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.toolbar::v-deep {
+  min-height: 100px;
+  .v-toolbar__content {
+    display: block;
+    padding: 0;
+  }
+}
+
+.count {
+  margin-bottom: 0;
+  margin-left: 5px;
+  font-size: 1.5em;
+  opacity: 0.7;
+}
+
 .my-drive {
   padding: 20px;
   height: calc(100vh - 16vh);
@@ -149,7 +192,7 @@ export default {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(215px, 215px));
   justify-content: center;
-  gap: 10px;
+  gap: 15px;
 
   @media only screen and (min-width: 768px) {
     justify-content: flex-start;

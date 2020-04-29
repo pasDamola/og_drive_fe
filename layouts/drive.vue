@@ -195,7 +195,8 @@
               </template>
               <template v-slot:item="{ item }">
                 <v-breadcrumbs-item
-                  :href="item.href"
+                  :to="item.href"
+                  nuxt
                   :disabled="item.disabled"
                   class="breadcrumb"
                 >
@@ -373,11 +374,15 @@ export default {
       this.$store.dispatch('resetBreadCrumbs');
     },
     handleFileUpload(e) {
+      const parentDir = this.$route.params.name || '';
       this.loading = true;
       const user = this.getUser(this);
       const file = e.target.files;
       let formData = new FormData();
       formData.set('user_id', user.id);
+      if (parentDir) {
+        formData.set('directory_id', parentDir);
+      }
       if (file.length > 1) {
         this.handleMultipleFileUpload(user.id, file);
       } else {
@@ -388,6 +393,7 @@ export default {
           })
           .then((res) => {
             console.log(res);
+            EventBus.$emit('addedNewFile');
             this.fetchUserFiles(user.id, 0);
           })
           .catch((err) => {
@@ -398,11 +404,15 @@ export default {
       }
     },
     handleMultipleFileUpload(id, files) {
+      const parentDir = this.$route.params.name || '';
       const formData = new FormData();
       formData.set('user_id', id);
       [...files].forEach((file) => {
         formData.append('files', file);
       });
+      if (parentDir) {
+        formData.set('directory_id', parentDir);
+      }
       this.$axios
         .post('files/upload/bulk', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },

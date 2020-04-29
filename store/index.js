@@ -18,7 +18,12 @@ export const state = () => ({
 });
 
 export const getters = {
-  getBreadCrumbs: (state) => state.breadCrumbs,
+  getBreadCrumbs: (state) => {
+    return state.breadCrumbs.filter((el, index, self) => {
+      const elIndex = self.findIndex((element) => element.href === el.href);
+      return index === elIndex;
+    });
+  },
   isLoggedIn: () => {
     return function (that) {
       return that.$cookies.get('token');
@@ -87,7 +92,14 @@ export const mutations = {
     breadCrumbs.forEach((breadCrumb) => {
       breadCrumb.disabled = false;
     });
+
     breadCrumbs.push(payload);
+
+    breadCrumbs.forEach((el) => {
+      if (el.href === payload.href) {
+        el.disabled = true;
+      }
+    });
     // Remove duplicate breadcrumbs
     const filtered = breadCrumbs.filter((el, index, self) => {
       const elIndex = self.findIndex((element) => element.href === el.href);
@@ -98,10 +110,11 @@ export const mutations = {
   },
   REMOVE_BREADCRUMB(state, payload) {
     const breadCrumbs = [...state.breadCrumbs];
+    const index = breadCrumbs.findIndex((el) => el.href === payload);
     // Remove current page from breadcrumb
-    state.breadCrumbs = [
-      ...breadCrumbs.filter((breadCrumb) => breadCrumb.href !== payload),
-    ];
+    if (index > -1) {
+      state.breadCrumbs = [...breadCrumbs.slice(0, index + 1)];
+    }
   },
   RESET_BREADCRUMB(state) {
     state.breadCrumbs = [
