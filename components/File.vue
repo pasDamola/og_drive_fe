@@ -20,6 +20,9 @@
           <v-list-item @click="$emit('viewDetails', [fileId, getFileIcon()])">
             <v-list-item-content>View Details</v-list-item-content>
           </v-list-item>
+          <v-list-item @click="shareFile">
+            <v-list-item-content>Share</v-list-item-content>
+          </v-list-item>
         </v-list>
       </v-menu>
     </v-layout>
@@ -34,6 +37,8 @@
 
 <script>
 import Moment from 'moment';
+import { EventBus } from '../plugins/eventBus';
+
 export default {
   filters: {
     truncate(val) {
@@ -102,6 +107,9 @@ export default {
       } else if (this.format === 'png') {
         return '/images/png.png';
       }
+    },
+    shareFile() {
+      EventBus.$emit('shareFile', this.fileId);
     },
   },
 };

@@ -12,10 +12,22 @@
       @closeDialog="closeDialog('showMoveFolderDialog')"
       @moveFolder="moveFolder"
     />
+    <share-dialog
+      :show-dialog="showShareDialog"
+      :is-loading="buttonLoading"
+      @closeDialog="closeDialog('showShareDialog')"
+      @share="handleFileSharing"
+    />
     <Loader v-if="loading" />
     <v-snackbar v-if="error.status" v-model="error.status" :timeout="5000">
       {{ error.message }}
       <v-btn color="pink" text @click="error.status = false">
+        Close
+      </v-btn>
+    </v-snackbar>
+    <v-snackbar v-if="success.status" v-model="success.status" :timeout="5000">
+      {{ success.message }}
+      <v-btn color="green" text @click="success.status = false">
         Close
       </v-btn>
     </v-snackbar>
@@ -235,11 +247,12 @@
 import { mapGetters } from 'vuex';
 import NewDialog from '@/components/NewFolder';
 import MoveDialog from '@/components/MoveFolder';
+import ShareDialog from '@/components/ShareDialog';
 import Loader from '@/components/Loader';
 import { EventBus } from '../plugins/eventBus';
 
 export default {
-  components: { NewDialog, Loader, MoveDialog },
+  components: { NewDialog, Loader, MoveDialog, ShareDialog },
   props: {
     source: {
       type: String,
@@ -308,8 +321,10 @@ export default {
     pressed: false,
     showAction: false,
     error: { status: false, message: '' },
+    success: { status: false, message: '' },
     fileIds: [],
     fileLength: 0,
+    showShareDialog: false,
   }),
   computed: {
     ...mapGetters(['getBreadCrumbs', 'isLoggedIn', 'getUser', 'getLevel']),
@@ -329,6 +344,10 @@ export default {
     });
     EventBus.$on('fileLength', (length) => {
       this.fileLength = length;
+    });
+    EventBus.$on('shareFile', (id) => {
+      this.fileIds.push(id);
+      this.shareFile();
     });
     this.$store.dispatch('fetchFolders', user.id);
   },
@@ -464,6 +483,32 @@ export default {
         .catch((err) => {
           this.error.status = true;
           this.error.message = err.response.data.message;
+        });
+    },
+    shareFile() {
+      this.showShareDialog = true;
+    },
+    handleFileSharing(users) {
+      const user = this.getUser(this);
+      const data = {
+        user_id: user.id,
+        user_ids: users,
+        files: this.fileIds,
+      };
+      this.buttonLoading = true;
+      this.$axios
+        .post('files/share', data)
+        .then(({ data }) => {
+          this.buttonLoading = false;
+          this.showShareDialog = false;
+          this.success.status = true;
+          this.success.message = data.message;
+        })
+        .catch((err) => {
+          this.buttonLoading = false;
+          this.error.status = true;
+          this.error.message = 'Something went wrong';
+          console.log(err.response);
         });
     },
   },
