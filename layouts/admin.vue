@@ -13,15 +13,16 @@
               <a href="#!" class="body-2 black--text">EDIT</a>
             </v-col>
           </v-row>
-          <v-list-group
+          <v-list-item-group
             v-else-if="item.children"
             :key="item.text"
             v-model="item.model"
             :prepend-icon="item.model ? item.icon : item['icon-alt']"
             append-icon=""
             color="primary"
+            exact
           >
-            <template v-slot:activator>
+            <template>
               <v-list-item-content>
                 <v-list-item-title>
                   {{ item.text }}
@@ -43,7 +44,7 @@
                 </v-list-item-title>
               </v-list-item-content>
             </v-list-item>
-          </v-list-group>
+          </v-list-item-group>
           <v-list-item
             v-else
             :key="item.text"

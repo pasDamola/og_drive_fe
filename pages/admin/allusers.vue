@@ -177,6 +177,7 @@
           mdi-delete
         </v-icon>
         <v-icon
+          v-if="item.role == 'user'"
           color="green"
           title="Give Admin privileges"
           small
@@ -185,6 +186,7 @@
           mdi-account
         </v-icon>
         <v-icon
+          v-if="item.role == 'admin'"
           color="orange"
           title="Block Admin privileges"
           small
@@ -234,13 +236,6 @@ export default {
     adminItem: {},
     deletedItem: {},
     removeItem: {},
-    defaultItem: {
-      name: '',
-      calories: 0,
-      fat: 0,
-      carbs: 0,
-      protein: 0,
-    },
   }),
   computed: {
     allUsers() {
