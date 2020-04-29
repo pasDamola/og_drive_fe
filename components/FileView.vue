@@ -1,5 +1,58 @@
 <template>
   <div grid-list-md class="my-drive">
+    <v-navigation-drawer
+      v-model="showDrawer"
+      temporary
+      right
+      app
+      fixed
+      clipped
+      overlay-opacity="0.2"
+      width="300px"
+      class="py-10"
+    >
+      <Loader v-if="loadingDetails" />
+      <v-layout v-else column justify-center align-center class="fill-height">
+        <img :src="fileDetails.icon" alt="" width="100px" />
+        <ul class="pl-0 file-details">
+          <li class="my-2">
+            <b>File Name: </b>
+            {{ fileDetails.name }}
+          </li>
+          <li class="my-2">
+            <b>File Owner: </b>
+            {{ fileDetails.owner }}
+          </li>
+          <li class="my-2">
+            <b>Updated: </b>
+            {{ fileDetails.lastUpdated }}
+          </li>
+        </ul>
+        <v-layout class="file-actions px-8" row justify-space-between>
+          <v-tooltip top>
+            <template v-slot:activator="{ on }">
+              <a :href="fileDetails.link" download v-on="on">
+                <v-icon color="primary" dark>
+                  mdi-cloud-download-outline
+                </v-icon>
+              </a>
+            </template>
+            <span>Download</span>
+          </v-tooltip>
+
+          <v-tooltip top>
+            <template v-slot:activator="{ on }">
+              <a :href="fileDetails.link" target="_blank" v-on="on">
+                <v-icon color="primary" dark>
+                  mdi-open-in-new
+                </v-icon>
+              </a>
+            </template>
+            <span>Open</span>
+          </v-tooltip>
+        </v-layout>
+      </v-layout>
+    </v-navigation-drawer>
     <Loader v-if="loading" />
     <v-layout align-center justify-space-between row wrap>
       <v-flex sm12 md2>
@@ -47,9 +100,12 @@
         :key="file.file_url"
         :format="file.file_extension"
         :name="file.filename"
+        :file-id="file._id"
         :last-edited="file.updatedAt"
         class="my-2"
         @filesSelected="handleMultipleFiles($event, file)"
+        @deleteFile="deleteFile"
+        @viewDetails="showFileDetails"
       />
     </div>
   </div>
@@ -57,6 +113,7 @@
 
 <script>
 import { mapGetters } from 'vuex';
+import Moment from 'moment';
 import Loader from '@/components/Loader';
 import File from '@/components/File';
 import Folder from '@/components/Folder';
@@ -83,6 +140,9 @@ export default {
     fileType: '',
     selectedFiles: [],
     allFiles: [],
+    showDrawer: false,
+    loadingDetails: false,
+    fileDetails: '',
   }),
   computed: {
     ...mapGetters(['getFolders', 'isLoggedIn']),
@@ -110,7 +170,6 @@ export default {
     const token = this.isLoggedIn(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     this.getFolderDetails();
-    console.log('Mounted');
     EventBus.$on('addedNewFile', this.getFolderDetails);
   },
   beforeDestroy() {
@@ -137,24 +196,62 @@ export default {
           this.error.message = err.response.data.message;
         });
     },
-    getFolderDetails() {
+    deleteFile(e) {
       this.loading = true;
       this.$axios
-        .get(`directory/${this.$route.params.name}`)
-        .then(({ data }) => {
+        .delete('/files', { data: { file_id: e } })
+        .then(() => {
+          this.getFolderDetails();
           this.loading = false;
-          this.$store.dispatch('addBreadCrumbs', {
-            text: data.directory.dirname,
-            href: `/folder/${this.$route.params.name}`,
-            disabled: true,
-          });
-          this.$store.dispatch('saveCurrentLevel', data.directory.level);
-          this.allFiles = data.files;
         })
         .catch((err) => {
           this.loading = false;
-          console.log(err.response);
+          this.error.status = true;
+          this.error.message = err.response.data.message;
         });
+    },
+    getFolderDetails() {
+      if (this.$route.params.name !== undefined) {
+        this.loading = true;
+        this.$axios
+          .get(`directory/${this.$route.params.name}`)
+          .then(({ data }) => {
+            this.loading = false;
+            this.$store.dispatch('addBreadCrumbs', {
+              text: data.directory.dirname,
+              href: `/folder/${this.$route.params.name}`,
+              disabled: true,
+            });
+            this.$store.dispatch('saveCurrentLevel', data.directory.level);
+            this.allFiles = data.files;
+            this.emitFileLength();
+          })
+          .catch((err) => {
+            this.loading = false;
+            console.log(err.response);
+          });
+      }
+    },
+    showFileDetails([e, icon]) {
+      let fileDetails = {};
+      this.showDrawer = true;
+      this.loadingDetails = true;
+      fileDetails.icon = icon;
+      this.$axios.get(`files/${e}`).then(({ data }) => {
+        this.loadingDetails = false;
+        fileDetails.name = data.file.filename;
+        fileDetails.lastUpdated = Moment(data.file.updatedAt).fromNow();
+        fileDetails.owner = data.file.user_id.full_name;
+        fileDetails.link = data.file.file_url;
+        this.fileDetails = fileDetails;
+      });
+    },
+    emitFileLength() {
+      const subFolders = this.getFolders.filter(
+        (folder) => folder.parent_dir === this.$route.params.name
+      );
+      const length = subFolders.length + this.allFiles.length;
+      EventBus.$emit('fileLength', length);
     },
   },
 };
@@ -205,6 +302,19 @@ export default {
     //   0px 2px 2px 0px rgba(68, 86, 108, 0.14),
     //   0px 1px 5px 0px rgba(68, 86, 108, 0) !important;
     box-shadow: 1px 4px 7px rgba(68, 86, 108, 0.1) !important;
+  }
+}
+
+.file-details {
+  list-style-type: none;
+}
+
+.file-actions {
+  width: 100%;
+  max-height: 50px;
+  a {
+    height: fit-content;
+    text-decoration: none;
   }
 }
 </style>

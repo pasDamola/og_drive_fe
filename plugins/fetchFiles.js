@@ -6,9 +6,9 @@ const mixin = {
     fetchUserFiles(id, level) {
       this.$store
         .dispatch('fetchFiles', [id, level])
-        .then((res) => {
+        .then(() => {
           this.loading = false;
-          console.log(res);
+          EventBus.$emit('filesFetched');
         })
         .catch((err) => {
           this.loading = false;

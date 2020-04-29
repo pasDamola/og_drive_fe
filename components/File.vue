@@ -7,7 +7,21 @@
       <v-icon v-else size="20" @click="checked = true">
         mdi-circle-outline
       </v-icon>
-      <v-icon size="20">mdi-dots-vertical</v-icon>
+      <v-menu offset-y>
+        <template v-slot:activator="{ on }">
+          <v-btn icon v-on="on">
+            <v-icon size="20">mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item @click="$emit('deleteFile', [fileId, name])">
+            <v-list-item-content>Delete File</v-list-item-content>
+          </v-list-item>
+          <v-list-item @click="$emit('viewDetails', [fileId, getFileIcon()])">
+            <v-list-item-content>View Details</v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </v-layout>
     <img :src="getFileIcon()" :alt="`${format} icon`" />
     <p>{{ name | truncate }}</p>
@@ -39,6 +53,10 @@ export default {
       default: '',
     },
     lastEdited: {
+      type: String,
+      default: '',
+    },
+    fileId: {
       type: String,
       default: '',
     },

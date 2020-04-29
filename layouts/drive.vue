@@ -178,7 +178,7 @@
                 <h2>
                   Files
                 </h2>
-                <p class="count">(50)</p>
+                <p class="count">({{ fileLength }})</p>
               </span>
               <v-layout v-if="showAction" class="full-width" justify-end>
                 <v-btn color="primary" @click="showMoveFolderDialog = true">
@@ -309,6 +309,7 @@ export default {
     showAction: false,
     error: { status: false, message: '' },
     fileIds: [],
+    fileLength: 0,
   }),
   computed: {
     ...mapGetters(['getBreadCrumbs', 'isLoggedIn', 'getUser', 'getLevel']),
@@ -325,6 +326,9 @@ export default {
     });
     EventBus.$on('hideAction', () => {
       this.showAction = false;
+    });
+    EventBus.$on('fileLength', (length) => {
+      this.fileLength = length;
     });
     this.$store.dispatch('fetchFolders', user.id);
   },

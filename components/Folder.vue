@@ -19,7 +19,7 @@
           </v-btn>
         </template>
         <v-list>
-          <v-list-item @click="$emit('deleteFolder', folderId)">
+          <v-list-item @click="$emit('deleteFolder', [folderId, folderName])">
             <v-list-item-content>Delete Folder</v-list-item-content>
           </v-list-item>
         </v-list>
