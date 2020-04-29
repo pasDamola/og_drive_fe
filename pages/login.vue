@@ -94,9 +94,11 @@ export default {
           this.loading = false;
           const userDetails = {
             id: data.user._id,
+            ogId: data.user.ogId,
             full_name: data.user.full_name,
             username: data.user.username,
             role: data.user.role,
+            picture: data.user.profile_pic,
           };
           const token = data.token;
           this.$store.dispatch('saveAuth', [userDetails, token]);

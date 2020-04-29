@@ -18,6 +18,74 @@
       @closeDialog="closeDialog('showShareDialog')"
       @share="handleFileSharing"
     />
+    <v-dialog v-model="showProfileDialog" max-width="360">
+      <v-card>
+        <v-card-title class="headline">
+          Edit account
+        </v-card-title>
+
+        <v-card-text>
+          <v-alert
+            v-if="alertError.status"
+            v-model="alertError.status"
+            type="error"
+            dismissible
+          >
+            {{ alertError.message }}
+          </v-alert>
+          <v-form @submit.prevent.stop="update">
+            <input
+              id="user-photo"
+              type="file"
+              name="user-photo"
+              @change="handleImage"
+            />
+            <label
+              :style="{ backgroundImage: `url(${user.picture})` }"
+              for="user-photo"
+              class="picture-upload"
+            >
+              <v-icon size="50" color="white">
+                mdi-camera-plus-outline
+              </v-icon>
+              <img id="user-image" :src="user.picture" alt="User's image" />
+            </label>
+            <v-text-field
+              v-model="updateUser.full_name"
+              label="Full Name"
+              name="name"
+              type="text"
+              placeholder="John Doe"
+              prepend-icon="mdi-account-outline"
+              class="mx-3 my-4"
+            />
+            <v-text-field
+              v-model="updateUser.username"
+              label="Username"
+              name="username"
+              type="text"
+              placeholder="johndoe123"
+              prepend-icon="mdi-account-box-outline"
+              class="mx-3 my-4"
+            />
+            <v-layout>
+              <v-spacer />
+              <v-btn
+                type="submit"
+                color="primary px-5 mx-4"
+                :loading="profileLoading"
+                @click.stop.prevent="update"
+              >
+                Update
+              </v-btn>
+              <v-btn color="darken-1" text @click="showProfileDialog = false">
+                Cancel
+              </v-btn>
+            </v-layout>
+          </v-form>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
     <Loader v-if="loading" />
     <v-snackbar v-if="error.status" v-model="error.status" :timeout="5000">
       {{ error.message }}
@@ -168,18 +236,39 @@
         <v-icon>mdi-bell-outline</v-icon>
       </v-badge>
       <v-divider vertical />
-      <v-btn text large>
-        <v-layout align-center>
-          <v-avatar size="35px" item class="mx-2">
-            <v-img
-              src="https://lh3.googleusercontent.com/-ykrfI9pPAck/AAAAAAAAAAI/AAAAAAAAAAA/AMZuucl91N61xVEOki3ANxwkYEEZd5HgGA.CMID/s64-c/photo.jpg"
-              alt="Vuetify"
-            />
-          </v-avatar>
-          <span class="hidden-sm-and-down">Abdulqudus</span>
-          <v-icon>mdi-menu-down</v-icon>
-        </v-layout>
-      </v-btn>
+      <v-menu offset-y>
+        <template v-slot:activator="{ on }">
+          <v-btn text v-on="on">
+            <v-layout align-center>
+              <v-avatar size="35px" item class="mx-2">
+                <v-img :src="user.picture" alt="User Image" />
+              </v-avatar>
+              <span class="hidden-sm-and-down">{{ user.username }}</span>
+              <v-icon>mdi-menu-down</v-icon>
+            </v-layout>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item @click="showDialog">
+            <v-list-item-icon>
+              <v-icon>mdi-account-edit-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>Edit Profile</v-list-item-content>
+          </v-list-item>
+          <v-list-item @click="logout">
+            <v-list-item-icon>
+              <v-icon>mdi-logout-variant</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>Logout</v-list-item-content>
+          </v-list-item>
+          <v-list-item v-if="isAdmin" to="/admin">
+            <v-list-item-icon>
+              <v-icon>mdi-account-supervisor-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>Admin Dashboard</v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </v-app-bar>
     <v-content class="body">
       <v-container class="pb-0">
@@ -321,13 +410,27 @@ export default {
     pressed: false,
     showAction: false,
     error: { status: false, message: '' },
+    alertError: { status: false, message: '' },
     success: { status: false, message: '' },
     fileIds: [],
     fileLength: 0,
     showShareDialog: false,
+    user: '',
+    showProfileDialog: false,
+    profileLoading: false,
+    updateUser: {
+      full_name: '',
+      username: '',
+    },
   }),
   computed: {
     ...mapGetters(['getBreadCrumbs', 'isLoggedIn', 'getUser', 'getLevel']),
+    isAdmin() {
+      return this.user.role && this.user.role.toLowerCase() === 'admin';
+    },
+    disableBtn() {
+      return !this.updateUser.full_name || !this.updateUser.username;
+    },
   },
   mounted() {
     const token = this.isLoggedIn(this);
@@ -350,6 +453,7 @@ export default {
       this.shareFile();
     });
     this.$store.dispatch('fetchFolders', user.id);
+    this.user = user;
   },
   methods: {
     openNewFolderDialog() {
@@ -504,12 +608,91 @@ export default {
           this.success.status = true;
           this.success.message = data.message;
         })
-        .catch((err) => {
+        .catch(() => {
           this.buttonLoading = false;
           this.error.status = true;
           this.error.message = 'Something went wrong';
-          console.log(err.response);
         });
+    },
+    handleImage(image) {
+      const files = image.target.files;
+      this.updateUser.image = files[0];
+      const imageElement = document.querySelector('#user-image');
+      if (files && files[0]) {
+        const reader = new FileReader();
+
+        reader.readAsDataURL(files[0]);
+
+        reader.onload = (e) => {
+          imageElement.style.display = 'block';
+          imageElement.src = e.target.result;
+          // imageElement.style.backgroundImage = `url(${e.target.result})`;
+        };
+      }
+    },
+    logout() {
+      this.$cookies.remove('token');
+      this.$cookies.remove('user');
+      this.$router.push('/login');
+    },
+    showDialog() {
+      this.showProfileDialog = true;
+    },
+    update() {
+      this.profileLoading = true;
+      const ogId = this.user.ogId;
+      const data = {
+        full_name: this.updateUser.full_name,
+        username: this.updateUser.username,
+      };
+      this.$axios
+        .post(`users/${ogId}`, data)
+        .then(() => {
+          if (this.updateUser.image) {
+            const form = new FormData();
+            form.set('user_id', this.user.id);
+            form.set('picture', this.updateUser.image);
+
+            this.$axios
+              .post('files/upload/picture', form, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+              })
+              .then(() => {
+                this.profileLoading = false;
+                this.showProfileDialog = false;
+                this.success.status = true;
+                this.success.message = 'Account Updated';
+                this.fetchUser();
+              })
+              .catch(() => {
+                this.profileLoading = false;
+                this.alertError.status = true;
+                this.alertError.message = 'Something went wrong';
+              });
+          }
+        })
+        .catch((err) => {
+          console.log(err.response);
+          this.profileLoading = false;
+          this.alertError.status = true;
+          this.alertError.message = 'Something went wrong';
+        });
+    },
+    fetchUser() {
+      const ogId = this.user.ogId;
+      this.$axios.get(`users/${ogId}`).then(({ data }) => {
+        const userDetails = {
+          id: data._id,
+          ogId: data.ogId,
+          full_name: data.full_name,
+          username: data.username,
+          role: data.role,
+          picture: data.profile_pic,
+        };
+        this.user = userDetails;
+        const token = this.$cookies.get('token');
+        this.$store.dispatch('saveAuth', [userDetails, token]);
+      });
     },
   },
 };
@@ -571,5 +754,53 @@ export default {
 
 .body {
   background-color: rgba(68, 86, 108, 0.042);
+}
+
+#user-photo {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+}
+
+#user-photo:hover + .picture-upload,
+#user-photo:focus + .picture-upload {
+  &::before {
+    background-color: rgba($color: #000, $alpha: 0.4);
+  }
+}
+
+#user-image {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  display: none;
+}
+
+.picture-upload {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  margin: 20px auto;
+  display: block;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  position: relative;
+  .v-icon {
+    position: absolute;
+  }
+  &::before {
+    transition: background-color 0.09s ease-in;
+    content: '';
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    position: absolute;
+    border-radius: 50%;
+    background-color: rgba($color: #000000, $alpha: 0.2);
+  }
 }
 </style>

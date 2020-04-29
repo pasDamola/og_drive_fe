@@ -61,6 +61,14 @@
         </v-stepper-content>
 
         <v-stepper-content step="2">
+          <v-alert
+            v-if="error.status"
+            v-model="error.status"
+            type="error"
+            dismissible
+          >
+            {{ error.message }}
+          </v-alert>
           <div class="my-3">
             <v-text-field
               ref="full_name"
@@ -96,11 +104,23 @@
             />
           </div>
 
-          <v-btn color="primary" @click="moveStepThree">
-            Continue
+          <v-btn
+            color="primary"
+            :disabled="error.status"
+            :loading="loading"
+            @click="moveStepThree"
+          >
+            {{ signUpSuccess ? 'Next' : 'Sign Up' }}
           </v-btn>
 
-          <v-btn text @click="formStepper = 1">Back</v-btn>
+          <v-btn
+            v-show="!signUpSuccess"
+            text
+            :disabled="loading"
+            @click="formStepper = 1"
+          >
+            Back
+          </v-btn>
         </v-stepper-content>
 
         <v-stepper-content step="3">
@@ -113,23 +133,30 @@
             {{ error.message }}
           </v-alert>
           <input
+            v-if="!imageLoading"
             id="user-photo"
             type="file"
             name="user-photo"
             @change="handleImage"
           />
-          <label for="user-photo" class="picture-upload">
+          <label v-if="!imageLoading" for="user-photo" class="picture-upload">
             <v-icon size="50" color="white">
               mdi-camera-plus-outline
             </v-icon>
             <img id="user-image" src="" alt="User's image" />
           </label>
-
-          <v-btn color="primary" :loading="loading" @click="signUp">
-            Sign Up
+          <v-progress-circular
+            v-else
+            :size="70"
+            color="primary"
+            class="d-block"
+            indeterminate
+          />
+          <v-btn color="primary" :loading="loading" @click="addImage">
+            Save
           </v-btn>
 
-          <v-btn text @click="formStepper = 2">Back</v-btn>
+          <v-btn text @click="login">Skip</v-btn>
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
@@ -173,6 +200,10 @@ export default {
         return /^[0-9]+$/.test(value) || 'ID can only contain numbers';
       },
     },
+    imageLoading: false,
+    image: '',
+    savedUser: '',
+    signUpSuccess: false,
   }),
   computed: {
     stepOne() {
@@ -209,10 +240,11 @@ export default {
           return;
         }
       }
-      this.formStepper = 3;
+      this.signUp();
     },
     handleImage(image) {
       const files = image.target.files;
+      this.image = files;
       const imageElement = document.querySelector('#user-image');
       if (files && files[0]) {
         const reader = new FileReader();
@@ -220,7 +252,6 @@ export default {
         reader.readAsDataURL(files[0]);
 
         reader.onload = (e) => {
-          console.log(e);
           imageElement.style.display = 'block';
           imageElement.src = e.target.result;
           // imageElement.style.backgroundImage = `url(${e.target.result})`;
@@ -228,13 +259,40 @@ export default {
         this.user.image = files[0];
       }
     },
+    addImage() {
+      // console.log(this.image);
+      // 5ea9e985db04b900172dd01a
+      // const data = {
+      //   user_id: '5ea9e985db04b900172dd01a',
+      //   picture: this.image[0],
+      // };
+      const data = new FormData();
+      data.set('user_id', this.savedUser._id);
+      data.set('picture', this.image[0]);
+      this.imageLoading = true;
+      this.$axios
+        .post('files/upload/picture', data, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
+        .then(() => {
+          this.imageLoading = false;
+          this.login();
+        })
+        .catch(() => {
+          this.imageLoading = false;
+          this.error.status = true;
+          this.error.message = 'Something went wrong';
+        });
+    },
     signUp() {
       this.loading = true;
       this.$axios
         .post('users/register', this.user)
         .then((res) => {
-          console.log(res);
           this.loading = false;
+          this.signUpSuccess = true;
+          this.savedUser = res.data.user;
+          this.formStepper = 3;
         })
         .catch((err) => {
           const {
@@ -247,6 +305,9 @@ export default {
           this.loading = false;
           this.error.status = true;
         });
+    },
+    login() {
+      this.$router.push({ path: '/login' });
     },
   },
 };
