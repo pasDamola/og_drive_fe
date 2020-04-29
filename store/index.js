@@ -5,6 +5,9 @@ export const state = () => ({
   // token_details: UserService.getTokenFromLocalStorage(),
   allFiles: [],
   allFolders: [],
+  allUsers: [],
+  totalFiles: [],
+  totalDirectories: [],
   hello: 'hello',
   breadCrumbs: [
     {
@@ -37,6 +40,9 @@ export const getters = {
   getFiles: (state) => state.allFiles,
   getFolders: (state) => state.allFolders,
   getLevel: (state) => state.level,
+  getUsers: (state) => state.allUsers,
+  getTotalFiles: (state) => state.totalFiles,
+  getTotalDirectories: (state) => state.totalDirectories,
 };
 
 export const actions = {
@@ -79,6 +85,58 @@ export const actions = {
     this.$axios.post('users/directories', { user_id: payload }).then((res) => {
       commit('SAVE_USER_FOLDERS', res.data);
     });
+  },
+  async fetchUsers({ commit }) {
+    try {
+      const response = await this.$axios.get('admin/allUsers');
+      if (response) {
+        console.log(response);
+        commit('LOAD_ALL_USERS', response.data);
+        return Promise.resolve(response.data);
+      }
+    } catch (error) {
+      console.log(error);
+      return Promise.reject(error);
+    }
+  },
+  async fetchTotalFiles({ commit }) {
+    try {
+      const response = await this.$axios.get('admin/statistics');
+      if (response) {
+        console.log(response);
+        commit('LOAD_ALL_FILES', response.data.files);
+        return Promise.resolve(response.data);
+      }
+    } catch (error) {
+      console.log(error);
+      return Promise.reject(error);
+    }
+  },
+  async fetchTotalDirectories({ commit }) {
+    try {
+      const response = await this.$axios.get('admin/statistics');
+      if (response) {
+        console.log(response);
+        commit('LOAD_ALL_DIRECTORIES', response.data.directories);
+        return Promise.resolve(response.data);
+      }
+    } catch (error) {
+      console.log(error);
+      return Promise.reject(error);
+    }
+  },
+  async editUser({ commit }, id) {
+    try {
+      const response = await this.$axios.patch(`admin/updateUser/${id}`);
+      if (response) {
+        console.log(response);
+        commit('LOAD_ALL_USERS', response.data);
+        return Promise.resolve(response.data);
+      }
+    } catch (error) {
+      console.log(error);
+      return Promise.reject(error);
+    }
   },
 };
 
@@ -130,6 +188,16 @@ export const mutations = {
   },
   SAVE_USER_FOLDERS(state, payload) {
     state.allFolders = payload.directories;
+  },
+  LOAD_ALL_USERS(state, allUsers) {
+    state.allUsers = allUsers;
+    console.log(state.allUsers);
+  },
+  LOAD_ALL_FILES(state, files) {
+    state.totalFiles = files;
+  },
+  LOAD_ALL_DIRECTORIES(state, directories) {
+    state.totalDirectories = directories;
   },
   //   LOAD_FILES(state, files) {
   //     state.allfiles = files;
