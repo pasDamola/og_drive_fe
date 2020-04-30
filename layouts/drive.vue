@@ -78,7 +78,14 @@
               >
                 Update
               </v-btn>
-              <v-btn color="darken-1" text @click="showProfileDialog = false">
+              <v-btn
+                color="darken-1"
+                text
+                @click="
+                  showProfileDialog = false;
+                  clearForm();
+                "
+              >
                 Cancel
               </v-btn>
             </v-layout>
@@ -291,6 +298,7 @@
                   Move
                 </v-btn>
                 <v-btn text @click="deleteFiles">Delete</v-btn>
+                <v-btn text @click="shareFile">Share</v-btn>
               </v-layout>
             </v-layout>
           </v-toolbar-title>
@@ -651,6 +659,8 @@ export default {
       this.$router.push('/login');
     },
     showDialog() {
+      this.updateUser.full_name = this.user.full_name;
+      this.updateUser.username = this.user.username;
       this.showProfileDialog = true;
     },
     update() {

@@ -83,6 +83,7 @@ export default {
     findUsers(user) {
       this.loading = true;
       this.$axios.get(`users/search/${user}`).then(({ data }) => {
+        // console.log(data);
         this.loading = false;
         this.users = data;
       });
