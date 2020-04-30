@@ -13,20 +13,22 @@
         <v-autocomplete
           v-model="selectedUsers"
           :search-input.sync="search"
-          :items="users"
+          :items="foundUsers"
           :loading="loading"
-          item-text="full_name"
+          item-text="username"
           item-value="_id"
           chips
+          cache-items
           deletable-chips
+          hide-no-data
           multiple
           prepend-icon="mdi-account"
+          return-object
         />
       </v-card-text>
 
       <v-card-actions>
         <v-spacer></v-spacer>
-
         <v-btn
           color="darken-1"
           text
@@ -71,6 +73,9 @@ export default {
   }),
   computed: {
     ...mapGetters(['getFolders', 'isLoggedIn']),
+    foundUsers() {
+      return this.users || [];
+    },
   },
   watch: {
     search(val) {
