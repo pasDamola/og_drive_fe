@@ -70,7 +70,7 @@ export default {
     loading: false,
   }),
   computed: {
-    ...mapGetters(['getFolders']),
+    ...mapGetters(['getFolders', 'isLoggedIn']),
   },
   watch: {
     search(val) {
@@ -79,13 +79,16 @@ export default {
       }
     },
   },
+  mounted() {
+    const token = this.isLoggedIn(this);
+    this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+  },
   methods: {
     findUsers(user) {
       this.loading = true;
-      this.$axios.get(`users/search/${user}`).then(({ data }) => {
-        // console.log(data);
+      this.$axios.post('users/search', { username: user }).then(({ data }) => {
         this.loading = false;
-        this.users = data;
+        this.users = data.users;
       });
     },
     share() {
