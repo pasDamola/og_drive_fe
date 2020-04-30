@@ -89,6 +89,7 @@ export default {
     },
     share() {
       this.$emit('share', this.selectedUsers);
+      this.selectedUsers = [];
     },
   },
 };

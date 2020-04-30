@@ -240,8 +240,13 @@
         <template v-slot:activator="{ on }">
           <v-btn text v-on="on">
             <v-layout align-center>
-              <v-avatar size="35px" item class="mx-2">
+              <v-avatar v-if="user.picture" size="35px" item class="mx-2">
                 <v-img :src="user.picture" alt="User Image" />
+              </v-avatar>
+              <v-avatar v-else size="35px" color="primary" item class="mx-2">
+                <span class="white--text font-weight-medium">
+                  {{ getUserInitials }}
+                </span>
               </v-avatar>
               <span class="hidden-sm-and-down">{{ user.username }}</span>
               <v-icon>mdi-menu-down</v-icon>
@@ -355,12 +360,12 @@ export default {
       {
         icon: 'mdi-google-drive',
         text: 'My Drive',
-        to: '#1',
+        to: '/',
       },
       {
         icon: 'mdi-account-multiple-outline',
         text: 'Shared with me',
-        to: '#2',
+        to: '/shared',
       },
       {
         icon: 'mdi-clock-outline',
@@ -430,6 +435,20 @@ export default {
     },
     disableBtn() {
       return !this.updateUser.full_name || !this.updateUser.username;
+    },
+    getUserInitials() {
+      const full_name = this.user.full_name;
+      if (full_name) {
+        const initials = full_name.split(' ').reduce((join, name) => {
+          return `${join}${name[0]}`;
+        }, '');
+        if (initials.length > 2) {
+          return `${initials[0]}${initials[1]}`;
+        } else {
+          return initials;
+        }
+      }
+      return null;
     },
   },
   mounted() {
@@ -658,6 +677,7 @@ export default {
                 headers: { 'Content-Type': 'multipart/form-data' },
               })
               .then(() => {
+                this.clearForm();
                 this.profileLoading = false;
                 this.showProfileDialog = false;
                 this.success.status = true;
@@ -669,6 +689,13 @@ export default {
                 this.alertError.status = true;
                 this.alertError.message = 'Something went wrong';
               });
+          } else {
+            this.clearForm();
+            this.profileLoading = false;
+            this.showProfileDialog = false;
+            this.success.status = true;
+            this.success.message = 'Account Updated';
+            this.fetchUser();
           }
         })
         .catch((err) => {
@@ -678,9 +705,15 @@ export default {
           this.alertError.message = 'Something went wrong';
         });
     },
+    clearForm() {
+      this.updateUser.full_name = '';
+      this.updateUser.username = '';
+      this.updateUser.image = '';
+    },
     fetchUser() {
       const ogId = this.user.ogId;
       this.$axios.get(`users/${ogId}`).then(({ data }) => {
+        console.log(data);
         const userDetails = {
           id: data._id,
           ogId: data.ogId,

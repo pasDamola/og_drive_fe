@@ -62,6 +62,7 @@ export default {
   methods: {
     moveFolder() {
       this.$emit('moveFolder', this.folder);
+      this.folder = '';
     },
   },
 };

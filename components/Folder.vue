@@ -30,7 +30,8 @@
     </nuxt-link>
     <p>{{ folderName }}</p>
     <v-layout align-center justify-space-between class="folder-details">
-      <p>1 MB</p>
+      <!-- <p>1 MB</p> -->
+      <v-spacer />
       <p>{{ formatDate }}</p>
     </v-layout>
   </div>

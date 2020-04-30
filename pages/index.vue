@@ -107,6 +107,7 @@
         :format="file.file_extension"
         :name="file.filename"
         :file-id="file._id"
+        :size="file.file_size"
         :last-edited="file.updatedAt"
         class="my-2"
         @filesSelected="handleMultipleFiles($event, file)"
@@ -266,6 +267,7 @@ export default {
         .delete(`directory/deleteDirectory/${e}`)
         .then(() => {
           this.$store.dispatch('fetchFolders', user.id);
+          this.folderName = '';
           this.fetchUserFiles(user.id, 0);
           this.emitFileLength();
         })

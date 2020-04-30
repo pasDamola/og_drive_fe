@@ -60,6 +60,7 @@ export default {
   methods: {
     createFolder() {
       this.$emit('createFolder', this.folderName);
+      this.folderName = '';
     },
   },
 };
