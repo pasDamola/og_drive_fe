@@ -191,7 +191,7 @@ import Loader from '@/components/Loader';
 import { EventBus } from '../plugins/eventBus';
 
 export default {
-  layout: 'Drive',
+  layout: 'drive',
   components: { File, Folder, Loader },
   middleware: 'authenticated',
   data: () => ({

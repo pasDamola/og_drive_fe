@@ -11,7 +11,7 @@ import Loader from '@/components/Loader';
 import FileView from '@/components/FileView';
 
 export default {
-  layout: 'Drive',
+  layout: 'drive',
   components: { Loader, FileView },
   data: () => ({
     routeName: '',

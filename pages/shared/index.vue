@@ -46,7 +46,7 @@ import { mapGetters } from 'vuex';
 import Loader from '@/components/Loader';
 
 export default {
-  layout: 'Drive',
+  layout: 'drive',
   components: { Loader },
   data: () => ({
     user: '',

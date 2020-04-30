@@ -88,7 +88,7 @@ import File from '@/components/File';
 import { EventBus } from '../../plugins/eventBus';
 
 export default {
-  layout: 'Drive',
+  layout: 'drive',
   components: { Loader, File },
   data: () => ({
     user: '',

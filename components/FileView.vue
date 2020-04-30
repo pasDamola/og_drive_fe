@@ -120,7 +120,7 @@ import Folder from '@/components/Folder';
 import { EventBus } from '../plugins/eventBus';
 
 export default {
-  layout: 'Drive',
+  layout: 'drive',
   components: { File, Folder, Loader },
   props: {
     folders: {
