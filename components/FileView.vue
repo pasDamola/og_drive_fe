@@ -226,9 +226,9 @@ export default {
             this.allFiles = data.files;
             this.emitFileLength();
           })
-          .catch((err) => {
+          .catch(() => {
             this.loading = false;
-            console.log(err.response);
+            // console.log(err.response);
           });
       }
     },

@@ -260,15 +260,13 @@ export default {
   methods: {
     editItem(item) {
       this.editedIndex = this.$store.state.allUsers.users.indexOf(item);
-      console.log(this.editedIndex);
       this.editedItem = Object.assign({}, item);
-      console.log(this.editedItem);
       this.dialog = true;
     },
 
     deleteItem(item) {
-      const index = this.$store.state.allUsers.users.indexOf(item);
-      console.log(index);
+      // const index = this.$store.state.allUsers.users.indexOf(item);
+      // console.log(index);
       this.deletedItem = Object.assign({}, item);
       this.deleteDialog = true;
     },
@@ -303,7 +301,6 @@ export default {
         );
         if (response) {
           this.loading = false;
-          console.log(response);
           this.$store.commit('LOAD_ALL_USERS', response.data);
           this.fetchUsers();
           this.dialog = false;
@@ -311,7 +308,6 @@ export default {
         }
       } catch (error) {
         this.loading = false;
-        console.log(error);
         return Promise.reject(error);
       }
       //this.close();
@@ -319,7 +315,6 @@ export default {
 
     async deleteUser() {
       const token = this.isLoggedIn(this);
-      console.log(token);
       this.loading = true;
       try {
         const response = await this.$axios.delete(
@@ -335,7 +330,6 @@ export default {
         );
         if (response) {
           this.loading = false;
-          console.log(response);
           this.$store.commit('LOAD_ALL_USERS', response.data);
           this.fetchUsers();
           this.deleteDialog = false;
@@ -343,7 +337,6 @@ export default {
         }
       } catch (error) {
         this.loading = false;
-        console.log(error);
         return Promise.reject(error);
       }
       //this.close();
@@ -357,7 +350,6 @@ export default {
         );
         if (response) {
           this.loading = false;
-          console.log(response);
           this.$store.commit('LOAD_ALL_USERS', response.data);
           this.fetchUsers();
           this.adminDialog = false;
@@ -365,7 +357,6 @@ export default {
         }
       } catch (error) {
         this.loading = false;
-        console.log(error);
         return Promise.reject(error);
       }
       //this.close();
@@ -379,7 +370,6 @@ export default {
         );
         if (response) {
           this.loading = false;
-          console.log(response);
           this.$store.commit('LOAD_ALL_USERS', response.data);
           this.fetchUsers();
           this.blockDialog = false;
@@ -387,7 +377,6 @@ export default {
         }
       } catch (error) {
         this.loading = false;
-        console.log(error);
         return Promise.reject(error);
       }
       //this.close();

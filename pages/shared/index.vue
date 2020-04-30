@@ -94,7 +94,7 @@ export default {
           this.isLoading = false;
         })
         .catch((err) => {
-          console.log(err.response);
+          throw Error(err);
         });
     },
     handleObjData(data) {

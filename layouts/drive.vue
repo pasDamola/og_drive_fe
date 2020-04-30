@@ -502,8 +502,7 @@ export default {
       }
       this.$axios
         .post('directory/create', data)
-        .then(({ data }) => {
-          console.log(data);
+        .then(() => {
           this.buttonLoading = false;
           this.loading = true;
           this.fetchUserFiles(user.id, 0);
@@ -537,8 +536,7 @@ export default {
           .post('files/upload/single', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
           })
-          .then((res) => {
-            console.log(res);
+          .then(() => {
             EventBus.$emit('addedNewFile');
             this.fetchUserFiles(user.id, 0);
           })
@@ -563,12 +561,10 @@ export default {
         .post('files/upload/bulk', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         })
-        .then((res) => {
-          console.log(res);
+        .then(() => {
           this.fetchUserFiles(id, 0);
         })
         .catch((err) => {
-          console.log(err.response);
           this.loading = false;
           this.error.status = true;
           this.error.message = err.response.data.message;
@@ -661,11 +657,12 @@ export default {
       this.profileLoading = true;
       const ogId = this.user.ogId;
       const data = {
+        ogId,
         full_name: this.updateUser.full_name,
         username: this.updateUser.username,
       };
       this.$axios
-        .post(`users/${ogId}`, data)
+        .put('users', data)
         .then(() => {
           if (this.updateUser.image) {
             const form = new FormData();
@@ -698,8 +695,7 @@ export default {
             this.fetchUser();
           }
         })
-        .catch((err) => {
-          console.log(err.response);
+        .catch(() => {
           this.profileLoading = false;
           this.alertError.status = true;
           this.alertError.message = 'Something went wrong';
@@ -713,12 +709,13 @@ export default {
     fetchUser() {
       const ogId = this.user.ogId;
       this.$axios.get(`users/${ogId}`).then(({ data }) => {
-        console.log(data);
         const userDetails = {
           id: data._id,
           ogId: data.ogId,
           full_name: data.full_name,
           username: data.username,
+          email: data.email,
+          department: data.department,
           role: data.role,
           picture: data.profile_pic,
         };

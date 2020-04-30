@@ -119,7 +119,6 @@ export default {
       this.$axios
         .post('users/sharers/details', data)
         .then(({ data }) => {
-          console.log(data);
           this.isLoading = false;
           this.files = data.files;
           this.folders = data.directories;
@@ -127,7 +126,7 @@ export default {
           EventBus.$emit('fileLength', totalFileLength);
         })
         .catch((err) => {
-          console.log(err.response);
+          throw Error(err);
         });
     },
     showFileDetails([e, icon]) {

@@ -90,12 +90,10 @@ export const actions = {
     try {
       const response = await this.$axios.get('admin/allUsers');
       if (response) {
-        console.log(response);
         commit('LOAD_ALL_USERS', response.data);
         return Promise.resolve(response.data);
       }
     } catch (error) {
-      console.log(error);
       return Promise.reject(error);
     }
   },
@@ -103,12 +101,10 @@ export const actions = {
     try {
       const response = await this.$axios.get('admin/statistics');
       if (response) {
-        console.log(response);
         commit('LOAD_ALL_FILES', response.data.files);
         return Promise.resolve(response.data);
       }
     } catch (error) {
-      console.log(error);
       return Promise.reject(error);
     }
   },
@@ -116,12 +112,10 @@ export const actions = {
     try {
       const response = await this.$axios.get('admin/statistics');
       if (response) {
-        console.log(response);
         commit('LOAD_ALL_DIRECTORIES', response.data.directories);
         return Promise.resolve(response.data);
       }
     } catch (error) {
-      console.log(error);
       return Promise.reject(error);
     }
   },
@@ -129,12 +123,10 @@ export const actions = {
     try {
       const response = await this.$axios.patch(`admin/updateUser/${id}`);
       if (response) {
-        console.log(response);
         commit('LOAD_ALL_USERS', response.data);
         return Promise.resolve(response.data);
       }
     } catch (error) {
-      console.log(error);
       return Promise.reject(error);
     }
   },
@@ -191,7 +183,6 @@ export const mutations = {
   },
   LOAD_ALL_USERS(state, allUsers) {
     state.allUsers = allUsers;
-    console.log(state.allUsers);
   },
   LOAD_ALL_FILES(state, files) {
     state.totalFiles = files;

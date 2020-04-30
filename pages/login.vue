@@ -97,6 +97,8 @@ export default {
             ogId: data.user.ogId,
             full_name: data.user.full_name,
             username: data.user.username,
+            email: data.user.email,
+            department: data.user.department,
             role: data.user.role,
             picture: data.user.profile_pic,
           };
