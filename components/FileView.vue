@@ -31,7 +31,7 @@
         <v-layout class="file-actions px-8" row justify-space-between>
           <v-tooltip top>
             <template v-slot:activator="{ on }">
-              <a :href="fileDetails.link" download v-on="on">
+              <a :href="fileDetails.link" target="_blank" download v-on="on">
                 <v-icon color="primary" dark>
                   mdi-cloud-download-outline
                 </v-icon>
