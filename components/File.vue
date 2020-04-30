@@ -127,8 +127,14 @@ export default {
         return '/images/html.png';
       } else if (this.format === 'png') {
         return '/images/png.png';
-      } else if (this.format === 'jpg') {
+      } else if (['jpg', 'jpeg'].includes(this.format)) {
         return '/images/jpg.png';
+      } else if (this.format === 'csv') {
+        return '/images/csv.png';
+      } else if (this.format === 'txt') {
+        return '/images/txt.png';
+      } else {
+        return '/images/file.png';
       }
     },
     shareFile() {
