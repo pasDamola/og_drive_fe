@@ -77,19 +77,52 @@
         <v-icon>mdi-bell-outline</v-icon>
       </v-badge>
       <v-divider vertical />
-      <v-btn text large>
-        <v-layout align-center>
-          <v-avatar size="35px" item class="mx-2">
-            <v-img
-              src="https://lh3.googleusercontent.com/-ykrfI9pPAck/AAAAAAAAAAI/AAAAAAAAAAA/AMZuucl91N61xVEOki3ANxwkYEEZd5HgGA.CMID/s64-c/photo.jpg"
-              alt="Vuetify"
-            />
-          </v-avatar>
-          <span class="hidden-sm-and-down">{{ getUser.username }}</span>
-          <v-icon>mdi-menu-down</v-icon>
-        </v-layout>
-      </v-btn>
+      <v-menu offset-y>
+        <template v-slot:activator="{ on }">
+          <v-btn text v-on="on">
+            <v-layout align-center>
+              <v-avatar v-if="user.picture" size="35px" item class="mx-2">
+                <v-img :src="user.picture" alt="User Image" />
+              </v-avatar>
+              <v-avatar v-else size="35px" color="primary" item class="mx-2">
+                <span class="white--text font-weight-medium">
+                  {{ getUserInitials }}
+                </span>
+              </v-avatar>
+              <span class="hidden-sm-and-down">{{ user.username }}</span>
+              <v-icon>mdi-menu-down</v-icon>
+            </v-layout>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item to="/">
+            <v-list-item-icon>
+              <v-icon>mdi-home</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>Home</v-list-item-content>
+          </v-list-item>
+          <v-list-item @click="logout">
+            <v-list-item-icon>
+              <v-icon>mdi-logout-variant</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>Logout</v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </v-app-bar>
+    <Loader v-if="loading" />
+    <v-snackbar v-if="error.status" v-model="error.status" :timeout="5000">
+      {{ error.message }}
+      <v-btn color="pink" text @click="error.status = false">
+        Close
+      </v-btn>
+    </v-snackbar>
+    <v-snackbar v-if="success.status" v-model="success.status" :timeout="5000">
+      {{ success.message }}
+      <v-btn color="green" text @click="success.status = false">
+        Close
+      </v-btn>
+    </v-snackbar>
     <v-content class="body">
       <v-container class="pb-0"> </v-container>
       <router-view />
@@ -99,8 +132,10 @@
 
 <script>
 import { mapGetters } from 'vuex';
+import Loader from '@/components/Loader';
 
 export default {
+  components: { Loader },
   props: {
     source: {
       type: String,
@@ -110,6 +145,7 @@ export default {
   data: () => ({
     dialog: false,
     drawer: null,
+    user: {},
     items: [
       {
         icon: 'mdi-view-dashboard',
@@ -149,22 +185,39 @@ export default {
     ],
     loading: false,
     buttonLoading: false,
+    error: { status: false, message: '' },
+    alertError: { status: false, message: '' },
+    success: { status: false, message: '' },
     showNewFolderDialog: false,
     pressed: false,
-    error: { status: false, message: '' },
   }),
   computed: {
     getUser() {
       return this.$store.getters.getUser;
     },
+    getUserInitials() {
+      const full_name = this.user.full_name;
+      if (full_name) {
+        const initials = full_name.split(' ').reduce((join, name) => {
+          return `${join}${name[0]}`;
+        }, '');
+        if (initials.length > 2) {
+          return `${initials[0]}${initials[1]}`;
+        } else {
+          return initials;
+        }
+      }
+      return null;
+    },
     ...mapGetters(['getBreadCrumbs', 'isLoggedIn', 'getUser']),
   },
   mounted() {
     const token = this.isLoggedIn(this);
-    const user = this.getUser(this);
+    this.user = this.getUser(this);
+    console.log(this.user);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     this.loading = true;
-    this.fetchUserFiles(user.id, 0);
+    this.fetchUserFiles(this.user.id, 0);
   },
   methods: {
     openNewFolderDialog() {
@@ -172,6 +225,11 @@ export default {
     },
     closeDialog() {
       this.showNewFolderDialog = false;
+    },
+    logout() {
+      this.$cookies.remove('token');
+      this.$cookies.remove('user');
+      this.$router.push('/login');
     },
     createFolder(e) {
       this.buttonLoading = true;
