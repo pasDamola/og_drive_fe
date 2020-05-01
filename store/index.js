@@ -17,10 +17,16 @@ export const state = () => ({
       icon: true,
     },
   ],
+  level: 0,
 });
 
 export const getters = {
-  getBreadCrumbs: (state) => state.breadCrumbs,
+  getBreadCrumbs: (state) => {
+    return state.breadCrumbs.filter((el, index, self) => {
+      const elIndex = self.findIndex((element) => element.href === el.href);
+      return index === elIndex;
+    });
+  },
   isLoggedIn: () => {
     return function (that) {
       return that.$cookies.get('token');
@@ -33,6 +39,7 @@ export const getters = {
   },
   getFiles: (state) => state.allFiles,
   getFolders: (state) => state.allFolders,
+  getLevel: (state) => state.level,
   getUsers: (state) => state.allUsers,
   getTotalFiles: (state) => state.totalFiles,
   getTotalDirectories: (state) => state.totalDirectories,
@@ -71,16 +78,22 @@ export const actions = {
       return Promise.reject(error);
     }
   },
+  saveCurrentLevel({ commit }, payload) {
+    commit('SAVE_LEVEL', payload);
+  },
+  fetchFolders({ commit }, payload) {
+    this.$axios.post('users/directories', { user_id: payload }).then((res) => {
+      commit('SAVE_USER_FOLDERS', res.data);
+    });
+  },
   async fetchUsers({ commit }) {
     try {
       const response = await this.$axios.get('admin/allUsers');
       if (response) {
-        console.log(response);
         commit('LOAD_ALL_USERS', response.data);
         return Promise.resolve(response.data);
       }
     } catch (error) {
-      console.log(error);
       return Promise.reject(error);
     }
   },
@@ -88,12 +101,10 @@ export const actions = {
     try {
       const response = await this.$axios.get('admin/statistics');
       if (response) {
-        console.log(response);
         commit('LOAD_ALL_FILES', response.data.files);
         return Promise.resolve(response.data);
       }
     } catch (error) {
-      console.log(error);
       return Promise.reject(error);
     }
   },
@@ -101,12 +112,10 @@ export const actions = {
     try {
       const response = await this.$axios.get('admin/statistics');
       if (response) {
-        console.log(response);
         commit('LOAD_ALL_DIRECTORIES', response.data.directories);
         return Promise.resolve(response.data);
       }
     } catch (error) {
-      console.log(error);
       return Promise.reject(error);
     }
   },
@@ -114,25 +123,33 @@ export const actions = {
     try {
       const response = await this.$axios.patch(`admin/updateUser/${id}`);
       if (response) {
-        console.log(response);
         commit('LOAD_ALL_USERS', response.data);
         return Promise.resolve(response.data);
       }
     } catch (error) {
-      console.log(error);
       return Promise.reject(error);
     }
   },
 };
 
 export const mutations = {
+  SAVE_LEVEL(state, payload) {
+    state.level = payload;
+  },
   ADD_BREADCRUMB(state, payload) {
     const breadCrumbs = [...state.breadCrumbs];
     // Enable breadcrumbs
     breadCrumbs.forEach((breadCrumb) => {
       breadCrumb.disabled = false;
     });
+
     breadCrumbs.push(payload);
+
+    breadCrumbs.forEach((el) => {
+      if (el.href === payload.href) {
+        el.disabled = true;
+      }
+    });
     // Remove duplicate breadcrumbs
     const filtered = breadCrumbs.filter((el, index, self) => {
       const elIndex = self.findIndex((element) => element.href === el.href);
@@ -143,12 +160,11 @@ export const mutations = {
   },
   REMOVE_BREADCRUMB(state, payload) {
     const breadCrumbs = [...state.breadCrumbs];
-    console.log(payload);
+    const index = breadCrumbs.findIndex((el) => el.href === payload);
     // Remove current page from breadcrumb
-    state.breadCrumbs = [
-      ...breadCrumbs.filter((breadCrumb) => breadCrumb.href !== payload),
-    ];
-    console.log(state.breadCrumbs);
+    if (index > -1) {
+      state.breadCrumbs = [...breadCrumbs.slice(0, index + 1)];
+    }
   },
   RESET_BREADCRUMB(state) {
     state.breadCrumbs = [
@@ -161,11 +177,12 @@ export const mutations = {
   },
   SAVE_USER_FILES(state, payload) {
     state.allFiles = payload.files;
+  },
+  SAVE_USER_FOLDERS(state, payload) {
     state.allFolders = payload.directories;
   },
   LOAD_ALL_USERS(state, allUsers) {
     state.allUsers = allUsers;
-    console.log(state.allUsers);
   },
   LOAD_ALL_FILES(state, files) {
     state.totalFiles = files;

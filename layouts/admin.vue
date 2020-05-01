@@ -155,16 +155,13 @@ export default {
   }),
   computed: {
     getUser() {
-      console.log(this.$store.getters.getUser);
       return this.$store.getters.getUser;
     },
     ...mapGetters(['getBreadCrumbs', 'isLoggedIn', 'getUser']),
   },
   mounted() {
-    console.log('Mounted');
     const token = this.isLoggedIn(this);
     const user = this.getUser(this);
-    console.log(user);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     this.loading = true;
     this.fetchUserFiles(user.id, 0);
@@ -186,15 +183,13 @@ export default {
       };
       this.$axios
         .post('directory/create', data)
-        .then(({ data }) => {
-          console.log(data);
+        .then(() => {
           this.buttonLoading = false;
           this.loading = true;
           this.fetchUserFiles(user.id, 0);
         })
-        .catch((err) => {
+        .catch(() => {
           this.buttonLoading = false;
-          console.log(err.response);
         });
       this.showNewFolderDialog = false;
     },
@@ -213,8 +208,7 @@ export default {
           .post('files/upload/single', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
           })
-          .then((res) => {
-            console.log(res);
+          .then(() => {
             this.fetchUserFiles(user.id, 0);
           })
           .catch((err) => {

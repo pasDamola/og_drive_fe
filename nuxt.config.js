@@ -88,4 +88,8 @@ export default {
       }
     },
   },
+  generate: {
+    fallback: true,
+    exclude: [/folder/, /shared/, /admin/],
+  },
 };

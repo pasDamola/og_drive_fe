@@ -6,15 +6,16 @@
   >
     <v-card>
       <v-card-title class="headline">
-        Create New Folder
+        Select Destination Folder
       </v-card-title>
 
       <v-card-text>
-        <v-text-field
-          id="newFolder"
-          ref="folderName"
-          v-model="folderName"
-          label="Folder Name"
+        <v-autocomplete
+          v-model="folder"
+          :items="getFolders"
+          item-text="dirname"
+          item-value="_id"
+          prepend-icon="mdi-folder"
         />
       </v-card-text>
 
@@ -25,8 +26,13 @@
           Cancel
         </v-btn>
 
-        <v-btn color="primary px-5" :loading="isLoading" @click="createFolder">
-          Create
+        <v-btn
+          color="primary px-5"
+          :loading="isLoading"
+          :disabled="!folder"
+          @click="moveFolder"
+        >
+          Move
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -34,6 +40,8 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
+
 export default {
   props: {
     showDialog: {
@@ -46,21 +54,15 @@ export default {
     },
   },
   data: () => ({
-    folderName: 'New Folder',
+    folder: '',
   }),
-  watch: {
-    showDialog(val) {
-      if (val) {
-        setTimeout(() => {
-          document.querySelector('#newFolder').select();
-        }, 0);
-      }
-    },
+  computed: {
+    ...mapGetters(['getFolders']),
   },
   methods: {
-    createFolder() {
-      this.$emit('createFolder', this.folderName);
-      this.folderName = '';
+    moveFolder() {
+      this.$emit('moveFolder', this.folder);
+      this.folder = '';
     },
   },
 };

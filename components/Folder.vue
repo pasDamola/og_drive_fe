@@ -1,6 +1,6 @@
 <template>
   <div class="folder">
-    <v-layout align-center justify-space-between>
+    <v-layout align-center justify-space-between class="action">
       <v-icon
         v-if="checked"
         size="20"
@@ -12,12 +12,26 @@
       <v-icon v-else size="20" @click.prevent="checked = true">
         mdi-circle-outline
       </v-icon>
-      <v-icon size="20">mdi-dots-vertical</v-icon>
+      <v-menu offset-y>
+        <template v-slot:activator="{ on }">
+          <v-btn icon v-on="on">
+            <v-icon size="20">mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item @click="$emit('deleteFolder', [folderId, folderName])">
+            <v-list-item-content>Delete Folder</v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </v-layout>
-    <img src="/images/folder.png" alt="Folder icon" />
+    <nuxt-link :to="`/folder/${folderId}`" class="link">
+      <img src="/images/folder.png" alt="Folder icon" />
+    </nuxt-link>
     <p>{{ folderName }}</p>
     <v-layout align-center justify-space-between class="folder-details">
-      <p>1 MB</p>
+      <!-- <p>1 MB</p> -->
+      <v-spacer />
       <p>{{ formatDate }}</p>
     </v-layout>
   </div>
@@ -29,6 +43,10 @@ import Moment from 'moment';
 export default {
   props: {
     folderName: {
+      type: String,
+      default: '',
+    },
+    folderId: {
       type: String,
       default: '',
     },
@@ -49,6 +67,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.action {
+  z-index: 2;
+}
 .folder {
   border-radius: 5px;
   width: 215px;

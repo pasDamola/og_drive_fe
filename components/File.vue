@@ -1,18 +1,45 @@
 <template>
   <div class="file">
     <v-layout align-center justify-space-between>
-      <v-icon v-if="checked" size="20" color="primary" @click="checked = false">
+      <v-icon
+        v-if="checked"
+        v-show="!hideOptions"
+        size="20"
+        color="primary"
+        @click="checked = false"
+      >
         mdi-checkbox-marked-circle-outline
       </v-icon>
-      <v-icon v-else size="20" @click="checked = true">
+      <v-icon v-else v-show="!hideOptions" size="20" @click="checked = true">
         mdi-circle-outline
       </v-icon>
-      <v-icon size="20">mdi-dots-vertical</v-icon>
+      <v-spacer v-if="hideOptions" />
+      <v-menu offset-y>
+        <template v-slot:activator="{ on }">
+          <v-btn icon v-on="on">
+            <v-icon size="20">mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item
+            v-if="!hideOptions"
+            @click="$emit('deleteFile', [fileId, name])"
+          >
+            <v-list-item-content>Delete File</v-list-item-content>
+          </v-list-item>
+          <v-list-item @click="$emit('viewDetails', [fileId, getFileIcon()])">
+            <v-list-item-content>View Details</v-list-item-content>
+          </v-list-item>
+          <v-list-item v-if="!hideOptions" @click="shareFile">
+            <v-list-item-content>Share</v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </v-layout>
     <img :src="getFileIcon()" :alt="`${format} icon`" />
     <p>{{ name | truncate }}</p>
     <v-layout align-center justify-space-between class="file-details">
-      <p>1 MB</p>
+      <p>{{ handleSize }} KB</p>
       <p>{{ formatDate }}</p>
     </v-layout>
   </div>
@@ -20,6 +47,8 @@
 
 <script>
 import Moment from 'moment';
+import { EventBus } from '../plugins/eventBus';
+
 export default {
   filters: {
     truncate(val) {
@@ -42,6 +71,18 @@ export default {
       type: String,
       default: '',
     },
+    fileId: {
+      type: String,
+      default: '',
+    },
+    hideOptions: {
+      type: Boolean,
+      default: false,
+    },
+    size: {
+      type: String,
+      default: '',
+    },
   },
   data: () => ({
     checked: false,
@@ -49,6 +90,14 @@ export default {
   computed: {
     formatDate() {
       return Moment(this.lastEdited).fromNow();
+    },
+    handleSize() {
+      return parseInt(this.size / 1000);
+    },
+  },
+  watch: {
+    checked(val) {
+      this.$emit('filesSelected', val);
     },
   },
   methods: {
@@ -76,7 +125,20 @@ export default {
         return '/images/pdf.png';
       } else if (this.format === 'html') {
         return '/images/html.png';
+      } else if (this.format === 'png') {
+        return '/images/png.png';
+      } else if (['jpg', 'jpeg'].includes(this.format)) {
+        return '/images/jpg.png';
+      } else if (this.format === 'csv') {
+        return '/images/csv.png';
+      } else if (this.format === 'txt') {
+        return '/images/txt.png';
+      } else {
+        return '/images/file.png';
       }
+    },
+    shareFile() {
+      EventBus.$emit('shareFile', this.fileId);
     },
   },
 };

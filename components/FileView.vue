@@ -1,5 +1,5 @@
 <template>
-  <v-container grid-list-md class="my-drive">
+  <div grid-list-md class="my-drive">
     <v-navigation-drawer
       v-model="showDrawer"
       temporary
@@ -54,12 +54,6 @@
       </v-layout>
     </v-navigation-drawer>
     <Loader v-if="loading" />
-    <v-snackbar v-if="error.status" v-model="error.status" :timeout="5000">
-      {{ error.message }}
-      <v-btn color="pink" text @click="error.status = false">
-        Close
-      </v-btn>
-    </v-snackbar>
     <v-layout align-center justify-space-between row wrap>
       <v-flex sm12 md2>
         <v-select
@@ -94,7 +88,7 @@
         :folder-id="folder._id"
         class="my-2"
         :last-updated="folder.updatedAt"
-        @deleteFolder="handleFolderDelete"
+        @deleteFolder="deleteFolder"
       />
     </div>
     <p class="font-weight-medium body-2">
@@ -111,119 +105,50 @@
         :last-edited="file.updatedAt"
         class="my-2"
         @filesSelected="handleMultipleFiles($event, file)"
-        @deleteFile="handleFileDelete"
+        @deleteFile="deleteFile"
         @viewDetails="showFileDetails"
       />
     </div>
-    <v-dialog v-model="showFolderDialog" max-width="360">
-      <v-card>
-        <v-card-title class="headline">
-          Delete Folder
-        </v-card-title>
-
-        <v-card-text>
-          <p>
-            This is going to permanently remove this folder and all its content
-            from your drive. Enter the file name below to delete.
-            <b>File Name: {{ currentFolderName }}</b>
-          </p>
-          <v-text-field v-model="folderName" label="Folder Name" />
-        </v-card-text>
-
-        <v-card-actions>
-          <v-spacer></v-spacer>
-
-          <v-btn color="darken-1" text @click="showFolderDialog = false">
-            Cancel
-          </v-btn>
-
-          <v-btn
-            color="red px-5"
-            :disabled="!folderName || folderName !== currentFolderName"
-            @click="deleteFolder(folderToDeleteDetails[0])"
-          >
-            Delete
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <v-dialog v-model="showDialog" max-width="360">
-      <v-card>
-        <v-card-title class="headline">
-          Delete File
-        </v-card-title>
-
-        <v-card-text>
-          <p>
-            This is going to permanently remove this file from your drive. Enter
-            the file name below to delete.
-            <b>File Name: {{ currentFileName }}</b>
-          </p>
-          <v-text-field v-model="fileName" label="File Name" />
-        </v-card-text>
-
-        <v-card-actions>
-          <v-spacer></v-spacer>
-
-          <v-btn color="darken-1" text @click="showDialog = false">
-            Cancel
-          </v-btn>
-
-          <v-btn
-            color="red px-5"
-            :disabled="!fileName || fileName !== currentFileName"
-            @click="deleteFile(fileToDeleteDetails[0])"
-          >
-            Delete
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </v-container>
+  </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex';
 import Moment from 'moment';
+import Loader from '@/components/Loader';
 import File from '@/components/File';
 import Folder from '@/components/Folder';
-import Loader from '@/components/Loader';
 import { EventBus } from '../plugins/eventBus';
 
 export default {
   layout: 'drive',
   components: { File, Folder, Loader },
-  middleware: 'authenticated',
+  props: {
+    folders: {
+      type: Array,
+      default: () => {},
+    },
+    fileKey: {
+      type: String,
+      default: '',
+    },
+  },
   data: () => ({
-    tempDate: new Date(2020, 3, 22),
+    routeName: '',
+    loading: false,
     searchFiles: '',
     fileTypes: ['pdf', 'Spreadsheets', 'Presentations'],
     fileType: '',
     selectedFiles: [],
-    loading: false,
-    error: { status: false, message: '' },
+    allFiles: [],
+    showDrawer: false,
     loadingDetails: false,
     fileDetails: '',
-    showDrawer: false,
-    currentFileName: '',
-    currentFolderName: '',
-    showDialog: false,
-    showFolderDialog: false,
-    fileName: '',
-    folderName: '',
-    fileToDeleteDetails: [],
-    folderToDeleteDetails: [],
   }),
   computed: {
-    ...mapGetters([
-      'getBreadCrumbs',
-      'getFiles',
-      'isLoggedIn',
-      'getFolders',
-      'getUser',
-    ]),
+    ...mapGetters(['getFolders', 'isLoggedIn']),
     filteredFiles() {
-      const files = this.getFiles.filter((el) => {
+      const files = this.allFiles.filter((el) => {
         return el.filename
           .toLowerCase()
           .includes(this.searchFiles.toLowerCase());
@@ -231,7 +156,9 @@ export default {
       return files;
     },
     filteredFolders() {
-      const subFolders = this.getFolders.filter((folder) => !folder.parent_dir);
+      const subFolders = this.getFolders.filter(
+        (folder) => folder.parent_dir === this.$route.params.name
+      );
       const folders = subFolders.filter((el) => {
         return el.dirname
           .toLowerCase()
@@ -243,48 +170,39 @@ export default {
   mounted() {
     const token = this.isLoggedIn(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
-    const user = this.getUser(this);
-    this.$store.dispatch('fetchFolders', user.id);
-    this.fetchUserFiles(user.id, 0);
-    EventBus.$on('filesFetched', this.emitFileLength);
+    this.getFolderDetails();
+    EventBus.$on('addedNewFile', this.getFolderDetails);
+  },
+  beforeDestroy() {
+    this.$store.dispatch(
+      'removeBreadCrumb',
+      `/folder/${this.$route.params.name}`
+    );
   },
   methods: {
-    handleFileDelete([id, name]) {
-      this.fileToDeleteDetails.push(id, name);
-      this.currentFileName = name;
-      this.showDialog = true;
-    },
-    handleFolderDelete([id, name]) {
-      this.folderToDeleteDetails.push(id, name);
-      this.currentFolderName = name;
-      this.showFolderDialog = true;
-    },
     deleteFolder(e) {
-      this.showFolderDialog = false;
       this.loading = true;
       const user = this.getUser(this);
       this.$axios
         .delete(`directory/deleteDirectory/${e}`)
         .then(() => {
+          EventBus.$emit('hideAction');
+          this.getFolderDetails();
           this.$store.dispatch('fetchFolders', user.id);
-          this.folderName = '';
-          this.fetchUserFiles(user.id, 0);
-          this.emitFileLength();
         })
         .catch((err) => {
+          EventBus.$emit('hideAction');
           this.loading = false;
           this.error.status = true;
           this.error.message = err.response.data.message;
         });
     },
     deleteFile(e) {
-      this.showDialog = false;
-      const user = this.getUser(this);
       this.loading = true;
       this.$axios
         .delete('/files', { data: { file_id: e } })
         .then(() => {
-          this.fetchUserFiles(user.id, 0);
+          this.getFolderDetails();
           this.loading = false;
         })
         .catch((err) => {
@@ -292,6 +210,28 @@ export default {
           this.error.status = true;
           this.error.message = err.response.data.message;
         });
+    },
+    getFolderDetails() {
+      if (this.$route.params.name !== undefined) {
+        this.loading = true;
+        this.$axios
+          .get(`directory/${this.$route.params.name}`)
+          .then(({ data }) => {
+            this.loading = false;
+            this.$store.dispatch('addBreadCrumbs', {
+              text: data.directory.dirname,
+              href: `/folder/${this.$route.params.name}`,
+              disabled: true,
+            });
+            this.$store.dispatch('saveCurrentLevel', data.directory.level);
+            this.allFiles = data.files;
+            this.emitFileLength();
+          })
+          .catch(() => {
+            this.loading = false;
+            // console.log(err.response);
+          });
+      }
     },
     showFileDetails([e, icon]) {
       let fileDetails = {};
@@ -308,8 +248,10 @@ export default {
       });
     },
     emitFileLength() {
-      const subFolders = this.getFolders.filter((folder) => !folder.parent_dir);
-      const length = subFolders.length + this.getFiles.length;
+      const subFolders = this.getFolders.filter(
+        (folder) => folder.parent_dir === this.$route.params.name
+      );
+      const length = subFolders.length + this.allFiles.length;
       EventBus.$emit('fileLength', length);
     },
   },
@@ -317,6 +259,21 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.toolbar::v-deep {
+  min-height: 100px;
+  .v-toolbar__content {
+    display: block;
+    padding: 0;
+  }
+}
+
+.count {
+  margin-bottom: 0;
+  margin-left: 5px;
+  font-size: 1.5em;
+  opacity: 0.7;
+}
+
 .my-drive {
   padding: 20px;
   height: calc(100vh - 16vh);
@@ -333,7 +290,7 @@ export default {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(215px, 215px));
   justify-content: center;
-  gap: 10px;
+  gap: 15px;
 
   @media only screen and (min-width: 768px) {
     justify-content: flex-start;
