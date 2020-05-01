@@ -1,197 +1,212 @@
 <template>
-  <v-data-table
-    :headers="headers"
-    :items="allUsers.users"
-    class="elevation-1"
-    :search="search"
-  >
-    <template v-slot:top>
-      <v-toolbar flat color="white">
-        <v-toolbar-title>All Users</v-toolbar-title>
-        <v-spacer></v-spacer>
-        <v-text-field
-          v-model="search"
-          append-icon="mdi-magnify"
-          label="Search"
-          single-line
-          hide-details
-        ></v-text-field>
-        <v-dialog v-model="dialog" max-width="500px">
-          <v-card>
-            <v-card-title>
-              <span class="headline">{{ formTitle }}</span>
-            </v-card-title>
+  <v-container>
+    <v-data-table
+      :headers="headers"
+      :items="allUsers.users"
+      class="elevation-1"
+      :search="search"
+    >
+      <template v-slot:top>
+        <v-toolbar flat color="white">
+          <v-toolbar-title>All Users</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-text-field
+            v-model="search"
+            append-icon="mdi-magnify"
+            label="Search"
+            single-line
+            hide-details
+          ></v-text-field>
+          <v-dialog v-model="dialog" max-width="500px">
+            <v-card>
+              <v-card-title>
+                <span class="headline">{{ formTitle }}</span>
+              </v-card-title>
 
-            <v-card-text>
-              <v-container>
-                <v-row>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field
-                      v-model="editedItem.fullName"
-                      label="Full Name"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field
-                      v-model="editedItem.username"
-                      label="Username"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field
-                      v-model="editedItem.newOgId"
-                      label="OGID"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field
-                      v-model="editedItem.email"
-                      label="Email"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field
-                      v-model="editedItem.department"
-                      label="Department"
-                    ></v-text-field>
-                  </v-col>
-                </v-row>
-              </v-container>
-            </v-card-text>
+              <v-card-text>
+                <v-container>
+                  <v-row>
+                    <v-col cols="12" sm="6" md="4">
+                      <v-text-field
+                        v-model="editedItem.fullName"
+                        label="Full Name"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="6" md="4">
+                      <v-text-field
+                        v-model="editedItem.username"
+                        label="Username"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="6" md="4">
+                      <v-text-field
+                        v-model="editedItem.newOgId"
+                        label="OGID"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="6" md="4">
+                      <v-text-field
+                        v-model="editedItem.email"
+                        label="Email"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="6" md="4">
+                      <v-text-field
+                        v-model="editedItem.department"
+                        label="Department"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card-text>
 
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
-              <v-btn
-                color="blue darken-1"
-                text
-                :loading="loading"
-                @click="save"
-              >
-                Save
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-        <v-dialog v-model="deleteDialog" max-width="500px">
-          <v-card>
-            <v-card-title>
-              <span class="headline">Delete User</span>
-            </v-card-title>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
+                <v-btn
+                  color="blue darken-1"
+                  text
+                  :loading="loading"
+                  @click="save"
+                >
+                  Save
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+          <v-dialog v-model="deleteDialog" max-width="500px">
+            <v-card>
+              <v-card-title>
+                <span class="headline">Delete User</span>
+              </v-card-title>
 
-            <v-card-text>
-              <v-container>
-                <v-row>
-                  Are you sure you want to delete this user?
-                </v-row>
-              </v-container>
-            </v-card-text>
+              <v-card-text>
+                <v-container>
+                  <v-row>
+                    Are you sure you want to delete this user?
+                  </v-row>
+                </v-container>
+              </v-card-text>
 
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
-              <v-btn
-                color="red darken-1"
-                text
-                :loading="loading"
-                @click="deleteUser"
-              >
-                Delete
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-        <v-dialog v-model="adminDialog" max-width="500px">
-          <v-card>
-            <v-card-title>
-              <span class="headline">Give Admin Privileges</span>
-            </v-card-title>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
+                <v-btn
+                  color="red darken-1"
+                  text
+                  :loading="loading"
+                  @click="deleteUser"
+                >
+                  Delete
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+          <v-dialog v-model="adminDialog" max-width="500px">
+            <v-card>
+              <v-card-title>
+                <span class="headline">Give Admin Privileges</span>
+              </v-card-title>
 
-            <v-card-text>
-              <v-container>
-                <v-row>
-                  Are you sure you want to make this user an admin?
-                </v-row>
-              </v-container>
-            </v-card-text>
+              <v-card-text>
+                <v-container>
+                  <v-row>
+                    Are you sure you want to make this user an admin?
+                  </v-row>
+                </v-container>
+              </v-card-text>
 
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
-              <v-btn
-                color="green darken-1"
-                text
-                :loading="loading"
-                @click="makeAdmin"
-              >
-                Yes!
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-        <v-dialog v-model="blockDialog" max-width="500px">
-          <v-card>
-            <v-card-title>
-              <span class="headline">Remove Admin Privileges</span>
-            </v-card-title>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
+                <v-btn
+                  color="green darken-1"
+                  text
+                  :loading="loading"
+                  @click="makeAdmin"
+                >
+                  Yes!
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+          <v-dialog v-model="blockDialog" max-width="500px">
+            <v-card>
+              <v-card-title>
+                <span class="headline">Remove Admin Privileges</span>
+              </v-card-title>
 
-            <v-card-text>
-              <v-container>
-                <v-row>
-                  Are you sure you want to remove admin privileges?
-                </v-row>
-              </v-container>
-            </v-card-text>
+              <v-card-text>
+                <v-container>
+                  <v-row>
+                    Are you sure you want to remove admin privileges?
+                  </v-row>
+                </v-container>
+              </v-card-text>
 
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
-              <v-btn
-                color="green darken-1"
-                text
-                :loading="loading"
-                @click="removeAdmin"
-              >
-                Yes!
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-      </v-toolbar>
-    </template>
-    <template v-slot:item.actions="{ item }">
-      <v-icon
-        color="yellow"
-        title="Edit User"
-        small
-        class="mr-2"
-        @click="editItem(item)"
-      >
-        mdi-pencil
-      </v-icon>
-      <v-icon color="red" title="Delete User" small @click="deleteItem(item)">
-        mdi-delete
-      </v-icon>
-      <v-icon
-        v-if="item.role == 'user'"
-        color="green"
-        title="Give Admin privileges"
-        small
-        @click="admin(item)"
-      >
-        mdi-account
-      </v-icon>
-      <v-icon
-        v-if="item.role == 'admin'"
-        color="orange"
-        title="Block Admin privileges"
-        small
-        @click="block(item)"
-      >
-        mdi-block-helper
-      </v-icon>
-    </template>
-  </v-data-table>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
+                <v-btn
+                  color="green darken-1"
+                  text
+                  :loading="loading"
+                  @click="removeAdmin"
+                >
+                  Yes!
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-toolbar>
+      </template>
+      <template v-slot:item.actions="{ item }">
+        <v-icon
+          color="yellow"
+          title="Edit User"
+          small
+          class="mr-2"
+          @click="editItem(item)"
+        >
+          mdi-pencil
+        </v-icon>
+        <v-icon color="red" title="Delete User" small @click="deleteItem(item)">
+          mdi-delete
+        </v-icon>
+        <v-icon
+          v-if="item.role == 'user'"
+          color="green"
+          title="Give Admin privileges"
+          small
+          @click="admin(item)"
+        >
+          mdi-account
+        </v-icon>
+        <v-icon
+          v-if="item.role == 'admin'"
+          color="orange"
+          title="Block Admin privileges"
+          small
+          @click="block(item)"
+        >
+          mdi-block-helper
+        </v-icon>
+      </template>
+    </v-data-table>
+    <Loader v-if="loading" />
+    <v-snackbar v-if="error.status" v-model="error.status" :timeout="5000">
+      {{ error.message }}
+      <v-btn color="pink" text @click="error.status = false">
+        Close
+      </v-btn>
+    </v-snackbar>
+    <v-snackbar v-if="success.status" v-model="success.status" :timeout="5000">
+      {{ success.message }}
+      <v-btn color="green" text @click="success.status = false">
+        Close
+      </v-btn>
+    </v-snackbar>
+  </v-container>
 </template>
 
 <script>
@@ -221,6 +236,9 @@ export default {
     ],
     desserts: [],
     editedIndex: -1,
+    error: { status: false, message: '' },
+    alertError: { status: false, message: '' },
+    success: { status: false, message: '' },
     editedItem: {
       username: '',
       newogId: '',
@@ -299,10 +317,15 @@ export default {
           this.$store.commit('LOAD_ALL_USERS', response.data);
           this.fetchUsers();
           this.dialog = false;
+          this.success.status = true;
+          this.success.message = response.data.message;
           return Promise.resolve(response.data);
         }
       } catch (error) {
         this.loading = false;
+        this.error.status = true;
+        this.error.message = error.response.data.message;
+        this.fetchUsers();
         return Promise.reject(error);
       }
       //this.close();
@@ -322,6 +345,8 @@ export default {
         });
         if (response) {
           this.loading = false;
+          this.success.status = true;
+          this.success.message = response.data.message;
           this.$store.commit('LOAD_ALL_USERS', response.data);
           this.fetchUsers();
           this.deleteDialog = false;
@@ -329,6 +354,9 @@ export default {
         }
       } catch (error) {
         this.loading = false;
+        this.error.status = true;
+        this.error.message = error.response.data.message;
+        this.fetchUsers();
         return Promise.reject(error);
       }
       //this.close();
@@ -342,6 +370,8 @@ export default {
         );
         if (response) {
           this.loading = false;
+          this.success.status = true;
+          this.success.message = response.data.message;
           this.$store.commit('LOAD_ALL_USERS', response.data);
           this.fetchUsers();
           this.adminDialog = false;
@@ -349,6 +379,9 @@ export default {
         }
       } catch (error) {
         this.loading = false;
+        this.error.status = true;
+        this.error.message = error.response.data.message;
+        this.fetchUsers();
         return Promise.reject(error);
       }
       //this.close();
@@ -362,6 +395,8 @@ export default {
         );
         if (response) {
           this.loading = false;
+          this.success.status = true;
+          this.success.message = response.data.message;
           this.$store.commit('LOAD_ALL_USERS', response.data);
           this.fetchUsers();
           this.blockDialog = false;
@@ -369,6 +404,9 @@ export default {
         }
       } catch (error) {
         this.loading = false;
+        this.error.status = true;
+        this.error.message = error.response.data.message;
+        this.fetchUsers();
         return Promise.reject(error);
       }
       //this.close();
