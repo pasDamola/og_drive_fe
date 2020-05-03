@@ -14,7 +14,7 @@
       <Loader v-if="loadingDetails" />
       <v-layout v-else column justify-center align-center class="fill-height">
         <img :src="fileDetails.icon" alt="" width="100px" />
-        <ul class="pl-0 file-details">
+        <ul class="px-4 file-details">
           <li class="my-2">
             <b>File Name: </b>
             {{ fileDetails.name }}
