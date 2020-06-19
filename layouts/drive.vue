@@ -119,7 +119,7 @@
               v-on="on"
             >
               <v-icon class="ml-n5 mx-5">mdi-upload</v-icon>
-              Upload
+              New
             </v-btn>
           </template>
           <v-list>
@@ -366,7 +366,7 @@ export default {
     drawer: null,
     items: [
       {
-        icon: 'mdi-google-drive',
+        icon: 'mdi-cloud-outline',
         text: 'My Drive',
         to: '/',
       },

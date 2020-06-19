@@ -14,7 +14,7 @@
       <Loader v-if="loadingDetails" />
       <v-layout v-else column justify-center align-center class="fill-height">
         <img :src="fileDetails.icon" alt="" width="100px" />
-        <ul class="pl-0 file-details">
+        <ul class="px-4 file-details">
           <li class="my-2">
             <b>File Name: </b>
             {{ fileDetails.name }}
@@ -31,7 +31,7 @@
         <v-layout class="file-actions px-8" row justify-space-between>
           <v-tooltip top>
             <template v-slot:activator="{ on }">
-              <a :href="fileDetails.link" download v-on="on">
+              <a :href="fileDetails.link" target="_blank" download v-on="on">
                 <v-icon color="primary" dark>
                   mdi-cloud-download-outline
                 </v-icon>
