@@ -2,58 +2,37 @@
   <v-container>
     <v-data-table
       :headers="headers"
-      :items="allUsers.users"
+      :items="allCampaigns.campaigns"
       class="elevation-1"
-      :search="search"
     >
       <template v-slot:top>
         <v-toolbar flat color="white">
-          <v-toolbar-title>All Users</v-toolbar-title>
+          <v-toolbar-title>All Campaigns</v-toolbar-title>
           <v-spacer></v-spacer>
-          <v-text-field
-            v-model="search"
-            append-icon="mdi-magnify"
-            label="Search"
-            single-line
-            hide-details
-          ></v-text-field>
-          <v-dialog v-model="dialog" max-width="500px">
+          <v-btn
+            color="primary"
+            rounded
+            height="40"
+            width="20%"
+            class="mx-3 my-5"
+            @click="createCampaign"
+          >
+            <v-icon class="ml-n5 mx-5">mdi-upload</v-icon>
+            Create Campaign
+          </v-btn>
+          <v-dialog v-model="createDialog" max-width="500px">
             <v-card>
               <v-card-title>
-                <span class="headline">{{ formTitle }}</span>
+                <span class="headline">New Campaign</span>
               </v-card-title>
 
               <v-card-text>
                 <v-container>
                   <v-row>
-                    <v-col cols="12" sm="6" md="4">
+                    <v-col cols="12">
                       <v-text-field
-                        v-model="editedItem.fullName"
-                        label="Full Name"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
-                        v-model="editedItem.username"
-                        label="Username"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
-                        v-model="editedItem.newOgId"
-                        label="OGID"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
-                        v-model="editedItem.email"
-                        label="Email"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
-                        v-model="editedItem.department"
-                        label="Department"
+                        v-model="campaignItem.title"
+                        label="Campaign Title"
                       ></v-text-field>
                     </v-col>
                   </v-row>
@@ -74,16 +53,82 @@
               </v-card-actions>
             </v-card>
           </v-dialog>
-          <v-dialog v-model="deleteDialog" max-width="500px">
+          <v-dialog v-model="dialog" max-width="500px">
             <v-card>
               <v-card-title>
-                <span class="headline">Delete User</span>
+                <span class="headline">{{ formTitle }}</span>
               </v-card-title>
 
               <v-card-text>
                 <v-container>
                   <v-row>
-                    Are you sure you want to delete this user?
+                    <v-col cols="12" sm="6" md="4">
+                      <v-text-field
+                        v-model="editedItem.title"
+                        label="Full Name"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card-text>
+
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
+                <v-btn
+                  color="blue darken-1"
+                  text
+                  :loading="loading"
+                  @click="editCampaign"
+                >
+                  Save
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+          <v-dialog v-model="viewDialog" max-width="500px">
+            <v-card>
+              <v-card-title>
+                <span class="headline">{{ formTitle }}</span>
+              </v-card-title>
+
+              <v-card-text>
+                <v-container>
+                  <v-row>
+                    <v-col cols="12" sm="6" md="4">
+                      <v-text-field
+                        v-model="editedItem.title"
+                        label="Full Name"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card-text>
+
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
+                <v-btn
+                  color="blue darken-1"
+                  text
+                  :loading="loading"
+                  @click="editCampaign"
+                >
+                  Save
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+          <v-dialog v-model="deleteDialog" max-width="500px">
+            <v-card>
+              <v-card-title>
+                <span class="headline">Delete Campaign</span>
+              </v-card-title>
+
+              <v-card-text>
+                <v-container>
+                  <v-row>
+                    Are you sure you want to delete this Campaign?
                   </v-row>
                 </v-container>
               </v-card-text>
@@ -95,65 +140,9 @@
                   color="red darken-1"
                   text
                   :loading="loading"
-                  @click="deleteUser"
+                  @click="deleteCampaign"
                 >
                   Delete
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-          <v-dialog v-model="adminDialog" max-width="500px">
-            <v-card>
-              <v-card-title>
-                <span class="headline">Give Admin Privileges</span>
-              </v-card-title>
-
-              <v-card-text>
-                <v-container>
-                  <v-row>
-                    Are you sure you want to make this user an admin?
-                  </v-row>
-                </v-container>
-              </v-card-text>
-
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
-                <v-btn
-                  color="green darken-1"
-                  text
-                  :loading="loading"
-                  @click="makeAdmin"
-                >
-                  Yes!
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-          <v-dialog v-model="blockDialog" max-width="500px">
-            <v-card>
-              <v-card-title>
-                <span class="headline">Remove Admin Privileges</span>
-              </v-card-title>
-
-              <v-card-text>
-                <v-container>
-                  <v-row>
-                    Are you sure you want to remove admin privileges?
-                  </v-row>
-                </v-container>
-              </v-card-text>
-
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
-                <v-btn
-                  color="green darken-1"
-                  text
-                  :loading="loading"
-                  @click="removeAdmin"
-                >
-                  Yes!
                 </v-btn>
               </v-card-actions>
             </v-card>
@@ -161,43 +150,31 @@
         </v-toolbar>
       </template>
       <template v-slot:item.actions="{ item }">
+        <!-- <v-icon
+          color="black"
+          title="View Campaign"
+          small
+          class="mr-2"
+          @click="viewItem(item)"
+        >
+          mdi-eye
+        </v-icon> -->
         <v-icon
           color="yellow"
-          title="Edit User"
+          title="Edit Campaign"
           small
           class="mr-2"
           @click="editItem(item)"
         >
           mdi-pencil
         </v-icon>
-        <v-icon color="red" title="Delete User" small @click="deleteItem(item)">
+        <v-icon
+          color="red"
+          title="Delete Campaign"
+          small
+          @click="deleteItem(item)"
+        >
           mdi-delete
-        </v-icon>
-        <v-icon
-          v-if="item.role == 'user'"
-          color="green"
-          title="Give Admin privileges"
-          small
-          @click="admin(item)"
-        >
-          mdi-account
-        </v-icon>
-        <v-icon
-          v-if="item.role == 'admin'"
-          color="orange"
-          title="Block Admin privileges"
-          small
-          @click="block(item)"
-        >
-          mdi-block-helper
-        </v-icon>
-        <v-icon
-          color="black"
-          title="Login to User account"
-          small
-          @click="userLogin(item)"
-        >
-          mdi-account
         </v-icon>
       </template>
     </v-data-table>
@@ -223,6 +200,8 @@ import { mapGetters } from 'vuex';
 export default {
   layout: 'admin',
   data: () => ({
+    viewDialog: false,
+    createDialog: false,
     dialog: false,
     search: '',
     deleteDialog: false,
@@ -231,15 +210,11 @@ export default {
     loading: false,
     headers: [
       {
-        text: 'Full Name',
+        text: 'Campaign',
         align: 'start',
         sortable: false,
-        value: 'full_name',
+        value: 'title',
       },
-      { text: 'Department', value: 'department' },
-      { text: 'OGID', value: 'ogId' },
-      { text: 'Role', value: 'role' },
-      { text: 'Username', value: 'username' },
       { text: 'Actions', value: 'actions', sortable: false },
     ],
     desserts: [],
@@ -248,21 +223,29 @@ export default {
     alertError: { status: false, message: '' },
     success: { status: false, message: '' },
     editedItem: {
-      username: '',
-      newogId: '',
-      email: '',
-      department: '',
-      fullName: '',
+      title: '',
     },
     adminItem: {},
     deletedItem: {},
     removeItem: {},
+    campaignItem: {
+      title: '',
+    },
   }),
   computed: {
     allUsers() {
       return this.$store.state.allUsers;
     },
-    ...mapGetters(['getUsers', 'getFiles', 'isLoggedIn', 'getFolders']),
+    allCampaigns() {
+      return this.$store.state.allCampaigns;
+    },
+    ...mapGetters([
+      'getUsers',
+      'getFiles',
+      'isLoggedIn',
+      'getFolders',
+      'getCampaigns',
+    ]),
     formTitle() {
       return this.editedIndex === -1 ? 'New Item' : 'Edit Item';
     },
@@ -276,23 +259,26 @@ export default {
   mounted() {
     const token = this.isLoggedIn(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
-    this.fetchUsers();
+    this.fetchCampaigns();
   },
   methods: {
+    viewItem(item) {
+      this.viewedItem = Object.assign({}, item);
+      this.viewDialog = true;
+    },
     editItem(item) {
-      this.editedIndex = this.$store.state.allUsers.users.indexOf(item);
+      this.editedIndex = this.$store.state.allCampaigns.campaigns.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
     },
-    userLogin() {
-      this.$router.push({ path: '/user-drive' });
-    },
+
     deleteItem(item) {
       // const index = this.$store.state.allUsers.users.indexOf(item);
       // console.log(index);
       this.deletedItem = Object.assign({}, item);
       this.deleteDialog = true;
     },
+
     admin(item) {
       this.adminItem = Object.assign({}, item);
       this.adminDialog = true;
@@ -304,6 +290,7 @@ export default {
     },
 
     close() {
+      this.createDialog = false;
       this.dialog = false;
       this.deleteDialog = false;
       this.adminDialog = false;
@@ -314,17 +301,23 @@ export default {
       }, 300);
     },
 
-    async save() {
+    createCampaign() {
+      this.createDialog = true;
+    },
+
+    async viewCampaign() {
       this.loading = true;
+      console.log(this.campaignItem);
       try {
-        const response = await this.$axios.patch(
-          `admin/updateUser/${this.editedItem.ogId}`,
-          this.editedItem
+        const response = await this.$axios.get(
+          `campaigns/${this.viewedItem._id}`
         );
+        console.log(response);
         if (response) {
+          console.log(response);
           this.loading = false;
-          this.$store.commit('LOAD_ALL_USERS', response.data);
-          this.fetchUsers();
+          this.$store.commit('LOAD_ALL_CAMPAIGNS', response.data);
+          this.fetchCampaigns();
           this.dialog = false;
           this.success.status = true;
           this.success.message = response.data.message;
@@ -334,30 +327,88 @@ export default {
         this.loading = false;
         this.error.status = true;
         this.error.message = error.response.data.message;
-        this.fetchUsers();
+        this.fetchCampaigns();
         return Promise.reject(error);
       }
-      //this.close();
+      this.close();
     },
 
-    async deleteUser() {
+    async editCampaign() {
+      this.loading = true;
+      console.log(this.campaignItem);
+      try {
+        const response = await this.$axios.patch(
+          `campaigns/${this.editedItem._id}`,
+          this.editedItem
+        );
+        if (response) {
+          console.log(response);
+          this.loading = false;
+          this.$store.commit('LOAD_ALL_CAMPAIGNS', response.data);
+          this.fetchCampaigns();
+          this.dialog = false;
+          this.success.status = true;
+          this.success.message = response.data.message;
+          return Promise.resolve(response.data);
+        }
+      } catch (error) {
+        this.loading = false;
+        this.error.status = true;
+        this.error.message = error.response.data.message;
+        this.fetchCampaigns();
+        return Promise.reject(error);
+      }
+      this.close();
+    },
+
+    async save() {
+      this.loading = true;
+      console.log(this.campaignItem);
+      try {
+        const response = await this.$axios.post('campaigns/new', {
+          title: this.campaignItem.title,
+        });
+        if (response) {
+          console.log(response);
+          this.loading = false;
+          this.$store.commit('LOAD_ALL_CAMPAIGNS', response.data);
+          this.fetchCampaigns();
+          this.createDialog = false;
+          this.success.status = true;
+          this.success.message = response.data.message;
+          return Promise.resolve(response.data);
+        }
+      } catch (error) {
+        this.loading = false;
+        this.error.status = true;
+        this.error.message = error.response.data.message;
+        this.fetchCampaigns();
+        return Promise.reject(error);
+      }
+      this.close();
+    },
+
+    async deleteCampaign() {
       const token = this.isLoggedIn(this);
       this.loading = true;
       try {
-        const response = await this.$axios.delete('admin/user', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          data: {
-            user_id: this.deletedItem._id,
-          },
-        });
+        const response = await this.$axios.delete(
+          `campaigns/${this.deletedItem._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            data: {
+              title: this.deletedItem.title,
+            },
+          }
+        );
         if (response) {
           this.loading = false;
           this.success.status = true;
           this.success.message = response.data.message;
-          this.$store.commit('LOAD_ALL_USERS', response.data);
-          this.fetchUsers();
+          this.$store.commit('LOAD_ALL_CAMPAIGNS', response.data);
+          this.fetchCampaigns();
           this.deleteDialog = false;
           return Promise.resolve(response.data);
         }
@@ -368,57 +419,7 @@ export default {
         this.fetchUsers();
         return Promise.reject(error);
       }
-      //this.close();
-    },
-    async makeAdmin() {
-      this.loading = true;
-      try {
-        const response = await this.$axios.patch(
-          `admin/makeAdmin/${this.adminItem.ogId}`,
-          this.adminItem
-        );
-        if (response) {
-          this.loading = false;
-          this.success.status = true;
-          this.success.message = response.data.message;
-          this.$store.commit('LOAD_ALL_USERS', response.data);
-          this.fetchUsers();
-          this.adminDialog = false;
-          return Promise.resolve(response.data);
-        }
-      } catch (error) {
-        this.loading = false;
-        this.error.status = true;
-        this.error.message = error.response.data.message;
-        this.fetchUsers();
-        return Promise.reject(error);
-      }
-      //this.close();
-    },
-    async removeAdmin() {
-      this.loading = true;
-      try {
-        const response = await this.$axios.patch(
-          `admin/removeAdmin/${this.removeItem.ogId}`,
-          this.removeItem
-        );
-        if (response) {
-          this.loading = false;
-          this.success.status = true;
-          this.success.message = response.data.message;
-          this.$store.commit('LOAD_ALL_USERS', response.data);
-          this.fetchUsers();
-          this.blockDialog = false;
-          return Promise.resolve(response.data);
-        }
-      } catch (error) {
-        this.loading = false;
-        this.error.status = true;
-        this.error.message = error.response.data.message;
-        this.fetchUsers();
-        return Promise.reject(error);
-      }
-      //this.close();
+      this.close();
     },
   },
 };

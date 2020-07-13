@@ -6,6 +6,7 @@ export const state = () => ({
   allFiles: [],
   allFolders: [],
   allUsers: [],
+  allCampaigns: [],
   totalFiles: [],
   totalDirectories: [],
   hello: 'hello',
@@ -41,6 +42,7 @@ export const getters = {
   getFolders: (state) => state.allFolders,
   getLevel: (state) => state.level,
   getUsers: (state) => state.allUsers,
+  getCampaigns: (state) => state.allCampaigns,
   getTotalFiles: (state) => state.totalFiles,
   getTotalDirectories: (state) => state.totalDirectories,
 };
@@ -91,6 +93,17 @@ export const actions = {
       const response = await this.$axios.get('admin/allUsers');
       if (response) {
         commit('LOAD_ALL_USERS', response.data);
+        return Promise.resolve(response.data);
+      }
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  },
+  async fetchCampaigns({ commit }) {
+    try {
+      const response = await this.$axios.get('campaigns');
+      if (response) {
+        commit('LOAD_ALL_CAMPAIGNS', response.data);
         return Promise.resolve(response.data);
       }
     } catch (error) {
@@ -189,6 +202,9 @@ export const mutations = {
   },
   LOAD_ALL_DIRECTORIES(state, directories) {
     state.totalDirectories = directories;
+  },
+  LOAD_ALL_CAMPAIGNS(state, allCampaigns) {
+    state.allCampaigns = allCampaigns;
   },
   //   LOAD_FILES(state, files) {
   //     state.allfiles = files;

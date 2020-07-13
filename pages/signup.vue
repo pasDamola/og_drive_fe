@@ -46,9 +46,11 @@
             <v-select
               ref="department"
               v-model="user.department"
-              :items="departments"
+              :items="allCampaigns.campaigns"
               name="department"
-              label="department"
+              label="campaigns"
+              item-text="title"
+              item-value="title"
               prepend-icon="mdi-account-group-outline"
               :rules="[rules.required]"
               validate-on-blur
@@ -67,6 +69,9 @@
             type="error"
             dismissible
           >
+            {{ error.message }}
+          </v-alert>
+          <v-alert v-else v-model="error.status" type="success" dismissible>
             {{ error.message }}
           </v-alert>
           <div class="my-3">
@@ -186,6 +191,10 @@ export default {
       status: false,
       message: '',
     },
+    success: {
+      status: true,
+      message: '',
+    },
     rules: {
       required: (value) => !!value || 'Required.',
       password: (value) => value.length >= 8 || 'Required',
@@ -206,6 +215,9 @@ export default {
     signUpSuccess: false,
   }),
   computed: {
+    allCampaigns() {
+      return this.$store.state.allCampaigns;
+    },
     stepOne() {
       return {
         ogId: this.user.ogId,
@@ -220,6 +232,9 @@ export default {
         password: this.user.password,
       };
     },
+  },
+  mounted() {
+    this.fetchCampaigns();
   },
   methods: {
     moveStepTwo() {
@@ -292,6 +307,8 @@ export default {
           this.loading = false;
           this.signUpSuccess = true;
           this.savedUser = res.data.user;
+          this.success.message =
+            'A link has been sent to your email address, please verify your email address!';
           this.formStepper = 3;
         })
         .catch((err) => {

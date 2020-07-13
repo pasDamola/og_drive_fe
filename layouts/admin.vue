@@ -157,6 +157,11 @@ export default {
         text: 'User Accounts',
         to: '/admin/allusers',
       },
+      {
+        icon: 'mdi-laptop',
+        text: 'Campaigns',
+        to: '/campaign',
+      },
       // {
       //   icon: 'mdi-chevron-up',
       //   'icon-alt': 'mdi-chevron-down',

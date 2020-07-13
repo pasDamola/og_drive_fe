@@ -39,6 +39,16 @@ const mixin = {
           this.loading = false;
         });
     },
+    fetchCampaigns() {
+      this.$store
+        .dispatch('fetchCampaigns')
+        .then(() => {
+          this.loading = false;
+        })
+        .catch(() => {
+          this.loading = false;
+        });
+    },
     fetchAllFiles() {
       this.$store
         .dispatch('fetchTotalFiles')
