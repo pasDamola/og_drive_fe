@@ -3,12 +3,14 @@
 export const state = () => ({
   // user: UserService.getUserFromLocalStorage(),
   // token_details: UserService.getTokenFromLocalStorage(),
+  user: {},
   allFiles: [],
   allFolders: [],
   allUsers: [],
   allCampaigns: [],
   totalFiles: [],
   totalDirectories: [],
+  userDirectories: [],
   hello: 'hello',
   breadCrumbs: [
     {
@@ -45,6 +47,8 @@ export const getters = {
   getCampaigns: (state) => state.allCampaigns,
   getTotalFiles: (state) => state.totalFiles,
   getTotalDirectories: (state) => state.totalDirectories,
+  getUserDetails: (state) => state.user,
+  getUserDirectories: (state) => state.userDirectories,
 };
 
 export const actions = {
@@ -88,10 +92,25 @@ export const actions = {
       commit('SAVE_USER_FOLDERS', res.data);
     });
   },
+  async fetchUserDirectories({ commit }, id) {
+    try {
+      const response = await this.$axios.post('admin/files/user/', {
+        user_id: id,
+      });
+      if (response) {
+        console.log('its working:', response.data);
+        commit('LOAD_USER_DIRECTORIES', response.data.directories);
+        return Promise.resolve(response.data);
+      }
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  },
   async fetchUsers({ commit }) {
     try {
       const response = await this.$axios.get('admin/allUsers');
       if (response) {
+        console.log(response.data);
         commit('LOAD_ALL_USERS', response.data);
         return Promise.resolve(response.data);
       }
@@ -137,6 +156,18 @@ export const actions = {
       const response = await this.$axios.patch(`admin/updateUser/${id}`);
       if (response) {
         commit('LOAD_ALL_USERS', response.data);
+        return Promise.resolve(response.data);
+      }
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  },
+  async fetchUser({ commit }, id) {
+    try {
+      const response = await this.$axios.get(`admin/user/${id}`);
+      if (response) {
+        console.log('Response:', response.data);
+        commit('LOAD_USER_DETAILS', response.data);
         return Promise.resolve(response.data);
       }
     } catch (error) {
@@ -206,7 +237,10 @@ export const mutations = {
   LOAD_ALL_CAMPAIGNS(state, allCampaigns) {
     state.allCampaigns = allCampaigns;
   },
-  //   LOAD_FILES(state, files) {
-  //     state.allfiles = files;
-  //   }
+  LOAD_USER_DETAILS(state, user) {
+    state.user = user;
+  },
+  LOAD_USER_DIRECTORIES(state, directories) {
+    state.userDirectories = directories;
+  },
 };

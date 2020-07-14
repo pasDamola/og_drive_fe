@@ -361,14 +361,14 @@ export default {
       default: '',
     },
   },
-  data: () => ({
+  data: (v) => ({
     dialog: false,
     drawer: null,
     items: [
       {
         icon: 'mdi-cloud-outline',
-        text: 'My Drive',
-        to: '/',
+        text: 'Drive',
+        to: `/admin/user/${v.$route.params.id}`,
       },
       {
         icon: 'mdi-account-multiple-outline',
@@ -437,7 +437,13 @@ export default {
     },
   }),
   computed: {
-    ...mapGetters(['getBreadCrumbs', 'isLoggedIn', 'getUser', 'getLevel']),
+    ...mapGetters([
+      'getBreadCrumbs',
+      'isLoggedIn',
+      'getUser',
+      'getLevel',
+      'getUserDetails',
+    ]),
     isAdmin() {
       return this.user.role && this.user.role.toLowerCase() === 'admin';
     },
@@ -721,7 +727,7 @@ export default {
     },
     fetchUser() {
       const ogId = this.user.ogId;
-      this.$axios.get(`users/${ogId}`).then(({ data }) => {
+      this.$axios.get(`admin/users/${ogId}`).then(({ data }) => {
         const userDetails = {
           id: data._id,
           ogId: data.ogId,

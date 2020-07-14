@@ -88,7 +88,7 @@
     </p>
     <div class="files mb-5">
       <Folder
-        v-for="(folder, index) in filteredFolders"
+        v-for="(folder, index) in userDirectories"
         :key="index"
         :folder-name="folder.dirname"
         :folder-id="folder._id"
@@ -188,14 +188,13 @@ import Moment from 'moment';
 import File from '@/components/File';
 import Folder from '@/components/Folder';
 import Loader from '@/components/Loader';
-import { EventBus } from '../../plugins/eventBus';
+import { EventBus } from '../../../plugins/eventBus';
 
 export default {
-  layout: 'drive',
+  layout: 'admin-drive',
   components: { File, Folder, Loader },
   middleware: 'authenticated',
   data: () => ({
-    id: this.$route.params.id,
     tempDate: new Date(2020, 3, 22),
     searchFiles: '',
     fileTypes: ['pdf', 'Spreadsheets', 'Presentations'],
@@ -222,7 +221,18 @@ export default {
       'isLoggedIn',
       'getFolders',
       'getUser',
+      'getUserDirectories',
+      'getUserDetails',
     ]),
+    allUsers() {
+      return this.$store.state.allUsers.users;
+    },
+    id() {
+      return this.$route.params.id;
+    },
+    user() {
+      return this.allUsers.find((user) => user.ogId === this.id);
+    },
     filteredFiles() {
       const files = this.getFiles.filter((el) => {
         return el.filename
@@ -240,13 +250,17 @@ export default {
       });
       return folders;
     },
+    userDirectories() {
+      return this.$store.state.userDirectories;
+    },
   },
   mounted() {
     const token = this.isLoggedIn(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     const user = this.getUser(this);
-    this.$store.dispatch('fetchFolders', user.id);
+    this.fetchUserDirectories(this.id);
     this.fetchUserFiles(user.id, 0);
+    this.fetchUser(this.id);
     EventBus.$on('filesFetched', this.emitFileLength);
   },
   methods: {

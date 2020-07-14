@@ -79,6 +79,26 @@ const mixin = {
           this.loading = false;
         });
     },
+    fetchUser(id) {
+      this.$store
+        .dispatch('fetchUser', id)
+        .then(() => {
+          this.loading = false;
+        })
+        .catch(() => {
+          this.loading = false;
+        });
+    },
+    fetchUserDirectories() {
+      this.$store
+        .dispatch('fetchUserDirectories')
+        .then(() => {
+          this.loading = false;
+        })
+        .catch(() => {
+          this.loading = false;
+        });
+    },
   },
 };
 

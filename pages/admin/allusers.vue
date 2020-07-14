@@ -284,8 +284,26 @@ export default {
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
     },
-    userLogin() {
-      this.$router.push({ path: '/user-drive' });
+    async userLogin(item) {
+      this.loading = true;
+      try {
+        const response = await this.$axios.get(`admin/user/${item.ogId}`);
+        if (response) {
+          this.loading = false;
+          console.log(response);
+          this.$store.commit('LOAD_USER_DETAILS', response.data);
+          this.$router.push({ path: `/admin/user/${item.ogId}` });
+          this.success.message = response.data.message;
+          return Promise.resolve(response.data);
+        }
+      } catch (error) {
+        this.loading = false;
+        this.error.status = true;
+        this.error.message = error.response.data.message;
+        this.fetchUsers();
+        return Promise.reject(error);
+      }
+      //this.close();
     },
     deleteItem(item) {
       // const index = this.$store.state.allUsers.users.indexOf(item);
@@ -302,6 +320,10 @@ export default {
       this.removeItem = Object.assign({}, item);
       this.blockDialog = true;
     },
+
+    // userLogin(item){
+    //   this.loginItem = Object.assign({}, item);
+    // },
 
     close() {
       this.dialog = false;
