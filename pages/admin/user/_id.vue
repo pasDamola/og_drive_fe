@@ -258,9 +258,9 @@ export default {
     const token = this.isLoggedIn(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     const user = this.getUser(this);
-    this.fetchUserDirectories(this.id);
     this.fetchUserFiles(user.id, 0);
     this.fetchUser(this.id);
+    //this.fetchUserDirectories(this.id);
     EventBus.$on('filesFetched', this.emitFileLength);
   },
   methods: {
@@ -277,13 +277,14 @@ export default {
     deleteFolder(e) {
       this.showFolderDialog = false;
       this.loading = true;
-      const user = this.getUser(this);
+      // const user = this.getUser(this);
       this.$axios
-        .delete(`directory/deleteDirectory/${e}`)
+        .delete(`directory/${e}`)
         .then(() => {
-          this.$store.dispatch('fetchFolders', user.id);
+          this.fetchUser(this.user.ogId);
+          // this.$store.dispatch('fetchFolders', user.id);
           this.folderName = '';
-          this.fetchUserFiles(user.id, 0);
+          // this.fetchUserFiles(user.id, 0);
           this.emitFileLength();
         })
         .catch((err) => {
@@ -323,8 +324,7 @@ export default {
       });
     },
     emitFileLength() {
-      const subFolders = this.getFolders.filter((folder) => !folder.parent_dir);
-      const length = subFolders.length + this.getFiles.length;
+      const length = this.userDirectories.length;
       EventBus.$emit('fileLength', length);
     },
   },

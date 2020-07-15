@@ -279,6 +279,12 @@
             </v-list-item-icon>
             <v-list-item-content>Admin Dashboard</v-list-item-content>
           </v-list-item>
+          <v-list-item v-if="isAdmin || isSuperAdmin" to="/">
+            <v-list-item-icon>
+              <v-icon>mdi-account-supervisor-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>Home</v-list-item-content>
+          </v-list-item>
         </v-list>
       </v-menu>
     </v-app-bar>
@@ -444,14 +450,26 @@ export default {
       'getLevel',
       'getUserDetails',
     ]),
+    allUsers() {
+      return this.$store.state.allUsers.users;
+    },
+    userId() {
+      return this.getUserDetails.user._id;
+    },
     isAdmin() {
       return this.user.role && this.user.role.toLowerCase() === 'admin';
+    },
+    ogId() {
+      return this.allUsers.find((user) => user.ogId === this.id);
     },
     isSuperAdmin() {
       return this.user.role && this.user.role.toLowerCase() === 'superadmin';
     },
     disableBtn() {
       return !this.updateUser.full_name || !this.updateUser.username;
+    },
+    id() {
+      return this.$route.params.id;
     },
     getUserInitials() {
       const full_name = this.user.full_name;
@@ -501,29 +519,29 @@ export default {
     createFolder(e) {
       const parentDir = this.$route.params.name || '';
       this.buttonLoading = true;
-      const user = this.getUser(this);
+      // const user = this.userId.id;
       let data;
       if (!parentDir) {
         data = {
           dirname: e,
-          user_id: user.id,
+          user_id: this.userId,
           level: 0,
         };
       } else {
         data = {
           dirname: e,
-          user_id: user.id,
+          user_id: this.userId,
           level: this.getLevel + 1,
           parent_dir: parentDir,
         };
       }
       this.$axios
-        .post('directory/create', data)
+        .post('admin/directory/create', data)
         .then(() => {
           this.buttonLoading = false;
           this.loading = true;
-          this.fetchUserFiles(user.id, 0);
-          this.$store.dispatch('fetchFolders', user.id);
+          this.fetchUser(this.ogId.ogId);
+          //this.$store.dispatch('fetchFolders', user.id);
         })
         .catch((err) => {
           this.buttonLoading = false;

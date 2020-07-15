@@ -92,20 +92,6 @@ export const actions = {
       commit('SAVE_USER_FOLDERS', res.data);
     });
   },
-  async fetchUserDirectories({ commit }, id) {
-    try {
-      const response = await this.$axios.post('admin/files/user/', {
-        user_id: id,
-      });
-      if (response) {
-        console.log('its working:', response.data);
-        commit('LOAD_USER_DIRECTORIES', response.data.directories);
-        return Promise.resolve(response.data);
-      }
-    } catch (error) {
-      return Promise.reject(error);
-    }
-  },
   async fetchUsers({ commit }) {
     try {
       const response = await this.$axios.get('admin/allUsers');
@@ -168,12 +154,25 @@ export const actions = {
       if (response) {
         console.log('Response:', response.data);
         commit('LOAD_USER_DETAILS', response.data);
+        commit('LOAD_USER_DIRECTORIES', response.data.directories);
         return Promise.resolve(response.data);
       }
     } catch (error) {
       return Promise.reject(error);
     }
   },
+  // async fetchUserDirectories({ commit }, id) {
+  //   try {
+  //     const response = await this.$axios.get(`admin/user/${id}`);
+  //     if (response) {
+  //       console.log('New Response:', response.data.directories);
+  //       commit('LOAD_USER_DIRECTORIES', response.data.directories);
+  //       return Promise.resolve(response.data);
+  //     }
+  //   } catch (error) {
+  //     return Promise.reject(error);
+  //   }
+  // },
 };
 
 export const mutations = {
