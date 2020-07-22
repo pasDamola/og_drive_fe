@@ -378,7 +378,7 @@ export default {
       {
         icon: 'mdi-clock-outline',
         text: 'Recent',
-        to: '#3',
+        to: '/recent',
       },
       {
         icon: 'mdi-star-outline',

@@ -34,7 +34,7 @@
             @click:append="isPassword = !isPassword"
           />
           <router-link
-            to="#"
+            to="/forgot-password"
             class="forgot caption font-weight-bold float-right"
           >
             Forgot Password
@@ -92,6 +92,7 @@ export default {
         .post('users/login', this.user)
         .then(({ data }) => {
           this.loading = false;
+          console.log(data.data.message);
           const userDetails = {
             id: data.user._id,
             ogId: data.user.ogId,
@@ -108,7 +109,10 @@ export default {
         })
         .catch((err) => {
           this.loading = false;
-          console.log(err.response);
+          console.log(err.response.data.message);
+          this.error.status = true;
+          this.error.message =
+            err.response.data.message + ',please verify your account!!';
         });
     },
   },

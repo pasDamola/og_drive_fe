@@ -13,9 +13,9 @@
           User Details
         </v-stepper-step>
 
-        <v-divider></v-divider>
+        <!-- <v-divider></v-divider>
 
-        <v-stepper-step step="3">User Photo</v-stepper-step>
+        <v-stepper-step step="3">User Photo</v-stepper-step> -->
       </v-stepper-header>
 
       <v-stepper-items>
@@ -71,8 +71,8 @@
           >
             {{ error.message }}
           </v-alert>
-          <v-alert v-else v-model="error.status" type="success" dismissible>
-            {{ error.message }}
+          <v-alert v-else v-model="signUpSuccess" type="success" dismissible>
+            {{ success.message }}
           </v-alert>
           <div class="my-3">
             <v-text-field
@@ -113,9 +113,9 @@
             color="primary"
             :disabled="error.status"
             :loading="loading"
-            @click="moveStepThree"
+            @click="signUp"
           >
-            {{ signUpSuccess ? 'Next' : 'Sign Up' }}
+            Sign Up
           </v-btn>
 
           <v-btn
@@ -128,7 +128,7 @@
           </v-btn>
         </v-stepper-content>
 
-        <v-stepper-content step="3">
+        <!-- <v-stepper-content step="3">
           <v-alert
             v-if="error.status"
             v-model="error.status"
@@ -162,7 +162,7 @@
           </v-btn>
 
           <v-btn text @click="login">Skip</v-btn>
-        </v-stepper-content>
+        </v-stepper-content> -->
       </v-stepper-items>
     </v-stepper>
     <p class="my-3 subtitle-2">
@@ -192,7 +192,7 @@ export default {
       message: '',
     },
     success: {
-      status: true,
+      status: false,
       message: '',
     },
     rules: {
@@ -255,7 +255,7 @@ export default {
           return;
         }
       }
-      this.signUp();
+      // this.signUp();
     },
     handleImage(image) {
       const files = image.target.files;
@@ -306,10 +306,11 @@ export default {
         .then((res) => {
           this.loading = false;
           this.signUpSuccess = true;
-          this.savedUser = res.data.user;
           this.success.message =
             'A link has been sent to your email address, please verify your email address!';
-          this.formStepper = 3;
+          this.savedUser = res.data.user;
+
+          //this.formStepper = 3;
         })
         .catch((err) => {
           const {

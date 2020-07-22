@@ -3,6 +3,8 @@
 export const state = () => ({
   // user: UserService.getUserFromLocalStorage(),
   // token_details: UserService.getTokenFromLocalStorage(),
+  verifyToken: '',
+  resetToken: '',
   user: {},
   allFiles: [],
   allFolders: [],
@@ -49,6 +51,8 @@ export const getters = {
   getTotalDirectories: (state) => state.totalDirectories,
   getUserDetails: (state) => state.user,
   getUserDirectories: (state) => state.userDirectories,
+  getUserToken: (state) => state.verifyToken,
+  getResetToken: (state) => state.resetToken,
 };
 
 export const actions = {
@@ -161,18 +165,28 @@ export const actions = {
       return Promise.reject(error);
     }
   },
-  // async fetchUserDirectories({ commit }, id) {
-  //   try {
-  //     const response = await this.$axios.get(`admin/user/${id}`);
-  //     if (response) {
-  //       console.log('New Response:', response.data.directories);
-  //       commit('LOAD_USER_DIRECTORIES', response.data.directories);
-  //       return Promise.resolve(response.data);
-  //     }
-  //   } catch (error) {
-  //     return Promise.reject(error);
-  //   }
-  // },
+  async verifyUser({ commit }, id) {
+    try {
+      const response = await this.$axios.post('users/verified', id);
+      if (response) {
+        commit('VERIFY_USER', response.data);
+        return Promise.resolve(response.data);
+      }
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  },
+  async resetUser({ commit }, [id, email]) {
+    try {
+      const response = await this.$axios.post('reset-password', { id, email });
+      if (response) {
+        commit('RESET_USER', response.data);
+        return Promise.resolve(response.data);
+      }
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  },
 };
 
 export const mutations = {
@@ -241,5 +255,11 @@ export const mutations = {
   },
   LOAD_USER_DIRECTORIES(state, directories) {
     state.userDirectories = directories;
+  },
+  VERIFY_USER(state, verifyToken) {
+    state.verifyToken = verifyToken;
+  },
+  RESET_USER(state, resetToken) {
+    state.resetToken = resetToken;
   },
 };

@@ -3,6 +3,26 @@ import { EventBus } from './eventBus';
 
 const mixin = {
   methods: {
+    verifyUser(id) {
+      this.$store
+        .dispatch('verifyUser', id)
+        .then(() => {
+          this.loading = false;
+        })
+        .catch(() => {
+          this.loading = false;
+        });
+    },
+    resetUser(id, email) {
+      this.$store
+        .dispatch('resetUser', { id, email })
+        .then(() => {
+          this.loading = false;
+        })
+        .catch(() => {
+          this.loading = false;
+        });
+    },
     fetchUserFiles(id, level) {
       this.$store
         .dispatch('fetchFiles', [id, level])
