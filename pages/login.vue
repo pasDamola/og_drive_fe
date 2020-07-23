@@ -92,7 +92,6 @@ export default {
         .post('users/login', this.user)
         .then(({ data }) => {
           this.loading = false;
-          console.log(data.data.message);
           const userDetails = {
             id: data.user._id,
             ogId: data.user.ogId,
@@ -109,10 +108,11 @@ export default {
         })
         .catch((err) => {
           this.loading = false;
-          console.log(err.response.data.message);
+          console.log(err);
+          //console.log(err.response.data.message);
           this.error.status = true;
-          this.error.message =
-            err.response.data.message + ',please verify your account!!';
+          // this.error.message =
+          //   err.response.data.message + ',please verify your account!!';
         });
     },
   },

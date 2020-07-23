@@ -13,9 +13,9 @@
           User Details
         </v-stepper-step>
 
-        <!-- <v-divider></v-divider>
+        <v-divider></v-divider>
 
-        <v-stepper-step step="3">User Photo</v-stepper-step> -->
+        <v-stepper-step step="3">Verify Account</v-stepper-step>
       </v-stepper-header>
 
       <v-stepper-items>
@@ -126,9 +126,12 @@
           >
             Back
           </v-btn>
+          <v-btn v-if="signUpSuccess" text @click="formStepper = 3">
+            Proceed to Verify
+          </v-btn>
         </v-stepper-content>
 
-        <!-- <v-stepper-content step="3">
+        <v-stepper-content step="3">
           <v-alert
             v-if="error.status"
             v-model="error.status"
@@ -137,32 +140,34 @@
           >
             {{ error.message }}
           </v-alert>
-          <input
-            v-if="!imageLoading"
-            id="user-photo"
-            type="file"
-            name="user-photo"
-            @change="handleImage"
-          />
-          <label v-if="!imageLoading" for="user-photo" class="picture-upload">
-            <v-icon size="50" color="white">
-              mdi-camera-plus-outline
-            </v-icon>
-            <img id="user-image" src="" alt="User's image" />
-          </label>
-          <v-progress-circular
-            v-else
-            :size="70"
-            color="primary"
-            class="d-block"
-            indeterminate
-          />
-          <v-btn color="primary" :loading="loading" @click="addImage">
-            Save
-          </v-btn>
-
-          <v-btn text @click="login">Skip</v-btn>
-        </v-stepper-content> -->
+          <v-alert v-else v-model="success.status" type="success" dismissible>
+            {{ success.message }}
+          </v-alert>
+          <v-form @submit.prevent.stop="logIn">
+            <v-text-field
+              v-model="user.token"
+              label="Token"
+              name="id"
+              type="text"
+              placeholder="*****"
+              prepend-icon="mdi-account-outline"
+              class="mx-3 my-4"
+              validate-on-blur
+            />
+            <v-btn
+              depressed
+              color="primary"
+              min-width="150px"
+              min-height="40px"
+              :loading="loading"
+              type="submit"
+              class="my-4 mx-3"
+              @click.stop.prevent="verifyUser"
+            >
+              Verify account
+            </v-btn>
+          </v-form>
+        </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
     <p class="my-3 subtitle-2">
@@ -304,13 +309,12 @@ export default {
       this.$axios
         .post('users/register', this.user)
         .then((res) => {
+          localStorage.setItem('user', JSON.stringify(this.user));
           this.loading = false;
           this.signUpSuccess = true;
           this.success.message =
-            'A link has been sent to your email address, please verify your email address!';
+            'A verification code has been sent to your email address, please verify your account';
           this.savedUser = res.data.user;
-
-          //this.formStepper = 3;
         })
         .catch((err) => {
           const {
@@ -322,6 +326,27 @@ export default {
           }
           this.loading = false;
           this.error.status = true;
+        });
+    },
+    verifyUser() {
+      let user = JSON.parse(localStorage.getItem('user'));
+      this.loading = true;
+      this.user.email = user.email;
+      this.$axios
+        .post('users/verified', this.user)
+        .then(() => {
+          this.loading = false;
+          this.success.status = true;
+          this.success.message =
+            'Successfully verified, please proceed to Login';
+
+          this.$router.push({ path: '/login' });
+        })
+        .catch((err) => {
+          console.log(err);
+          this.error.message = err.response.message;
+          this.error.status = true;
+          this.loading = false;
         });
     },
     login() {

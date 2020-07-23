@@ -165,17 +165,17 @@ export const actions = {
       return Promise.reject(error);
     }
   },
-  async verifyUser({ commit }, id) {
-    try {
-      const response = await this.$axios.post('users/verified', id);
-      if (response) {
-        commit('VERIFY_USER', response.data);
-        return Promise.resolve(response.data);
-      }
-    } catch (error) {
-      return Promise.reject(error);
-    }
-  },
+  // async verifyUser({ commit }, id) {
+  //   try {
+  //     const response = await this.$axios.post('users/verified', id);
+  //     if (response) {
+  //       commit('VERIFY_USER', response.data);
+  //       return Promise.resolve(response.data);
+  //     }
+  //   } catch (error) {
+  //     return Promise.reject(error);
+  //   }
+  // },
   async resetUser({ commit }, [id, email]) {
     try {
       const response = await this.$axios.post('reset-password', { id, email });
