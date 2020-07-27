@@ -119,6 +119,16 @@ const mixin = {
           this.loading = false;
         });
     },
+    fetchBinFiles(id) {
+      this.$store
+        .dispatch('fetchBinFiles', id)
+        .then(() => {
+          this.loading = false;
+        })
+        .catch(() => {
+          this.loading = false;
+        });
+    },
   },
 };
 

@@ -60,6 +60,12 @@
         Close
       </v-btn>
     </v-snackbar>
+    <v-snackbar v-else v-model="success.status" :timeout="5000">
+      {{ success.message }}
+      <v-btn color="green" text @click="success.status = false">
+        Close
+      </v-btn>
+    </v-snackbar>
     <v-layout align-center justify-space-between row wrap>
       <v-flex sm12 md2>
         <v-select
@@ -88,7 +94,7 @@
     </p>
     <div class="files mb-5">
       <Folder
-        v-for="(folder, index) in userDirectories"
+        v-for="(folder, index) in filteredFolders"
         :key="index"
         :folder-name="folder.dirname"
         :folder-id="folder._id"
@@ -101,7 +107,7 @@
       Files
     </p>
     <div class="files mb-5">
-      <File
+      <SuperAdminFile
         v-for="file in filteredFiles"
         :key="file.file_url"
         :format="file.file_extension"
@@ -111,8 +117,9 @@
         :last-edited="file.updatedAt"
         class="my-2"
         @filesSelected="handleMultipleFiles($event, file)"
-        @deleteFile="handleFileDelete"
+        @moveToBin="moveToBin"
         @viewDetails="showFileDetails"
+        @deleteFile="handleFileDelete"
       />
     </div>
     <v-dialog v-model="showFolderDialog" max-width="360">
@@ -185,14 +192,14 @@
 <script>
 import { mapGetters } from 'vuex';
 import Moment from 'moment';
-import File from '@/components/File';
+import SuperAdminFile from '@/components/SuperAdminFile';
 import Folder from '@/components/Folder';
 import Loader from '@/components/Loader';
 import { EventBus } from '../../../plugins/eventBus';
 
 export default {
   layout: 'admin-drive',
-  components: { File, Folder, Loader },
+  components: { SuperAdminFile, Folder, Loader },
   middleware: 'authenticated',
   data: () => ({
     tempDate: new Date(2020, 3, 22),
@@ -202,6 +209,7 @@ export default {
     selectedFiles: [],
     loading: false,
     error: { status: false, message: '' },
+    success: { status: false, message: '' },
     loadingDetails: false,
     fileDetails: '',
     showDrawer: false,
@@ -223,6 +231,7 @@ export default {
       'getUser',
       'getUserDirectories',
       'getUserDetails',
+      'getUserFolders',
     ]),
     allUsers() {
       return this.$store.state.allUsers.users;
@@ -242,7 +251,9 @@ export default {
       return files;
     },
     filteredFolders() {
-      const subFolders = this.getFolders.filter((folder) => !folder.parent_dir);
+      const subFolders = this.getUserDirectories.filter(
+        (folder) => !folder.parent_dir
+      );
       const folders = subFolders.filter((el) => {
         return el.dirname
           .toLowerCase()
@@ -251,14 +262,17 @@ export default {
       return folders;
     },
     userDirectories() {
-      return this.$store.state.userDirectories;
+      return this.$store.state.userFolders.directories;
     },
   },
   mounted() {
     const token = this.isLoggedIn(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
-    const user = this.getUser(this);
-    this.fetchUserFiles(user.id, 0);
+    //const user = this.getUser(this);
+    this.$store.dispatch('fetchUser', this.$route.params.id).then(() => {
+      const userInView = this.$store.getters.getUserDetails;
+      this.fetchUserFiles(userInView.user._id, 0);
+    });
     this.fetchUser(this.id);
     //this.fetchUserDirectories(this.id);
     EventBus.$on('filesFetched', this.emitFileLength);
@@ -295,13 +309,32 @@ export default {
     },
     deleteFile(e) {
       this.showDialog = false;
-      const user = this.getUser(this);
+      const userInView = this.$store.getters.getUserDetails;
       this.loading = true;
       this.$axios
-        .delete('/files', { data: { file_id: e } })
+        .delete(`/files/${e}`)
         .then(() => {
-          this.fetchUserFiles(user.id, 0);
+          this.fetchUserFiles(userInView.user._id, 0);
           this.loading = false;
+          this.success.status = true;
+          this.success.message = 'File has been deleted';
+        })
+        .catch((err) => {
+          this.loading = false;
+          this.error.status = true;
+          this.error.message = err.response.data.message;
+        });
+    },
+    moveToBin(e) {
+      const userInView = this.$store.getters.getUserDetails;
+      this.loading = true;
+      this.$axios
+        .post('/super_admin/file/bin', { file_id: e })
+        .then(() => {
+          this.fetchUserFiles(userInView.user._id, 0);
+          this.loading = false;
+          this.success.status = true;
+          this.success.message = 'File has been moved to Bin';
         })
         .catch((err) => {
           this.loading = false;
@@ -324,7 +357,8 @@ export default {
       });
     },
     emitFileLength() {
-      const length = this.userDirectories.length;
+      const subFolders = this.getFolders.filter((folder) => !folder.parent_dir);
+      const length = subFolders.length + this.getFiles.length;
       EventBus.$emit('fileLength', length);
     },
   },

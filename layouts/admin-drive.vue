@@ -305,6 +305,7 @@
                 </v-btn>
                 <v-btn text @click="deleteFiles">Delete</v-btn>
                 <v-btn text @click="shareFile">Share</v-btn>
+                <v-btn text @click="moveBulkToBin">Move To Bin</v-btn>
               </v-layout>
             </v-layout>
           </v-toolbar-title>
@@ -368,6 +369,7 @@ export default {
     },
   },
   data: (v) => ({
+    userInView: {},
     dialog: false,
     drawer: null,
     items: [
@@ -441,6 +443,7 @@ export default {
       full_name: '',
       username: '',
     },
+    files: [],
   }),
   computed: {
     ...mapGetters([
@@ -449,6 +452,7 @@ export default {
       'getUser',
       'getLevel',
       'getUserDetails',
+      'getFiles',
     ]),
     allUsers() {
       return this.$store.state.allUsers.users;
@@ -489,9 +493,14 @@ export default {
   mounted() {
     const token = this.isLoggedIn(this);
     const user = this.getUser(this);
+    //const userAccount = this.getUserDetails(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     this.loading = true;
-    this.fetchUserFiles(user.id, 0);
+    this.$store.dispatch('fetchUser', this.$route.params.id).then(() => {
+      const userInView = this.$store.getters.getUserDetails;
+      this.fetchUserFiles(userInView.user._id, 0);
+    });
+
     EventBus.$on('showAction', (files) => {
       this.fileIds = files;
       this.showAction = true;
@@ -506,7 +515,7 @@ export default {
       this.fileIds.push(id);
       this.shareFile();
     });
-    this.$store.dispatch('fetchFolders', user.id);
+    this.$store.dispatch('fetchUserFolders', user.id);
     this.user = user;
   },
   methods: {
@@ -517,6 +526,7 @@ export default {
       this[e] = false;
     },
     createFolder(e) {
+      let user = this.$store.getters.getUserDetails;
       const parentDir = this.$route.params.name || '';
       this.buttonLoading = true;
       // const user = this.userId.id;
@@ -524,13 +534,13 @@ export default {
       if (!parentDir) {
         data = {
           dirname: e,
-          user_id: this.userId,
+          user_id: user.user._id,
           level: 0,
         };
       } else {
         data = {
           dirname: e,
-          user_id: this.userId,
+          user_id: user.user._id,
           level: this.getLevel + 1,
           parent_dir: parentDir,
         };
@@ -540,8 +550,9 @@ export default {
         .then(() => {
           this.buttonLoading = false;
           this.loading = true;
-          this.fetchUser(this.ogId.ogId);
-          //this.$store.dispatch('fetchFolders', user.id);
+          // this.fetchUserFiles(user.user._id, 0);
+          this.fetchUser();
+          //this.$store.dispatch('fetchUserFolders', user.user._id);
         })
         .catch((err) => {
           this.buttonLoading = false;
@@ -556,15 +567,16 @@ export default {
     handleFileUpload(e) {
       const parentDir = this.$route.params.name || '';
       this.loading = true;
-      const user = this.getUser(this);
+      let user = this.$store.getters.getUserDetails;
+      console.log('user', user);
       const file = e.target.files;
       let formData = new FormData();
-      formData.set('user_id', user.id);
+      formData.set('user_id', user.user._id);
       if (parentDir) {
         formData.set('directory_id', parentDir);
       }
       if (file.length > 1) {
-        this.handleMultipleFileUpload(user.id, file);
+        this.handleMultipleFileUpload(user.user._id, file);
       } else {
         formData.set('file', file[0]);
         this.$axios
@@ -573,7 +585,7 @@ export default {
           })
           .then(() => {
             EventBus.$emit('addedNewFile');
-            this.fetchUserFiles(user.id, 0);
+            this.fetchUserFiles(user.user._id, 0);
           })
           .catch((err) => {
             this.loading = false;
@@ -627,12 +639,14 @@ export default {
       this.showMoveFolderDialog = false;
     },
     deleteFiles() {
+      const userInView = this.$store.getters.getUserDetails;
       this.$axios
-        .delete('/files/bulk', { data: { file_id: this.fileIds } })
+        .delete('files/superAdmin/bulk', { data: { files_id: this.fileIds } })
         .then(() => {
-          const user = this.getUser(this);
           this.loading = true;
-          this.fetchUserFiles(user.id, 0);
+          this.success.status = true;
+          this.success.message = 'Files have been successfully deleted';
+          this.fetchUserFiles(userInView.user._id, 0);
         })
         .catch((err) => {
           this.error.status = true;
@@ -760,6 +774,23 @@ export default {
         const token = this.$cookies.get('token');
         this.$store.dispatch('saveAuth', [userDetails, token]);
       });
+    },
+    moveBulkToBin() {
+      const userInView = this.$store.getters.getUserDetails;
+      this.loading = true;
+      this.$axios
+        .post('/super_admin/bulk_files/bin', { files: this.fileIds })
+        .then(() => {
+          this.fetchUserFiles(userInView.user._id, 0);
+          this.loading = false;
+          this.success.status = true;
+          this.success.message = 'Files has been moved to Bin';
+        })
+        .catch((err) => {
+          this.loading = false;
+          this.error.status = true;
+          this.error.message = err.response.data.message;
+        });
     },
   },
 };

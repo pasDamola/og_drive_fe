@@ -60,6 +60,12 @@
         Close
       </v-btn>
     </v-snackbar>
+    <v-snackbar v-else v-model="success.status" :timeout="5000">
+      {{ success.message }}
+      <v-btn color="green" text @click="success.status = false">
+        Close
+      </v-btn>
+    </v-snackbar>
     <v-layout align-center justify-space-between row wrap>
       <v-flex sm12 md2>
         <v-select
@@ -118,7 +124,7 @@
     <v-dialog v-model="showFolderDialog" max-width="360">
       <v-card>
         <v-card-title class="headline">
-          Delete Folder
+          Move To Bin
         </v-card-title>
 
         <v-card-text>
@@ -150,18 +156,8 @@
     <v-dialog v-model="showDialog" max-width="360">
       <v-card>
         <v-card-title class="headline">
-          Delete File
+          Move To Bin
         </v-card-title>
-
-        <v-card-text>
-          <p>
-            This is going to permanently remove this file from your drive. Enter
-            the file name below to delete.
-            <b>File Name: {{ currentFileName }}</b>
-          </p>
-          <v-text-field v-model="fileName" label="File Name" />
-        </v-card-text>
-
         <v-card-actions>
           <v-spacer></v-spacer>
 
@@ -169,11 +165,7 @@
             Cancel
           </v-btn>
 
-          <v-btn
-            color="red px-5"
-            :disabled="!fileName || fileName !== currentFileName"
-            @click="deleteFile(fileToDeleteDetails[0])"
-          >
+          <v-btn color="red px-5" @click="deleteFile(fileToDeleteDetails[0])">
             Delete
           </v-btn>
         </v-card-actions>
@@ -202,6 +194,7 @@ export default {
     selectedFiles: [],
     loading: false,
     error: { status: false, message: '' },
+    success: { status: false, message: '' },
     loadingDetails: false,
     fileDetails: '',
     showDrawer: false,
@@ -282,10 +275,12 @@ export default {
       const user = this.getUser(this);
       this.loading = true;
       this.$axios
-        .delete('/files', { data: { file_id: e } })
+        .put('/files/single/bin', { _id: e, user_id: user.id })
         .then(() => {
           this.fetchUserFiles(user.id, 0);
           this.loading = false;
+          this.success.status = true;
+          this.success.message = 'File has successfully been moved to bin';
         })
         .catch((err) => {
           this.loading = false;

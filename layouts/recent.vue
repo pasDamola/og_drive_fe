@@ -289,9 +289,9 @@
             <v-layout justify-space-between full-width>
               <span class="row align-center mx-0 font-weight-black text--text">
                 <h2>
-                  Files
+                  Recent
                 </h2>
-                <p class="count">({{ fileLength }})</p>
+                <!-- <p class="count">({{ fileLength }})</p> -->
               </span>
               <v-layout v-if="showAction" class="full-width" justify-end>
                 <v-btn color="primary" @click="showMoveFolderDialog = true">

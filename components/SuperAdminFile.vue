@@ -21,17 +21,20 @@
           </v-btn>
         </template>
         <v-list>
-          <v-list-item
-            v-if="!hideOptions"
-            @click="$emit('deleteFile', [fileId, name])"
-          >
-            <v-list-item-content>Delete</v-list-item-content>
+          <v-list-item v-if="!hideOptions" @click="$emit('moveToBin', fileId)">
+            <v-list-item-content>Move To Bin</v-list-item-content>
           </v-list-item>
           <v-list-item @click="$emit('viewDetails', [fileId, getFileIcon()])">
             <v-list-item-content>View Details</v-list-item-content>
           </v-list-item>
           <v-list-item v-if="!hideOptions" @click="shareFile">
             <v-list-item-content>Share</v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            v-if="!hideOptions"
+            @click="$emit('deleteFile', [fileId, name])"
+          >
+            <v-list-item-content>Delete</v-list-item-content>
           </v-list-item>
         </v-list>
       </v-menu>

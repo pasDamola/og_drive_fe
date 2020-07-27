@@ -6,8 +6,10 @@ export const state = () => ({
   verifyToken: '',
   resetToken: '',
   user: {},
+  bin: [],
   allFiles: [],
   allFolders: [],
+  userFolders: [],
   allUsers: [],
   allCampaigns: [],
   totalFiles: [],
@@ -53,6 +55,8 @@ export const getters = {
   getUserDirectories: (state) => state.userDirectories,
   getUserToken: (state) => state.verifyToken,
   getResetToken: (state) => state.resetToken,
+  getBinFiles: (state) => state.bin,
+  getUserFolders: (state) => state.userFolders,
 };
 
 export const actions = {
@@ -95,6 +99,29 @@ export const actions = {
     this.$axios.post('users/directories', { user_id: payload }).then((res) => {
       commit('SAVE_USER_FOLDERS', res.data);
     });
+  },
+  fetchUserFolders({ commit }, payload) {
+    this.$axios.get('admin/files/user', { user_id: payload }).then((res) => {
+      console.log('folders', res.data.directories);
+      commit('SAVE_FOLDERS', res.data.directories);
+    });
+  },
+  async fetchBinFiles({ commit }, user_id) {
+    // let user = this.getUser(this);
+    // let user_id = user.id;
+    // this.$axios.get(`files/bin/${user_id}`).then((res) => {
+    //   console.log(res);
+    // });
+    try {
+      const response = await this.$axios.get(`files/bin/${user_id}`);
+      if (response) {
+        console.log(response.data);
+        commit('LOAD_ALL_BIN', response.data.data);
+        return Promise.resolve(response.data);
+      }
+    } catch (error) {
+      return Promise.reject(error);
+    }
   },
   async fetchUsers({ commit }) {
     try {
@@ -261,5 +288,11 @@ export const mutations = {
   },
   RESET_USER(state, resetToken) {
     state.resetToken = resetToken;
+  },
+  LOAD_ALL_BIN(state, bin) {
+    state.bin = bin;
+  },
+  SAVE_FOLDERS(state, folders) {
+    state.userFolders = folders;
   },
 };
