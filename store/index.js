@@ -92,6 +92,17 @@ export const actions = {
       return Promise.reject(error);
     }
   },
+  async fetchDirectories({ commit }, [user_id, level]) {
+    try {
+      const response = await this.$axios.post('files/user', { user_id, level });
+      if (response) {
+        commit('SAVE_USER_DIRECTORIES', response.data.directories);
+        return Promise.resolve(response.data.directories);
+      }
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  },
   saveCurrentLevel({ commit }, payload) {
     commit('SAVE_LEVEL', payload);
   },
@@ -292,7 +303,7 @@ export const mutations = {
   LOAD_ALL_BIN(state, bin) {
     state.bin = bin;
   },
-  SAVE_FOLDERS(state, folders) {
+  SAVE_USER_DIRECTORIES(state, folders) {
     state.userFolders = folders;
   },
 };

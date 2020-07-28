@@ -34,6 +34,17 @@ const mixin = {
           this.loading = false;
         });
     },
+    fetchUserDirectories(id, level) {
+      this.$store
+        .dispatch('fetchDirectories', [id, level])
+        .then(() => {
+          this.loading = false;
+          EventBus.$emit('filesFetched');
+        })
+        .catch(() => {
+          this.loading = false;
+        });
+    },
     handleMultipleFiles(e, file) {
       if (e === true) {
         this.selectedFiles.push(file._id);
@@ -102,16 +113,6 @@ const mixin = {
     fetchUser(id) {
       this.$store
         .dispatch('fetchUser', id)
-        .then(() => {
-          this.loading = false;
-        })
-        .catch(() => {
-          this.loading = false;
-        });
-    },
-    fetchUserDirectories() {
-      this.$store
-        .dispatch('fetchUserDirectories')
         .then(() => {
           this.loading = false;
         })

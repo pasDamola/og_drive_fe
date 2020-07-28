@@ -355,7 +355,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import NewDialog from '@/components/NewFolder';
-import MoveDialog from '@/components/MoveFolder';
+import MoveDialog from '@/components/MoveAdminFolder';
 import ShareDialog from '@/components/ShareDialog';
 import Loader from '@/components/Loader';
 import { EventBus } from '../plugins/eventBus';
@@ -380,7 +380,7 @@ export default {
       },
       {
         icon: 'mdi-account-multiple-outline',
-        text: 'Shared with me',
+        text: 'Shared with this User',
         to: '/shared',
       },
       {
@@ -453,6 +453,8 @@ export default {
       'getLevel',
       'getUserDetails',
       'getFiles',
+      'getUserFolders',
+      'getUserDirectories',
     ]),
     allUsers() {
       return this.$store.state.allUsers.users;
@@ -515,7 +517,7 @@ export default {
       this.fileIds.push(id);
       this.shareFile();
     });
-    this.$store.dispatch('fetchUserFolders', user.id);
+    // this.$store.dispatch('fetchUserFolders', user.id);
     this.user = user;
   },
   methods: {
@@ -549,10 +551,11 @@ export default {
         .post('admin/directory/create', data)
         .then(() => {
           this.buttonLoading = false;
-          this.loading = true;
+          this.loading = false;
           // this.fetchUserFiles(user.user._id, 0);
-          this.fetchUser();
-          //this.$store.dispatch('fetchUserFolders', user.user._id);
+          this.fetchUserDirectories(user.user._id, 0);
+          this.success.status = true;
+          this.success.message = 'Folder has been successfully created';
         })
         .catch((err) => {
           this.buttonLoading = false;
@@ -624,12 +627,13 @@ export default {
         directory_id: e,
       };
       this.$axios
-        .put('files/move/bulk', data)
+        .put('admin/file/move/bulk', data)
         .then(() => {
-          const user = this.getUser(this);
+          const userInView = this.$store.getters.getUserDetails;
           this.loading = true;
           this.buttonLoading = false;
-          this.fetchUserFiles(user.id, 0);
+          this.fetchUserFiles(userInView.user._id, 0);
+          this.fetcUserFolders(userInView.user._id, 0);
         })
         .catch((err) => {
           this.buttonLoading = false;
@@ -657,15 +661,13 @@ export default {
       this.showShareDialog = true;
     },
     handleFileSharing(users) {
-      const user = this.getUser(this);
       const data = {
-        user_id: user.id,
         user_ids: users,
         files: this.fileIds,
       };
       this.buttonLoading = true;
       this.$axios
-        .post('files/share', data)
+        .post('admin/files/share', data)
         .then(({ data }) => {
           this.buttonLoading = false;
           this.showShareDialog = false;

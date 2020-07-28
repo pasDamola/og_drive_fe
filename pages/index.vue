@@ -117,7 +117,7 @@
         :last-edited="file.updatedAt"
         class="my-2"
         @filesSelected="handleMultipleFiles($event, file)"
-        @deleteFile="handleFileDelete"
+        @moveToBin="moveToBin"
         @viewDetails="showFileDetails"
       />
     </div>
@@ -270,12 +270,13 @@ export default {
           this.error.message = err.response.data.message;
         });
     },
-    deleteFile(e) {
+    moveToBin(e) {
       this.showDialog = false;
       const user = this.getUser(this);
       this.loading = true;
+      console.log(`${e}`);
       this.$axios
-        .put('/files/single/bin', { _id: e, user_id: user.id })
+        .put('/files/single/bin', { _id: `${e}`, user_id: user.id })
         .then(() => {
           this.fetchUserFiles(user.id, 0);
           this.loading = false;

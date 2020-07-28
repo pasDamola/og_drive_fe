@@ -93,7 +93,7 @@
       Folders
     </p>
     <div class="files mb-5">
-      <Folder
+      <SuperAdminFolder
         v-for="(folder, index) in filteredFolders"
         :key="index"
         :folder-name="folder.dirname"
@@ -101,6 +101,7 @@
         class="my-2"
         :last-updated="folder.updatedAt"
         @deleteFolder="handleFolderDelete"
+        @moveFolderToBin="moveFolderToBin"
       />
     </div>
     <p class="font-weight-medium body-2">
@@ -193,13 +194,13 @@
 import { mapGetters } from 'vuex';
 import Moment from 'moment';
 import SuperAdminFile from '@/components/SuperAdminFile';
-import Folder from '@/components/Folder';
+import SuperAdminFolder from '@/components/SuperAdminFolder';
 import Loader from '@/components/Loader';
 import { EventBus } from '../../../plugins/eventBus';
 
 export default {
   layout: 'admin-drive',
-  components: { SuperAdminFile, Folder, Loader },
+  components: { SuperAdminFile, SuperAdminFolder, Loader },
   middleware: 'authenticated',
   data: () => ({
     tempDate: new Date(2020, 3, 22),
@@ -273,8 +274,6 @@ export default {
       const userInView = this.$store.getters.getUserDetails;
       this.fetchUserFiles(userInView.user._id, 0);
     });
-    this.fetchUser(this.id);
-    //this.fetchUserDirectories(this.id);
     EventBus.$on('filesFetched', this.emitFileLength);
   },
   methods: {
@@ -291,14 +290,17 @@ export default {
     deleteFolder(e) {
       this.showFolderDialog = false;
       this.loading = true;
+      const userInView = this.$store.getters.getUserDetails;
       // const user = this.getUser(this);
       this.$axios
         .delete(`directory/${e}`)
         .then(() => {
-          this.fetchUser(this.user.ogId);
-          // this.$store.dispatch('fetchFolders', user.id);
+          this.loading = false;
+          this.success.status = true;
+          this.success.message = 'Folder has been deleted';
           this.folderName = '';
-          // this.fetchUserFiles(user.id, 0);
+          this.fetchUserFiles(userInView.user._id, 0);
+          this.fetchUserDirectories(userInView.user._id, 0);
           this.emitFileLength();
         })
         .catch((err) => {
@@ -335,6 +337,24 @@ export default {
           this.loading = false;
           this.success.status = true;
           this.success.message = 'File has been moved to Bin';
+        })
+        .catch((err) => {
+          this.loading = false;
+          this.error.status = true;
+          this.error.message = err.response.data.message;
+        });
+    },
+    moveFolderToBin(e) {
+      const userInView = this.$store.getters.getUserDetails;
+      this.loading = true;
+      this.$axios
+        .patch(`super_admin/directory/bin/${e}`)
+        .then(() => {
+          this.fetchUserFiles(userInView.user._id, 0);
+          this.fetchUserDirectories(userInView.user._id, 0);
+          this.loading = false;
+          this.success.status = true;
+          this.success.message = 'Folder has been moved to Bin';
         })
         .catch((err) => {
           this.loading = false;
