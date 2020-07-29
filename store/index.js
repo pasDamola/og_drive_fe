@@ -7,6 +7,7 @@ export const state = () => ({
   resetToken: '',
   user: {},
   bin: [],
+  recents: [],
   allFiles: [],
   allFolders: [],
   userFolders: [],
@@ -57,6 +58,7 @@ export const getters = {
   getResetToken: (state) => state.resetToken,
   getBinFiles: (state) => state.bin,
   getUserFolders: (state) => state.userFolders,
+  getRecents: (state) => state.recents,
 };
 
 export const actions = {
@@ -112,21 +114,16 @@ export const actions = {
     });
   },
   fetchUserFolders({ commit }, payload) {
-    this.$axios.get('admin/files/user', { user_id: payload }).then((res) => {
+    this.$axios.post('admin/files/user', { user_id: payload }).then((res) => {
       console.log('folders', res.data.directories);
       commit('SAVE_FOLDERS', res.data.directories);
     });
   },
   async fetchBinFiles({ commit }, user_id) {
-    // let user = this.getUser(this);
-    // let user_id = user.id;
-    // this.$axios.get(`files/bin/${user_id}`).then((res) => {
-    //   console.log(res);
-    // });
     try {
       const response = await this.$axios.get(`files/bin/${user_id}`);
       if (response) {
-        console.log(response.data);
+        console.log(response.data.data);
         commit('LOAD_ALL_BIN', response.data.data);
         return Promise.resolve(response.data);
       }
@@ -203,17 +200,20 @@ export const actions = {
       return Promise.reject(error);
     }
   },
-  // async verifyUser({ commit }, id) {
-  //   try {
-  //     const response = await this.$axios.post('users/verified', id);
-  //     if (response) {
-  //       commit('VERIFY_USER', response.data);
-  //       return Promise.resolve(response.data);
-  //     }
-  //   } catch (error) {
-  //     return Promise.reject(error);
-  //   }
-  // },
+  async fetchRecentFiles({ commit }, id) {
+    try {
+      const response = await this.$axios.post('files/recent/files', {
+        user_id: id,
+      });
+      if (response) {
+        console.log('Response:', response.data);
+        commit('LOAD_RECENT_FILES', response.data.data);
+        return Promise.resolve(response.data);
+      }
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  },
   async resetUser({ commit }, [id, email]) {
     try {
       const response = await this.$axios.post('reset-password', { id, email });
@@ -303,7 +303,13 @@ export const mutations = {
   LOAD_ALL_BIN(state, bin) {
     state.bin = bin;
   },
-  SAVE_USER_DIRECTORIES(state, folders) {
+  SAVE_FOLDERS(state, folders) {
     state.userFolders = folders;
+  },
+  SAVE_USER_DIRECTORIES(state, directories) {
+    state.userDirectories = directories;
+  },
+  LOAD_RECENT_FILES(state, recents) {
+    state.recents = recents;
   },
 };

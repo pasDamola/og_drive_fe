@@ -300,7 +300,7 @@ export default {
           this.success.message = 'Folder has been deleted';
           this.folderName = '';
           this.fetchUserFiles(userInView.user._id, 0);
-          this.fetchUserDirectories(userInView.user._id, 0);
+          this.$store.dispatch('fetchUserFolders', userInView.user._id);
           this.emitFileLength();
         })
         .catch((err) => {
@@ -351,7 +351,7 @@ export default {
         .patch(`super_admin/directory/bin/${e}`)
         .then(() => {
           this.fetchUserFiles(userInView.user._id, 0);
-          this.fetchUserDirectories(userInView.user._id, 0);
+          this.$store.dispatch('fetchUserFolders', userInView.user._id);
           this.loading = false;
           this.success.status = true;
           this.success.message = 'Folder has been moved to Bin';

@@ -130,6 +130,16 @@ const mixin = {
           this.loading = false;
         });
     },
+    fetchRecentFiles(id) {
+      this.$store
+        .dispatch('fetchRecentFiles', id)
+        .then(() => {
+          this.loading = false;
+        })
+        .catch(() => {
+          this.loading = false;
+        });
+    },
   },
 };
 

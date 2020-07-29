@@ -381,22 +381,17 @@ export default {
       {
         icon: 'mdi-account-multiple-outline',
         text: 'Shared with this User',
-        to: '/shared',
+        to: '/admin/user/shared',
       },
       {
         icon: 'mdi-clock-outline',
         text: 'Recent',
-        to: '#3',
-      },
-      {
-        icon: 'mdi-star-outline',
-        text: 'Starred',
-        to: '#4',
+        to: '/admin/user/recent',
       },
       {
         icon: 'mdi-trash-can-outline',
         text: 'Bin',
-        to: '#5',
+        to: '/admin/user/bin',
       },
       // {
       //   icon: 'mdi-chevron-up',

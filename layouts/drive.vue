@@ -299,6 +299,10 @@
                 </v-btn>
                 <v-btn text @click="deleteFiles">Delete</v-btn>
                 <v-btn text @click="shareFile">Share</v-btn>
+                <v-btn v-if="isBin" text @click="revertMultiple">
+                  Revert Files
+                </v-btn>
+                <v-btn v-else text @click="moveMultiple">Move To Bin</v-btn>
               </v-layout>
             </v-layout>
           </v-toolbar-title>
@@ -461,8 +465,12 @@ export default {
       }
       return null;
     },
+    isBin() {
+      return this.$route.name === 'bin';
+    },
   },
   mounted() {
+    console.log(this.$route.name);
     const token = this.isLoggedIn(this);
     const user = this.getUser(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
@@ -638,6 +646,48 @@ export default {
           this.buttonLoading = false;
           this.error.status = true;
           this.error.message = 'Something went wrong';
+        });
+    },
+    revertMultiple() {
+      const user = this.getUser(this);
+      this.loading = true;
+      this.$axios
+        .put('/files/multiple/revert', {
+          file_ids: this.fileIds,
+          user_id: user.id,
+        })
+        .then(() => {
+          this.$store.dispatch('fetchBinFiles', user.id);
+          // this.fetchUserFiles(userInView.user._id, 0);
+          this.loading = false;
+          this.success.status = true;
+          this.success.message = 'Files has been successfully reverted';
+        })
+        .catch((err) => {
+          this.loading = false;
+          this.error.status = true;
+          this.error.message = err.response.data.message;
+        });
+    },
+    moveMultiple() {
+      const user = this.getUser(this);
+      this.loading = true;
+      this.$axios
+        .put('/files/multiple/bin', {
+          file_ids: this.fileIds,
+          user_id: user.id,
+        })
+        .then(() => {
+          // this.$store.dispatch('fetchBinFiles', user.id);
+          this.fetchUserFiles(user.id, 0);
+          this.loading = false;
+          this.success.status = true;
+          this.success.message = 'Files has been successfully moved to Bin';
+        })
+        .catch((err) => {
+          this.loading = false;
+          this.error.status = true;
+          this.error.message = err.response.data.message;
         });
     },
     handleImage(image) {
