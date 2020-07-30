@@ -100,7 +100,8 @@
         :folder-id="folder._id"
         class="my-2"
         :last-updated="folder.updatedAt"
-        @deleteFolder="handleFolderDelete"
+        @foldersSelected="handleMultipleFolders($event, folder)"
+        @moveFolderToBin="moveFolderToBin"
       />
     </div>
     <p class="font-weight-medium body-2">
@@ -192,6 +193,7 @@ export default {
     fileTypes: ['pdf', 'Spreadsheets', 'Presentations'],
     fileType: '',
     selectedFiles: [],
+    selectedFolders: [],
     loading: false,
     error: { status: false, message: '' },
     success: { status: false, message: '' },
@@ -282,6 +284,25 @@ export default {
           this.loading = false;
           this.success.status = true;
           this.success.message = 'File has successfully been moved to bin';
+        })
+        .catch((err) => {
+          this.loading = false;
+          this.error.status = true;
+          this.error.message = err.response.data.message;
+        });
+    },
+    moveFolderToBin(e) {
+      this.showDialog = false;
+      const user = this.getUser(this);
+      this.loading = true;
+      console.log(`${e}`);
+      this.$axios
+        .put('/directory/single/bin', { _id: `${e}`, user_id: user.id })
+        .then(() => {
+          this.$store.dispatch('fetchFolders', user.id);
+          this.loading = false;
+          this.success.status = true;
+          this.success.message = 'Folder has successfully been moved to bin';
         })
         .catch((err) => {
           this.loading = false;

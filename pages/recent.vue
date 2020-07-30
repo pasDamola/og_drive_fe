@@ -90,21 +90,7 @@
       </v-flex>
     </v-layout>
     <p class="font-weight-medium body-2">
-      Folders
-    </p>
-    <div class="files mb-5">
-      <Folder
-        v-for="(folder, index) in filteredFolders"
-        :key="index"
-        :folder-name="folder.dirname"
-        :folder-id="folder._id"
-        class="my-2"
-        :last-updated="folder.updatedAt"
-        @deleteFolder="handleFolderDelete"
-      />
-    </div>
-    <p class="font-weight-medium body-2">
-      Files
+      Today
     </p>
     <div class="files mb-5">
       <File
@@ -116,11 +102,12 @@
         :size="file.file_size"
         :last-edited="file.updatedAt"
         class="my-2"
-        @filesSelected="handleMultipleFiles($event, file)"
-        @moveToBin="moveToBin"
         @viewDetails="showFileDetails"
       />
     </div>
+    <p class="font-weight-medium body-2">
+      Yesterday
+    </p>
     <v-dialog v-model="showFolderDialog" max-width="360">
       <v-card>
         <v-card-title class="headline">
@@ -177,14 +164,13 @@
 <script>
 import { mapGetters } from 'vuex';
 import Moment from 'moment';
-import File from '@/components/File';
-import Folder from '@/components/Folder';
+import File from '@/components/RecentFile';
 import Loader from '@/components/Loader';
 import { EventBus } from '../plugins/eventBus';
 
 export default {
   layout: 'drive',
-  components: { File, Folder, Loader },
+  components: { File, Loader },
   middleware: 'authenticated',
   data: () => ({
     tempDate: new Date(2020, 3, 22),
@@ -224,22 +210,22 @@ export default {
       });
       return files;
     },
-    filteredFolders() {
-      const subFolders = this.getFolders.filter((folder) => !folder.parent_dir);
-      const folders = subFolders.filter((el) => {
-        return el.dirname
-          .toLowerCase()
-          .includes(this.searchFiles.toLowerCase());
-      });
-      return folders;
-    },
+    // filteredFolders() {
+    //   const subFolders = this.getFolders.filter((folder) => !folder.parent_dir);
+    //   const folders = subFolders.filter((el) => {
+    //     return el.dirname
+    //       .toLowerCase()
+    //       .includes(this.searchFiles.toLowerCase());
+    //   });
+    //   return folders;
+    // },
   },
   mounted() {
     const token = this.isLoggedIn(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     const user = this.getUser(this);
-    this.$store.dispatch('fetchFolders', user.id);
-    this.fetchUserFiles(user.id, 0);
+    // this.$store.dispatch('fetchFolders', user.id);
+    // this.fetchUserFiles(user.id, 0);
     EventBus.$on('filesFetched', this.emitFileLength);
     this.fetchRecentFiles(user.id);
   },
@@ -265,25 +251,6 @@ export default {
           this.folderName = '';
           this.fetchUserFiles(user.id, 0);
           this.emitFileLength();
-        })
-        .catch((err) => {
-          this.loading = false;
-          this.error.status = true;
-          this.error.message = err.response.data.message;
-        });
-    },
-    moveToBin(e) {
-      this.showDialog = false;
-      const user = this.getUser(this);
-      this.loading = true;
-      console.log(`${e}`);
-      this.$axios
-        .put('/files/single/bin', { _id: `${e}`, user_id: user.id })
-        .then(() => {
-          this.fetchUserFiles(user.id, 0);
-          this.loading = false;
-          this.success.status = true;
-          this.success.message = 'File has successfully been moved to bin';
         })
         .catch((err) => {
           this.loading = false;

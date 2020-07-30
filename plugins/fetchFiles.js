@@ -60,6 +60,22 @@ const mixin = {
       }
       // this.showAction = true;
     },
+    handleMultipleFolders(e, folder) {
+      if (e === true) {
+        this.selectedFolders.push(folder._id);
+      } else {
+        this.selectedFolders = this.selectedFolders.filter((el) => {
+          return el !== folder._id;
+        });
+      }
+      console.log('selectedFolders', this.selectedFolders);
+      if (this.selectedFolders.length > 0) {
+        EventBus.$emit('folderShowAction', this.selectedFolders);
+      } else {
+        EventBus.$emit('hideAction');
+      }
+      // this.showAction = true;
+    },
     fetchUsers() {
       this.$store
         .dispatch('fetchUsers')

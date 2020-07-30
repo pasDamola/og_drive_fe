@@ -381,11 +381,6 @@ export default {
         to: '/recent',
       },
       {
-        icon: 'mdi-star-outline',
-        text: 'Starred',
-        to: '#4',
-      },
-      {
         icon: 'mdi-trash-can-outline',
         text: 'Bin',
         to: '/bin',

@@ -101,6 +101,8 @@
         class="my-2"
         :last-updated="folder.updatedAt"
         @deleteFolder="handleFolderDelete"
+        @revertFolder="revertFolder"
+        @foldersSelected="handleMultipleFolders($event, folder)"
       />
     </div>
     <p class="font-weight-medium body-2">
@@ -183,7 +185,7 @@ import Loader from '@/components/Loader';
 import { EventBus } from '../plugins/eventBus';
 
 export default {
-  layout: 'drive',
+  layout: 'bin',
   components: { File, Folder, Loader },
   middleware: 'authenticated',
   data: () => ({
@@ -284,6 +286,25 @@ export default {
           this.loading = false;
           this.success.status = true;
           this.success.message = 'File has successfully been reverted';
+        })
+        .catch((err) => {
+          this.loading = false;
+          this.error.status = true;
+          this.error.message = err.response.data.message;
+        });
+    },
+    revertFolder(e) {
+      this.showDialog = false;
+      const user = this.getUser(this);
+      this.loading = true;
+      console.log(`${e}`);
+      this.$axios
+        .put('/directory/single/revert', { _id: `${e}`, user_id: user.id })
+        .then(() => {
+          this.$store.dispatch('fetchBinFiles', user.id);
+          this.loading = false;
+          this.success.status = true;
+          this.success.message = 'Folder has successfully been reverted';
         })
         .catch((err) => {
           this.loading = false;

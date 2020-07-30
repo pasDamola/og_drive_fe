@@ -3,15 +3,22 @@
     <v-layout align-center justify-space-between class="action">
       <v-icon
         v-if="checked"
+        v-show="!hideOptions"
         size="20"
         color="primary"
         @click.prevent="checked = false"
       >
         mdi-checkbox-marked-circle-outline
       </v-icon>
-      <v-icon v-else size="20" @click.prevent="checked = true">
+      <v-icon
+        v-else
+        v-show="!hideOptions"
+        size="20"
+        @click.prevent="checked = true"
+      >
         mdi-circle-outline
       </v-icon>
+      <v-spacer v-if="hideOptions" />
       <v-menu offset-y>
         <template v-slot:activator="{ on }">
           <v-btn icon v-on="on">
@@ -19,8 +26,8 @@
           </v-btn>
         </template>
         <v-list>
-          <v-list-item @click="$emit('Move To Bin', folderId)">
-            <v-list-item-content>Delete Folder</v-list-item-content>
+          <v-list-item @click="$emit('moveFolderToBin', folderId)">
+            <v-list-item-content>Move To Bin</v-list-item-content>
           </v-list-item>
         </v-list>
       </v-menu>
@@ -50,6 +57,10 @@ export default {
       type: String,
       default: '',
     },
+    hideOptions: {
+      type: Boolean,
+      default: false,
+    },
     lastUpdated: {
       type: String,
       default: '',
@@ -61,6 +72,11 @@ export default {
   computed: {
     formatDate() {
       return Moment(this.lastUpdated).fromNow();
+    },
+  },
+  watch: {
+    checked(val) {
+      this.$emit('foldersSelected', val);
     },
   },
 };

@@ -304,6 +304,23 @@
                 </v-btn>
                 <v-btn v-else text @click="moveMultiple">Move To Bin</v-btn>
               </v-layout>
+              <v-layout
+                v-else-if="folderShowAction"
+                class="full-width"
+                justify-end
+              >
+                <v-btn color="primary" @click="showMoveFolderDialog = true">
+                  Move
+                </v-btn>
+                <v-btn text @click="deleteFiles">Delete</v-btn>
+                <v-btn text @click="shareFile">Share</v-btn>
+                <v-btn v-if="isBin" text @click="revertMultipleFolders">
+                  Revert Folders
+                </v-btn>
+                <v-btn v-else text @click="moveMultipleFolders">
+                  Move Folders To Bin
+                </v-btn>
+              </v-layout>
             </v-layout>
           </v-toolbar-title>
           <v-layout justify-space-between align-center>
@@ -385,11 +402,6 @@ export default {
         to: '/recent',
       },
       {
-        icon: 'mdi-star-outline',
-        text: 'Starred',
-        to: '#4',
-      },
-      {
         icon: 'mdi-trash-can-outline',
         text: 'Bin',
         to: '/bin',
@@ -426,10 +438,12 @@ export default {
     showMoveFolderDialog: false,
     pressed: false,
     showAction: false,
+    folderShowAction: false,
     error: { status: false, message: '' },
     alertError: { status: false, message: '' },
     success: { status: false, message: '' },
     fileIds: [],
+    folderIds: [],
     fileLength: 0,
     showShareDialog: false,
     user: '',
@@ -480,8 +494,13 @@ export default {
       this.fileIds = files;
       this.showAction = true;
     });
+    EventBus.$on('folderShowAction', (folders) => {
+      this.folderIds = folders;
+      this.folderShowAction = true;
+    });
     EventBus.$on('hideAction', () => {
       this.showAction = false;
+      this.folderShowAction = false;
     });
     EventBus.$on('fileLength', (length) => {
       this.fileLength = length;
@@ -683,6 +702,49 @@ export default {
           this.loading = false;
           this.success.status = true;
           this.success.message = 'Files has been successfully moved to Bin';
+        })
+        .catch((err) => {
+          this.loading = false;
+          this.error.status = true;
+          this.error.message = err.response.data.message;
+        });
+    },
+    moveMultipleFolders() {
+      const user = this.getUser(this);
+      this.loading = true;
+      this.$axios
+        .put('directory/multiple/bin', {
+          folder_ids: this.folderIds,
+          user_id: user.id,
+        })
+        .then(() => {
+          // this.$store.dispatch('fetchBinFiles', user.id);
+          this.fetchUserFiles(user.id, 0);
+          this.$store.dispatch('fetchFolders', user.id);
+          this.loading = false;
+          this.success.status = true;
+          this.success.message = 'Folders has been successfully moved to Bin';
+        })
+        .catch((err) => {
+          this.loading = false;
+          this.error.status = true;
+          this.error.message = err.response.data.message;
+        });
+    },
+    revertMultipleFolders() {
+      const user = this.getUser(this);
+      this.loading = true;
+      this.$axios
+        .put('directory/multiple/revert', {
+          folder_ids: this.folderIds,
+          user_id: user.id,
+        })
+        .then(() => {
+          this.$store.dispatch('fetchBinFolders', user.id);
+          // this.fetchUserFiles(userInView.user._id, 0);
+          this.loading = false;
+          this.success.status = true;
+          this.success.message = 'Folders has been successfully reverted';
         })
         .catch((err) => {
           this.loading = false;
