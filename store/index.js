@@ -7,6 +7,9 @@ export const state = () => ({
   resetToken: '',
   user: {},
   bin: [],
+  binFolders: [],
+  adminBin: [],
+  adminRecent: [],
   recents: [],
   allFiles: [],
   allFolders: [],
@@ -57,8 +60,11 @@ export const getters = {
   getUserToken: (state) => state.verifyToken,
   getResetToken: (state) => state.resetToken,
   getBinFiles: (state) => state.bin,
+  getBinFolders: (state) => state.binFolders,
   getUserFolders: (state) => state.userFolders,
   getRecents: (state) => state.recents,
+  getAdminBin: (state) => state.adminBin,
+  getAdminRecent: (state) => state.adminRecent,
 };
 
 export const actions = {
@@ -125,6 +131,30 @@ export const actions = {
       if (response) {
         console.log(response.data.data);
         commit('LOAD_ALL_BIN', response.data.data);
+        return Promise.resolve(response.data);
+      }
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  },
+  async fetchAdminBinFiles({ commit }, user_id) {
+    try {
+      const response = await this.$axios.get(`files/sadmin/bin/${user_id}`);
+      if (response) {
+        console.log(response.data.data);
+        commit('LOAD_ADMIN_BIN', response.data.data);
+        return Promise.resolve(response.data);
+      }
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  },
+  async fetchBinFolders({ commit }, user_id) {
+    try {
+      const response = await this.$axios.get(`directory/bin/${user_id}`);
+      if (response) {
+        console.log(response.data);
+        commit('LOAD_ALL_FOLDER_BIN', response.data.data);
         return Promise.resolve(response.data);
       }
     } catch (error) {
@@ -208,6 +238,20 @@ export const actions = {
       if (response) {
         console.log('Response:', response.data);
         commit('LOAD_RECENT_FILES', response.data.data);
+        return Promise.resolve(response.data);
+      }
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  },
+  async fetchAdminRecentFiles({ commit }, user_id) {
+    try {
+      const response = await this.$axios.get(
+        `files/sadmin/recent/files/${user_id}`
+      );
+      if (response) {
+        console.log('Response:', response.data);
+        commit('LOAD_ADMIN_RECENT', response.data.data);
         return Promise.resolve(response.data);
       }
     } catch (error) {
@@ -303,6 +347,9 @@ export const mutations = {
   LOAD_ALL_BIN(state, bin) {
     state.bin = bin;
   },
+  LOAD_ALL_FOLDER_BIN(state, bin) {
+    state.binFolders = bin;
+  },
   SAVE_FOLDERS(state, folders) {
     state.userFolders = folders;
   },
@@ -311,5 +358,11 @@ export const mutations = {
   },
   LOAD_RECENT_FILES(state, recents) {
     state.recents = recents;
+  },
+  LOAD_ADMIN_BIN(state, bin) {
+    state.adminBin = bin;
+  },
+  LOAD_ADMIN_RECENT(state, recent) {
+    state.adminRecent = recent;
   },
 };

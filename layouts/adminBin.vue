@@ -299,10 +299,9 @@
                 </v-btn>
                 <v-btn text @click="deleteFiles">Delete</v-btn>
                 <v-btn text @click="shareFile">Share</v-btn>
-                <v-btn v-if="isBin" @click="revertMultiple">
+                <v-btn @click="revertMultiple">
                   Revert Files
                 </v-btn>
-                <v-btn v-else text @click="moveMultiple">Move To Bin</v-btn>
               </v-layout>
               <v-layout
                 v-else-if="folderShowAction"
@@ -382,29 +381,29 @@ export default {
       default: '',
     },
   },
-  data: () => ({
+  data: (v) => ({
     dialog: false,
     drawer: null,
     items: [
       {
         icon: 'mdi-cloud-outline',
-        text: 'My Drive',
-        to: '/',
+        text: 'Drive',
+        to: `/admin/user/${v.$route.params.id}`,
       },
       {
         icon: 'mdi-account-multiple-outline',
-        text: 'Shared with me',
-        to: '/shared',
+        text: 'Shared with this User',
+        to: '#',
       },
       {
         icon: 'mdi-clock-outline',
         text: 'Recent',
-        to: '/recent',
+        to: `/admin/recent/${v.$route.params.id}`,
       },
       {
         icon: 'mdi-trash-can-outline',
         text: 'Bin',
-        to: '/bin',
+        to: `/admin/bin/${v.$route.params.id}`,
       },
       // {
       //   icon: 'mdi-chevron-up',
@@ -480,7 +479,7 @@ export default {
       return null;
     },
     isBin() {
-      return this.$route.name === 'bin';
+      return this.$route.name === `admin/bin/${this.$route.params.id}`;
     },
   },
   mounted() {
@@ -559,7 +558,7 @@ export default {
       const user = this.getUser(this);
       this.loading = true;
       this.$axios
-        .put('/files/multiple/revert', {
+        .put('files/sadmin/multiple/revert', {
           file_ids: this.fileIds,
           user_id: user.id,
         })

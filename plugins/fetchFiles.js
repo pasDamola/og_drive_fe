@@ -146,6 +146,16 @@ const mixin = {
           this.loading = false;
         });
     },
+    fetchBinFolders(id) {
+      this.$store
+        .dispatch('fetchBinFolders', id)
+        .then(() => {
+          this.loading = false;
+        })
+        .catch(() => {
+          this.loading = false;
+        });
+    },
     fetchRecentFiles(id) {
       this.$store
         .dispatch('fetchRecentFiles', id)

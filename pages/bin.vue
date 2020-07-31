@@ -180,7 +180,7 @@
 import { mapGetters } from 'vuex';
 import Moment from 'moment';
 import File from '@/components/BinFile';
-import Folder from '@/components/Folder';
+import Folder from '@/components/BinFolder';
 import Loader from '@/components/Loader';
 import { EventBus } from '../plugins/eventBus';
 
@@ -194,6 +194,7 @@ export default {
     fileTypes: ['pdf', 'Spreadsheets', 'Presentations'],
     fileType: '',
     selectedFiles: [],
+    selectedFolders: [],
     loading: false,
     error: { status: false, message: '' },
     success: { status: false, message: '' },
@@ -217,6 +218,7 @@ export default {
       'getFolders',
       'getUser',
       'getBinFiles',
+      'getBinFolders',
     ]),
     filteredFiles() {
       const files = this.getBinFiles.filter((el) => {
@@ -227,7 +229,9 @@ export default {
       return files;
     },
     filteredFolders() {
-      const subFolders = this.getFolders.filter((folder) => !folder.parent_dir);
+      const subFolders = this.getBinFolders.filter(
+        (folder) => !folder.parent_dir
+      );
       const folders = subFolders.filter((el) => {
         return el.dirname
           .toLowerCase()
@@ -244,6 +248,7 @@ export default {
     this.fetchUserFiles(user.id, 0);
     EventBus.$on('filesFetched', this.emitFileLength);
     this.$store.dispatch('fetchBinFiles', user.id);
+    this.$store.dispatch('fetchBinFolders', user.id);
   },
   methods: {
     handleFileDelete([id, name]) {
@@ -301,7 +306,7 @@ export default {
       this.$axios
         .put('/directory/single/revert', { _id: `${e}`, user_id: user.id })
         .then(() => {
-          this.$store.dispatch('fetchBinFiles', user.id);
+          this.$store.dispatch('fetchBinFolders', user.id);
           this.loading = false;
           this.success.status = true;
           this.success.message = 'Folder has successfully been reverted';

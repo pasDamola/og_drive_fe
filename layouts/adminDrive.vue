@@ -305,7 +305,27 @@
                 </v-btn>
                 <v-btn text @click="deleteFiles">Delete</v-btn>
                 <v-btn text @click="shareFile">Share</v-btn>
+                <v-btn v-if="isBin" text @click="revertFilesFromBin">
+                  Revert Files
+                </v-btn>
                 <v-btn text @click="moveBulkToBin">Move To Bin</v-btn>
+              </v-layout>
+              <v-layout
+                v-else-if="folderShowAction"
+                class="full-width"
+                justify-end
+              >
+                <v-btn color="primary" @click="showMoveFolderDialog = true">
+                  Move
+                </v-btn>
+                <v-btn text @click="deleteFiles">Delete</v-btn>
+                <v-btn text @click="shareFile">Share</v-btn>
+                <v-btn v-if="isBin" text @click="revertMultipleFolders">
+                  Revert Folders
+                </v-btn>
+                <v-btn v-else @click="moveMultipleFoldersToBin">
+                  Move Folders To Bin
+                </v-btn>
               </v-layout>
             </v-layout>
           </v-toolbar-title>
@@ -381,17 +401,17 @@ export default {
       {
         icon: 'mdi-account-multiple-outline',
         text: 'Shared with this User',
-        to: '/admin/user/shared',
+        to: '#',
       },
       {
         icon: 'mdi-clock-outline',
         text: 'Recent',
-        to: '/admin/user/recent',
+        to: `/admin/recent/${v.$route.params.id}`,
       },
       {
         icon: 'mdi-trash-can-outline',
         text: 'Bin',
-        to: '/admin/user/bin',
+        to: `/admin/bin/${v.$route.params.id}`,
       },
       // {
       //   icon: 'mdi-chevron-up',
@@ -425,10 +445,12 @@ export default {
     showMoveFolderDialog: false,
     pressed: false,
     showAction: false,
+    folderShowAction: false,
     error: { status: false, message: '' },
     alertError: { status: false, message: '' },
     success: { status: false, message: '' },
     fileIds: [],
+    folderIds: [],
     fileLength: 0,
     showShareDialog: false,
     user: '',
@@ -486,6 +508,9 @@ export default {
       }
       return null;
     },
+    isBin() {
+      return this.$route.name === 'admin/user/bin';
+    },
   },
   mounted() {
     const token = this.isLoggedIn(this);
@@ -502,8 +527,13 @@ export default {
       this.fileIds = files;
       this.showAction = true;
     });
+    EventBus.$on('folderShowAction', (folders) => {
+      this.folderIds = folders;
+      this.folderShowAction = true;
+    });
     EventBus.$on('hideAction', () => {
       this.showAction = false;
+      this.folderShowAction = false;
     });
     EventBus.$on('fileLength', (length) => {
       this.fileLength = length;
@@ -523,7 +553,7 @@ export default {
       this[e] = false;
     },
     createFolder(e) {
-      let user = this.$store.getters.getUserDetails;
+      const user = this.$store.getters.getUserDetails;
       const parentDir = this.$route.params.name || '';
       this.buttonLoading = true;
       // const user = this.userId.id;
@@ -547,8 +577,8 @@ export default {
         .then(() => {
           this.buttonLoading = false;
           this.loading = false;
-          // this.fetchUserFiles(user.user._id, 0);
-          this.fetchUserDirectories(user.user._id, 0);
+          this.fetchUserFiles(user.user._id, 0);
+          this.fetchUser(user.user.ogId);
           this.success.status = true;
           this.success.message = 'Folder has been successfully created';
         })
@@ -583,7 +613,7 @@ export default {
           })
           .then(() => {
             EventBus.$emit('addedNewFile');
-            this.fetchUserFiles(user.user._id, 0);
+            //this.fetchUserFiles(user.user._id, 0);
           })
           .catch((err) => {
             this.loading = false;
@@ -691,6 +721,27 @@ export default {
         };
       }
     },
+    moveMultipleFoldersToBin() {
+      const user = this.$store.getters.getUserDetails;
+      this.loading = true;
+      this.$axios
+        .put('directory/sadmin/multiple/bin', {
+          folder_ids: this.folderIds,
+          user_id: user.id,
+        })
+        .then(() => {
+          this.fetchUser(user.user.ogId);
+          this.loading = false;
+          this.success.status = true;
+          this.success.message = 'Folders has been successfully moved to Bin';
+          window.location.reload();
+        })
+        .catch((err) => {
+          this.loading = false;
+          this.error.status = true;
+          this.error.message = err.response.data.message;
+        });
+    },
     logout() {
       this.$cookies.remove('token');
       this.$cookies.remove('user');
@@ -727,7 +778,7 @@ export default {
                 this.showProfileDialog = false;
                 this.success.status = true;
                 this.success.message = 'Account Updated';
-                this.fetchUser();
+                this.fetchUserDetails();
               })
               .catch(() => {
                 this.profileLoading = false;
@@ -740,7 +791,7 @@ export default {
             this.showProfileDialog = false;
             this.success.status = true;
             this.success.message = 'Account Updated';
-            this.fetchUser();
+            this.fetchUserDetails();
           }
         })
         .catch(() => {
@@ -754,9 +805,9 @@ export default {
       this.updateUser.username = '';
       this.updateUser.image = '';
     },
-    fetchUser() {
+    fetchUserDetails() {
       const ogId = this.user.ogId;
-      this.$axios.get(`admin/users/${ogId}`).then(({ data }) => {
+      this.$axios.get(`admin/user/${ogId}`).then(({ data }) => {
         const userDetails = {
           id: data._id,
           ogId: data.ogId,
@@ -782,6 +833,7 @@ export default {
           this.loading = false;
           this.success.status = true;
           this.success.message = 'Files has been moved to Bin';
+          window.location.reload();
         })
         .catch((err) => {
           this.loading = false;

@@ -289,7 +289,7 @@
             <v-layout justify-space-between full-width>
               <span class="row align-center mx-0 font-weight-black text--text">
                 <h2>
-                  Bin
+                  Recent
                 </h2>
                 <!-- <p class="count">({{ fileLength }})</p> -->
               </span>
@@ -299,27 +299,6 @@
                 </v-btn>
                 <v-btn text @click="deleteFiles">Delete</v-btn>
                 <v-btn text @click="shareFile">Share</v-btn>
-                <v-btn v-if="isBin" @click="revertMultiple">
-                  Revert Files
-                </v-btn>
-                <v-btn v-else text @click="moveMultiple">Move To Bin</v-btn>
-              </v-layout>
-              <v-layout
-                v-else-if="folderShowAction"
-                class="full-width"
-                justify-end
-              >
-                <v-btn color="primary" @click="showMoveFolderDialog = true">
-                  Move
-                </v-btn>
-                <v-btn text @click="deleteFiles">Delete</v-btn>
-                <v-btn text @click="shareFile">Share</v-btn>
-                <v-btn v-if="isBin" text @click="revertMultipleFolders">
-                  Revert Folders
-                </v-btn>
-                <v-btn v-else text @click="moveMultipleFolders">
-                  Move Folders To Bin
-                </v-btn>
               </v-layout>
             </v-layout>
           </v-toolbar-title>
@@ -382,29 +361,29 @@ export default {
       default: '',
     },
   },
-  data: () => ({
+  data: (v) => ({
     dialog: false,
     drawer: null,
     items: [
       {
         icon: 'mdi-cloud-outline',
-        text: 'My Drive',
-        to: '/',
+        text: 'Drive',
+        to: `/admin/user/${v.$route.params.id}`,
       },
       {
         icon: 'mdi-account-multiple-outline',
-        text: 'Shared with me',
-        to: '/shared',
+        text: 'Shared with this User',
+        to: '#',
       },
       {
         icon: 'mdi-clock-outline',
         text: 'Recent',
-        to: '/recent',
+        to: `/admin/recent/${v.$route.params.id}`,
       },
       {
         icon: 'mdi-trash-can-outline',
         text: 'Bin',
-        to: '/bin',
+        to: `/admin/bin/${v.$route.params.id}`,
       },
       // {
       //   icon: 'mdi-chevron-up',
@@ -438,12 +417,10 @@ export default {
     showMoveFolderDialog: false,
     pressed: false,
     showAction: false,
-    folderShowAction: false,
     error: { status: false, message: '' },
     alertError: { status: false, message: '' },
     success: { status: false, message: '' },
     fileIds: [],
-    folderIds: [],
     fileLength: 0,
     showShareDialog: false,
     user: '',
@@ -479,9 +456,6 @@ export default {
       }
       return null;
     },
-    isBin() {
-      return this.$route.name === 'bin';
-    },
   },
   mounted() {
     const token = this.isLoggedIn(this);
@@ -493,13 +467,8 @@ export default {
       this.fileIds = files;
       this.showAction = true;
     });
-    EventBus.$on('folderShowAction', (folders) => {
-      this.folderIds = folders;
-      this.folderShowAction = true;
-    });
     EventBus.$on('hideAction', () => {
       this.showAction = false;
-      this.folderShowAction = false;
     });
     EventBus.$on('fileLength', (length) => {
       this.fileLength = length;
@@ -554,46 +523,6 @@ export default {
     },
     resetBreadCrumbs() {
       this.$store.dispatch('resetBreadCrumbs');
-    },
-    revertMultiple() {
-      const user = this.getUser(this);
-      this.loading = true;
-      this.$axios
-        .put('/files/multiple/revert', {
-          file_ids: this.fileIds,
-          user_id: user.id,
-        })
-        .then(() => {
-          window.location.reload();
-          this.loading = false;
-          this.success.status = true;
-          this.success.message = 'Files has been successfully reverted';
-        })
-        .catch((err) => {
-          this.loading = false;
-          this.error.status = true;
-          this.error.message = err.response.data.message;
-        });
-    },
-    revertMultipleFolders() {
-      const user = this.getUser(this);
-      this.loading = true;
-      this.$axios
-        .put('directory/multiple/revert', {
-          folder_ids: this.folderIds,
-          user_id: user.id,
-        })
-        .then(() => {
-          window.location.reload();
-          this.loading = false;
-          this.success.status = true;
-          this.success.message = 'Folders has been successfully reverted';
-        })
-        .catch((err) => {
-          this.loading = false;
-          this.error.status = true;
-          this.error.message = err.response.data.message;
-        });
     },
     handleFileUpload(e) {
       const parentDir = this.$route.params.name || '';

@@ -93,7 +93,7 @@
       Folders
     </p>
     <div class="files mb-5">
-      <SuperAdminFolder
+      <Folder
         v-for="(folder, index) in filteredFolders"
         :key="index"
         :folder-name="folder.dirname"
@@ -101,7 +101,7 @@
         class="my-2"
         :last-updated="folder.updatedAt"
         @deleteFolder="handleFolderDelete"
-        @moveFolderToBin="moveFolderToBin"
+        @revertFolder="revertFolder"
         @foldersSelected="handleMultipleFolders($event, folder)"
       />
     </div>
@@ -109,7 +109,7 @@
       Files
     </p>
     <div class="files mb-5">
-      <SuperAdminFile
+      <File
         v-for="file in filteredFiles"
         :key="file.file_url"
         :format="file.file_extension"
@@ -119,15 +119,14 @@
         :last-edited="file.updatedAt"
         class="my-2"
         @filesSelected="handleMultipleFiles($event, file)"
-        @moveToBin="moveToBin"
+        @revert="revert"
         @viewDetails="showFileDetails"
-        @deleteFile="handleFileDelete"
       />
     </div>
     <v-dialog v-model="showFolderDialog" max-width="360">
       <v-card>
         <v-card-title class="headline">
-          Delete Folder
+          Move To Bin
         </v-card-title>
 
         <v-card-text>
@@ -159,18 +158,8 @@
     <v-dialog v-model="showDialog" max-width="360">
       <v-card>
         <v-card-title class="headline">
-          Delete File
+          Move To Bin
         </v-card-title>
-
-        <v-card-text>
-          <p>
-            This is going to permanently remove this file from your drive. Enter
-            the file name below to delete.
-            <b>File Name: {{ currentFileName }}</b>
-          </p>
-          <v-text-field v-model="fileName" label="File Name" />
-        </v-card-text>
-
         <v-card-actions>
           <v-spacer></v-spacer>
 
@@ -178,11 +167,7 @@
             Cancel
           </v-btn>
 
-          <v-btn
-            color="red px-5"
-            :disabled="!fileName || fileName !== currentFileName"
-            @click="deleteFile(fileToDeleteDetails[0])"
-          >
+          <v-btn color="red px-5" @click="deleteFile(fileToDeleteDetails[0])">
             Delete
           </v-btn>
         </v-card-actions>
@@ -194,14 +179,14 @@
 <script>
 import { mapGetters } from 'vuex';
 import Moment from 'moment';
-import SuperAdminFile from '@/components/SuperAdminFile';
-import SuperAdminFolder from '@/components/SuperAdminFolder';
+import File from '@/components/SuperAdminBinFile';
+import Folder from '@/components/BinFolder';
 import Loader from '@/components/Loader';
 import { EventBus } from '../../../plugins/eventBus';
 
 export default {
-  layout: 'adminDrive',
-  components: { SuperAdminFile, SuperAdminFolder, Loader },
+  layout: 'adminBin',
+  components: { File, Folder, Loader },
   middleware: 'authenticated',
   data: () => ({
     tempDate: new Date(2020, 3, 22),
@@ -232,21 +217,11 @@ export default {
       'isLoggedIn',
       'getFolders',
       'getUser',
-      'getUserDirectories',
-      'getUserDetails',
-      'getUserFolders',
+      'getAdminBin',
+      'getBinFolders',
     ]),
-    allUsers() {
-      return this.$store.state.allUsers.users;
-    },
-    id() {
-      return this.$route.params.id;
-    },
-    user() {
-      return this.allUsers.find((user) => user.ogId === this.id);
-    },
     filteredFiles() {
-      const files = this.getFiles.filter((el) => {
+      const files = this.getAdminBin.filter((el) => {
         return el.filename
           .toLowerCase()
           .includes(this.searchFiles.toLowerCase());
@@ -254,7 +229,7 @@ export default {
       return files;
     },
     filteredFolders() {
-      const subFolders = this.getUserDirectories.filter(
+      const subFolders = this.getBinFolders.filter(
         (folder) => !folder.parent_dir
       );
       const folders = subFolders.filter((el) => {
@@ -264,19 +239,20 @@ export default {
       });
       return folders;
     },
-    userDirectories() {
-      return this.$store.state.userFolders.directories;
-    },
   },
   mounted() {
     const token = this.isLoggedIn(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
-    //const user = this.getUser(this);
     this.$store.dispatch('fetchUser', this.$route.params.id).then(() => {
       const userInView = this.$store.getters.getUserDetails;
-      this.fetchUserFiles(userInView.user._id, 0);
+      this.$store.dispatch('fetchAdminBinFiles', userInView.user._id);
     });
-    EventBus.$on('filesFetched', this.emitFileLength);
+    // const user = this.getUser(this);
+    // this.$store.dispatch('fetchFolders', user.id);
+    // this.fetchUserFiles(user.id, 0);
+    // EventBus.$on('filesFetched', this.emitFileLength);
+    // this.$store.dispatch('fetchBinFiles', user.id);
+    // this.$store.dispatch('fetchBinFolders', user.id);
   },
   methods: {
     handleFileDelete([id, name]) {
@@ -292,17 +268,13 @@ export default {
     deleteFolder(e) {
       this.showFolderDialog = false;
       this.loading = true;
-      const userInView = this.$store.getters.getUserDetails;
-      // const user = this.getUser(this);
+      const user = this.getUser(this);
       this.$axios
-        .delete(`directory/${e}`)
+        .delete(`directory/deleteDirectory/${e}`)
         .then(() => {
-          this.loading = false;
-          this.success.status = true;
-          this.success.message = 'Folder has been deleted';
+          this.$store.dispatch('fetchFolders', user.id);
           this.folderName = '';
-          this.fetchUserFiles(userInView.user._id, 0);
-          this.$store.dispatch('fetchUserFolders', userInView.user._id);
+          this.fetchUserFiles(user.id, 0);
           this.emitFileLength();
         })
         .catch((err) => {
@@ -311,17 +283,18 @@ export default {
           this.error.message = err.response.data.message;
         });
     },
-    deleteFile(e) {
+    revert(e) {
       this.showDialog = false;
-      const userInView = this.$store.getters.getUserDetails;
+      const user = this.getUser(this);
       this.loading = true;
+      console.log(`${e}`);
       this.$axios
-        .delete(`/files/${e}`)
+        .put('files/sadmin/single/revert', { _id: `${e}`, user_id: user.id })
         .then(() => {
-          this.fetchUserFiles(userInView.user._id, 0);
+          this.$store.dispatch('fetchBinFiles', user.id);
           this.loading = false;
           this.success.status = true;
-          this.success.message = 'File has been deleted';
+          this.success.message = 'File has successfully been reverted';
         })
         .catch((err) => {
           this.loading = false;
@@ -329,34 +302,18 @@ export default {
           this.error.message = err.response.data.message;
         });
     },
-    moveToBin(e) {
-      const userInView = this.$store.getters.getUserDetails;
+    revertFolder(e) {
+      this.showDialog = false;
+      const user = this.getUser(this);
       this.loading = true;
+      console.log(`${e}`);
       this.$axios
-        .post('/super_admin/file/bin', { file_id: e })
+        .put('/directory/single/revert', { _id: `${e}`, user_id: user.id })
         .then(() => {
-          this.fetchUserFiles(userInView.user._id, 0);
+          this.$store.dispatch('fetchBinFolders', user.id);
           this.loading = false;
           this.success.status = true;
-          this.success.message = 'File has been moved to Bin';
-        })
-        .catch((err) => {
-          this.loading = false;
-          this.error.status = true;
-          this.error.message = err.response.data.message;
-        });
-    },
-    moveFolderToBin(e) {
-      const userInView = this.$store.getters.getUserDetails;
-      console.log('user', userInView.user.ogId);
-      this.loading = true;
-      this.$axios
-        .patch(`super_admin/directory/bin/${e}`)
-        .then(() => {
-          this.fetchUser(userInView.user.ogId);
-          this.loading = false;
-          this.success.status = true;
-          this.success.message = 'Folder has been moved to Bin';
+          this.success.message = 'Folder has successfully been reverted';
         })
         .catch((err) => {
           this.loading = false;
