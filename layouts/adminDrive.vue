@@ -78,14 +78,7 @@
               >
                 Update
               </v-btn>
-              <v-btn
-                color="darken-1"
-                text
-                @click="
-                  showProfileDialog = false;
-                  clearForm();
-                "
-              >
+              <v-btn color="darken-1" text @click="handleCancel">
                 Cancel
               </v-btn>
             </v-layout>
@@ -552,6 +545,10 @@ export default {
     closeDialog(e) {
       this[e] = false;
     },
+    handleCancel() {
+      this.showProfileDialog = false;
+      this.clearForm();
+    },
     createFolder(e) {
       const user = this.$store.getters.getUserDetails;
       const parentDir = this.$route.params.name || '';
@@ -613,6 +610,7 @@ export default {
           })
           .then(() => {
             EventBus.$emit('addedNewFile');
+            this.loading = false;
             //this.fetchUserFiles(user.user._id, 0);
           })
           .catch((err) => {

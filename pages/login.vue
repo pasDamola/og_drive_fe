@@ -108,11 +108,8 @@ export default {
         })
         .catch((err) => {
           this.loading = false;
-          console.log(err);
-          //console.log(err.response.data.message);
           this.error.status = true;
-          // this.error.message =
-          //   err.response.data.message + ',please verify your account!!';
+          this.error.message = err.response.data.message;
         });
     },
   },

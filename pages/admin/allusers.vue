@@ -290,7 +290,6 @@ export default {
         const response = await this.$axios.get(`admin/user/${item.ogId}`);
         if (response) {
           this.loading = false;
-          console.log(response);
           this.$store.commit('LOAD_USER_DETAILS', response.data);
           this.$router.push({ path: `/admin/user/${item.ogId}` });
           this.success.message = response.data.message;
@@ -299,9 +298,12 @@ export default {
       } catch (error) {
         this.loading = false;
         this.error.status = true;
-        this.error.message = error.response.data.message;
+        if (error.response && error.response.data.message) {
+          this.error.message = error.response.data.message;
+        } else {
+          this.error.message = 'Something went wrong';
+        }
         this.fetchUsers();
-        return Promise.reject(error);
       }
       //this.close();
     },
@@ -355,9 +357,12 @@ export default {
       } catch (error) {
         this.loading = false;
         this.error.status = true;
-        this.error.message = error.response.data.message;
+        if (error.response && error.response.data.message) {
+          this.error.message = error.response.data.message;
+        } else {
+          this.error.message = 'Something went wrong';
+        }
         this.fetchUsers();
-        return Promise.reject(error);
       }
       //this.close();
     },
@@ -386,9 +391,12 @@ export default {
       } catch (error) {
         this.loading = false;
         this.error.status = true;
-        this.error.message = error.response.data.message;
+        if (error.response && error.response.data.message) {
+          this.error.message = error.response.data.message;
+        } else {
+          this.error.message = 'Something went wrong';
+        }
         this.fetchUsers();
-        return Promise.reject(error);
       }
       //this.close();
     },
@@ -406,14 +414,16 @@ export default {
           this.$store.commit('LOAD_ALL_USERS', response.data);
           this.fetchUsers();
           this.adminDialog = false;
-          return Promise.resolve(response.data);
         }
       } catch (error) {
         this.loading = false;
         this.error.status = true;
-        this.error.message = error.response.data.message;
+        if (error.response && error.response.data.message) {
+          this.error.message = error.response.data.message;
+        } else {
+          this.error.message = 'Something went wrong';
+        }
         this.fetchUsers();
-        return Promise.reject(error);
       }
       //this.close();
     },
@@ -436,9 +446,12 @@ export default {
       } catch (error) {
         this.loading = false;
         this.error.status = true;
-        this.error.message = error.response.data.message;
+        if (error.response && error.response.data.message) {
+          this.error.message = error.response.data.message;
+        } else {
+          this.error.message = 'Something went wrong';
+        }
         this.fetchUsers();
-        return Promise.reject(error);
       }
       //this.close();
     },

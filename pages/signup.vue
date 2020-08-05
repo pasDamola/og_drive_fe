@@ -204,7 +204,7 @@ export default {
       required: (value) => !!value || 'Required.',
       password: (value) => value.length >= 8 || 'Required',
       email: (value) => {
-        const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        const pattern = /^[a-zA-Z0-9_.+-]+@(?:(?:[a-zA-Z0-9-]+\.)?[a-zA-Z]+\.)?(outsourceglobal)\.(com|net)$/g;
         return pattern.test(value) || 'Invalid e-mail.';
       },
       isAlpha: (value) => {
@@ -317,12 +317,16 @@ export default {
           this.savedUser = res.data.user;
         })
         .catch((err) => {
-          const {
-            data: { errors },
-          } = err.response;
-          const firstError = errors && Object.values(errors[0]);
-          if (firstError) {
-            this.error.message = firstError;
+          if (typeof err.response.data.message === 'object') {
+            const {
+              data: { errors },
+            } = err.response;
+            const firstError = errors && Object.values(errors[0]);
+            if (firstError) {
+              this.error.message = firstError;
+            }
+          } else {
+            this.error.message = err.response.data.message;
           }
           this.loading = false;
           this.error.status = true;
