@@ -1,5 +1,6 @@
 <template>
   <v-layout justify-center align-center column>
+    <img src="/images/logo.png" alt="Outsource Logo" width="200vh" />
     <h1 class="title text-uppercase my-3">Create your account</h1>
     <v-stepper v-model="formStepper">
       <v-stepper-header>

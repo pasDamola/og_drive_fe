@@ -1,5 +1,6 @@
 <template>
   <v-layout column justify-center align-center>
+    <img src="/images/logo.png" alt="Outsource Logo" width="200vh" />
     <h1 class="title text-uppercase my-3">Sign into OG Drive</h1>
     <v-card max-width="100%" width="400">
       <v-alert

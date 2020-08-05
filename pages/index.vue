@@ -227,6 +227,14 @@ export default {
   layout: 'drive',
   components: { File, Folder, Loader },
   middleware: 'authenticated',
+  filters: {
+    date(val) {
+      if (val) {
+        return Moment(val).format('MMMM Do YYYY');
+      }
+      return null;
+    },
+  },
   data: () => ({
     tempDate: new Date(2020, 3, 22),
     searchFiles: '',
@@ -250,14 +258,6 @@ export default {
     fileToDeleteDetails: [],
     folderToDeleteDetails: [],
   }),
-  filters: {
-    date(val) {
-      if (val) {
-        return Moment(val).format('MMMM Do YYYY');
-      }
-      return null;
-    },
-  },
   computed: {
     ...mapGetters([
       'getBreadCrumbs',
