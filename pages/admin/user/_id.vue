@@ -1,5 +1,11 @@
 <template>
   <v-container grid-list-md class="my-drive">
+    <Preview
+      v-if="showPreview"
+      :show="showPreview"
+      :data="previewData"
+      @hide="showPreview = false"
+    />
     <v-navigation-drawer
       v-model="showDrawer"
       temporary
@@ -28,6 +34,45 @@
             {{ fileDetails.lastUpdated }}
           </li>
         </ul>
+        <v-divider class="full-width divider" />
+        <div class="trails">
+          <v-list>
+            <div
+              v-for="log in fileDetails.logs"
+              :key="log._id"
+              class="list my-2"
+            >
+              <p class="my-0 pl-6 caption">
+                {{ log.createdAt | date }}
+              </p>
+              <v-list-item>
+                <v-avatar
+                  v-if="log.user_id.picture_pic"
+                  size="35px"
+                  item
+                  class="mx-2"
+                >
+                  <v-img :src="log.user_id.picture_pic" alt="User Image" />
+                </v-avatar>
+                <v-avatar v-else size="35px" color="primary" item class="mx-2">
+                  <span class="white--text font-weight-medium">
+                    {{ getUserInitials(log.user_id.full_name) }}
+                  </span>
+                </v-avatar>
+                <v-list-item-content class="py-1">
+                  <v-list-item-title class="text-capitalize small--text">
+                    {{ log.action }} this {{ log.type }}
+                    {{ log.shared_with && `with ${log.shared_with.full_name}` }}
+                  </v-list-item-title>
+                  <v-list-item-subtitle class="caption">
+                    {{ log.user_id.full_name }}
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+              <v-divider class="divider" />
+            </div>
+          </v-list>
+        </div>
         <v-layout class="file-actions px-8" row justify-space-between>
           <v-tooltip top>
             <template v-slot:activator="{ on }">
@@ -103,6 +148,7 @@
         @deleteFolder="handleFolderDelete"
         @moveFolderToBin="moveFolderToBin"
         @foldersSelected="handleMultipleFolders($event, folder)"
+        @viewDetails="showFolderDetails"
       />
     </div>
     <p class="font-weight-medium body-2">
@@ -122,6 +168,7 @@
         @moveToBin="moveToBin"
         @viewDetails="showFileDetails"
         @deleteFile="handleFileDelete"
+        @previewFile="previewFile(file)"
       />
     </div>
     <v-dialog v-model="showFolderDialog" max-width="360">
@@ -197,12 +244,21 @@ import Moment from 'moment';
 import SuperAdminFile from '@/components/SuperAdminFile';
 import SuperAdminFolder from '@/components/SuperAdminFolder';
 import Loader from '@/components/Loader';
+import Preview from '@/components/FilePreview';
 import { EventBus } from '../../../plugins/eventBus';
 
 export default {
   layout: 'adminDrive',
-  components: { SuperAdminFile, SuperAdminFolder, Loader },
+  components: { SuperAdminFile, SuperAdminFolder, Loader, Preview },
   middleware: 'authenticated',
+  filters: {
+    date(val) {
+      if (val) {
+        return Moment(val).format('MMMM Do YYYY');
+      }
+      return null;
+    },
+  },
   data: () => ({
     tempDate: new Date(2020, 3, 22),
     searchFiles: '',
@@ -224,6 +280,8 @@ export default {
     folderName: '',
     fileToDeleteDetails: [],
     folderToDeleteDetails: [],
+    showPreview: false,
+    previewData: null,
   }),
   computed: {
     ...mapGetters([
@@ -279,6 +337,51 @@ export default {
     EventBus.$on('filesFetched', this.emitFileLength);
   },
   methods: {
+    isImage(details) {
+      if (details) {
+        const fileType = details.type.split('/')[1];
+        const types = [
+          'png',
+          'jpeg',
+          'jpg',
+          'gif',
+          'mp4',
+          'mp3',
+          'webp',
+          'svg',
+        ];
+        if (types.includes(fileType)) {
+          return true;
+        }
+        return false;
+      }
+    },
+    previewFile(file) {
+      const fileDetails = {
+        type: file.file_type,
+        url: file.file_url,
+      };
+      const isImage = this.isImage(fileDetails);
+      const data = {
+        isImage,
+        ...file,
+      };
+      this.previewData = data;
+      this.showPreview = true;
+    },
+    getUserInitials(fullName) {
+      if (fullName) {
+        const initials = fullName.split(' ').reduce((join, name) => {
+          return `${join}${name[0]}`;
+        }, '');
+        if (initials.length > 2) {
+          return `${initials[0]}${initials[1]}`;
+        } else {
+          return initials;
+        }
+      }
+      return null;
+    },
     handleFileDelete([id, name]) {
       this.fileToDeleteDetails.push(id, name);
       this.currentFileName = name;
@@ -348,7 +451,6 @@ export default {
     },
     moveFolderToBin(e) {
       const userInView = this.$store.getters.getUserDetails;
-      console.log('user', userInView.user.ogId);
       this.loading = true;
       this.$axios
         .patch(`super_admin/directory/bin/${e}`)
@@ -375,7 +477,22 @@ export default {
         fileDetails.lastUpdated = Moment(data.file.updatedAt).fromNow();
         fileDetails.owner = data.file.user_id.full_name;
         fileDetails.link = data.file.file_url;
+        fileDetails.type = data.file.file_type;
         this.fileDetails = fileDetails;
+        this.fileDetails.logs = data.logs;
+      });
+    },
+    showFolderDetails(id) {
+      let folderDetails = {};
+      this.showDrawer = true;
+      this.loadingDetails = true;
+      this.$axios.get(`directory/${id}`).then(({ data }) => {
+        this.loadingDetails = false;
+        folderDetails.name = data.directory.dirname;
+        folderDetails.lastUpdated = Moment(data.directory.updatedAt).fromNow();
+        folderDetails.owner = data.directory.user_id.full_name;
+        this.fileDetails = folderDetails;
+        this.fileDetails.logs = data.logs;
       });
     },
     emitFileLength() {
@@ -431,5 +548,14 @@ export default {
     height: fit-content;
     text-decoration: none;
   }
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+}
+
+.small--text {
+  font-size: 14px;
 }
 </style>

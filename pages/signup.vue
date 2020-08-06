@@ -348,7 +348,6 @@ export default {
           this.$router.push({ path: '/login' });
         })
         .catch((err) => {
-          console.log(err);
           this.error.message = err.response.message;
           this.error.status = true;
           this.loading = false;

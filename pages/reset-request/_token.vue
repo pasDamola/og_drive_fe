@@ -90,9 +90,8 @@ export default {
             'Success changing password! You are being redirected to Login';
           //this.login();
         })
-        .catch((err) => {
+        .catch(() => {
           this.loading = false;
-          console.log(err.response);
         });
 
       //   this.$router.push({ path: '/login' });

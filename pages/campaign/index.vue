@@ -307,14 +307,11 @@ export default {
 
     async viewCampaign() {
       this.loading = true;
-      console.log(this.campaignItem);
       try {
         const response = await this.$axios.get(
           `campaigns/${this.viewedItem._id}`
         );
-        console.log(response);
         if (response) {
-          console.log(response);
           this.loading = false;
           this.$store.commit('LOAD_ALL_CAMPAIGNS', response.data);
           this.fetchCampaigns();
@@ -328,21 +325,18 @@ export default {
         this.error.status = true;
         this.error.message = error.response.data.message;
         this.fetchCampaigns();
-        return Promise.reject(error);
       }
       this.close();
     },
 
     async editCampaign() {
       this.loading = true;
-      console.log(this.campaignItem);
       try {
         const response = await this.$axios.patch(
           `campaigns/${this.editedItem._id}`,
           this.editedItem
         );
         if (response) {
-          console.log(response);
           this.loading = false;
           this.$store.commit('LOAD_ALL_CAMPAIGNS', response.data);
           this.fetchCampaigns();
@@ -356,20 +350,17 @@ export default {
         this.error.status = true;
         this.error.message = error.response.data.message;
         this.fetchCampaigns();
-        return Promise.reject(error);
       }
       this.close();
     },
 
     async save() {
       this.loading = true;
-      console.log(this.campaignItem);
       try {
         const response = await this.$axios.post('campaigns/new', {
           title: this.campaignItem.title,
         });
         if (response) {
-          console.log(response);
           this.loading = false;
           this.$store.commit('LOAD_ALL_CAMPAIGNS', response.data);
           this.fetchCampaigns();
@@ -383,7 +374,6 @@ export default {
         this.error.status = true;
         this.error.message = error.response.data.message;
         this.fetchCampaigns();
-        return Promise.reject(error);
       }
       this.close();
     },
@@ -417,7 +407,6 @@ export default {
         this.error.status = true;
         this.error.message = error.response.data.message;
         this.fetchUsers();
-        return Promise.reject(error);
       }
       this.close();
     },

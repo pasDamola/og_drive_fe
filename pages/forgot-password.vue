@@ -72,9 +72,8 @@ export default {
           this.success.message =
             'A link has been sent to your email address, please check your email address!';
         })
-        .catch((err) => {
+        .catch(() => {
           this.loading = false;
-          console.log(err.response);
         });
     },
   },
