@@ -82,20 +82,20 @@
           <v-tooltip top>
             <template v-slot:activator="{ on }">
               <a
+                v-if="isImage(fileDetails)"
                 :href="fileDetails.link"
                 target="_blank"
                 v-on="on"
-                v-if="isImage(fileDetails)"
               >
                 <v-icon color="primary" dark>
                   mdi-open-in-new
                 </v-icon>
               </a>
               <a
+                v-else
                 :href="`https://docs.google.com/viewerng/viewer?url=${fileDetails.link}`"
                 target="_blank"
                 v-on="on"
-                v-else
               >
                 <v-icon color="primary" dark>
                   mdi-open-in-new
