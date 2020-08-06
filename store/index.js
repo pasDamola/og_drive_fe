@@ -5,6 +5,7 @@ export const state = () => ({
   // token_details: UserService.getTokenFromLocalStorage(),
   verifyToken: '',
   resetToken: '',
+  isGridView: true,
   user: {},
   bin: [],
   binFolders: [],
@@ -356,5 +357,8 @@ export const mutations = {
   },
   LOAD_ADMIN_RECENT(state, recent) {
     state.adminRecent = recent;
+  },
+  SET_VIEW_STATE(state, view) {
+    state.isGridView = view;
   },
 };

@@ -139,41 +139,46 @@
         ></v-text-field>
       </v-flex>
     </v-layout>
-    <p class="font-weight-medium body-2">
-      Folders
-    </p>
-    <div class="files mb-5">
-      <Folder
-        v-for="(folder, index) in filteredFolders"
-        :key="index"
-        :folder-name="folder.dirname"
-        :folder-id="folder._id"
-        class="my-2"
-        :last-updated="folder.updatedAt"
-        @foldersSelected="handleMultipleFolders($event, folder)"
-        @moveFolderToBin="moveFolderToBin"
-        @viewDetails="showFolderDetails"
-      />
-    </div>
-    <p class="font-weight-medium body-2">
-      Files
-    </p>
-    <div class="files mb-5">
-      <File
-        v-for="file in filteredFiles"
-        :key="file.file_url"
-        :format="file.file_extension"
-        :name="file.filename"
-        :file-id="file._id"
-        :size="file.file_size"
-        :last-edited="file.updatedAt"
-        class="my-2"
-        @filesSelected="handleMultipleFiles($event, file)"
-        @moveToBin="moveToBin"
-        @viewDetails="showFileDetails"
-        @previewFile="previewFile(file)"
-      />
-    </div>
+    <template v-if="isGridView">
+      <p class="font-weight-medium body-2">
+        Folders
+      </p>
+      <div class="files mb-5">
+        <Folder
+          v-for="(folder, index) in filteredFolders"
+          :key="index"
+          :folder-name="folder.dirname"
+          :folder-id="folder._id"
+          class="my-2"
+          :last-updated="folder.updatedAt"
+          @foldersSelected="handleMultipleFolders($event, folder)"
+          @moveFolderToBin="moveFolderToBin"
+          @viewDetails="showFolderDetails"
+        />
+      </div>
+      <p class="font-weight-medium body-2">
+        Files
+      </p>
+      <div class="files mb-5">
+        <File
+          v-for="file in filteredFiles"
+          :key="file.file_url"
+          :format="file.file_extension"
+          :name="file.filename"
+          :file-id="file._id"
+          :size="file.file_size"
+          :last-edited="file.updatedAt"
+          class="my-2"
+          @filesSelected="handleMultipleFiles($event, file)"
+          @moveToBin="moveToBin"
+          @viewDetails="showFileDetails"
+          @previewFile="previewFile(file)"
+        />
+      </div>
+    </template>
+    <template v-else>
+      List View
+    </template>
     <v-dialog v-model="showFolderDialog" max-width="360">
       <v-card>
         <v-card-title class="headline">
@@ -228,7 +233,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 import Moment from 'moment';
 import File from '@/components/File';
 import Folder from '@/components/Folder';
@@ -274,6 +279,7 @@ export default {
     previewData: null,
   }),
   computed: {
+    ...mapState(['isGridView']),
     ...mapGetters([
       'getBreadCrumbs',
       'getFiles',
