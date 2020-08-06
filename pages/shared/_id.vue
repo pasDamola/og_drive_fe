@@ -145,6 +145,14 @@ import { EventBus } from '../../plugins/eventBus';
 export default {
   layout: 'drive',
   components: { Loader, File, Folder },
+  filters: {
+    date(val) {
+      if (val) {
+        return Moment(val).format('MMMM Do YYYY');
+      }
+      return null;
+    },
+  },
   data: () => ({
     user: '',
     folders: [],
@@ -154,14 +162,6 @@ export default {
     fileDetails: {},
     loadingDetails: false,
   }),
-  filters: {
-    date(val) {
-      if (val) {
-        return Moment(val).format('MMMM Do YYYY');
-      }
-      return null;
-    },
-  },
   computed: {
     ...mapGetters(['getUser', 'isLoggedIn']),
   },
