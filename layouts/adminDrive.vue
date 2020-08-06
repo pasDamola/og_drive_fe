@@ -18,6 +18,12 @@
       @closeDialog="closeDialog('showShareDialog')"
       @share="handleFileSharing"
     />
+    <share-dialog
+      :show-dialog="showShareFolderDialog"
+      :is-loading="buttonLoading"
+      @closeDialog="closeDialog('showShareFolderDialog')"
+      @share="handleFolderSharing"
+    />
     <v-dialog v-model="showProfileDialog" max-width="360">
       <v-card>
         <v-card-title class="headline">
@@ -310,7 +316,7 @@
                   Move
                 </v-btn>
                 <v-btn text @click="deleteFiles">Delete</v-btn>
-                <v-btn text @click="shareFile">Share</v-btn>
+                <v-btn text @click="shareFolders">Share</v-btn>
                 <v-btn v-if="isBin" text @click="revertMultipleFolders">
                   Revert Folders
                 </v-btn>
@@ -444,6 +450,7 @@ export default {
     folderIds: [],
     fileLength: 0,
     showShareDialog: false,
+    showShareFolderDialog: false,
     user: '',
     showProfileDialog: false,
     profileLoading: false,
@@ -681,6 +688,9 @@ export default {
     shareFile() {
       this.showShareDialog = true;
     },
+    shareFolders() {
+      this.showShareFolderDialog = true;
+    },
     handleFileSharing(users) {
       const data = {
         user_ids: users,
@@ -689,6 +699,26 @@ export default {
       this.buttonLoading = true;
       this.$axios
         .post('admin/files/share', data)
+        .then(({ data }) => {
+          this.buttonLoading = false;
+          this.showShareDialog = false;
+          this.success.status = true;
+          this.success.message = data.message;
+        })
+        .catch(() => {
+          this.buttonLoading = false;
+          this.error.status = true;
+          this.error.message = 'Something went wrong';
+        });
+    },
+    handleFolderSharing(users) {
+      const data = {
+        user_ids: users,
+        directories: this.folderIds,
+      };
+      this.buttonLoading = true;
+      this.$axios
+        .post('admin/directory/share', data)
         .then(({ data }) => {
           this.buttonLoading = false;
           this.showShareDialog = false;
