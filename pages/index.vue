@@ -177,7 +177,17 @@
       </div>
     </template>
     <template v-else>
-      List View
+      <v-data-table :headers="headers" :items="allFiles">
+        <template v-slot:item.updatedAt="{ item }">
+          <span>{{ new Date(item.updatedAt).toLocaleString() }}</span>
+        </template>
+        <template v-slot:item.file_size="{ item }">
+          <span>{{ handleSize(item.file_size) }} KB</span>
+        </template>
+        <template v-slot:item.created_by>
+          <span>me</span>
+        </template>
+      </v-data-table>
     </template>
     <v-dialog v-model="showFolderDialog" max-width="360">
       <v-card>
@@ -277,6 +287,17 @@ export default {
     folderToDeleteDetails: [],
     showPreview: false,
     previewData: null,
+    headers: [
+      {
+        text: 'Name',
+        align: 'start',
+        sortable: false,
+        value: 'filename',
+      },
+      { text: 'Owner', value: 'created_by' },
+      { text: 'Last Modified', value: 'updatedAt' },
+      { text: 'File Size', value: 'file_size' },
+    ],
   }),
   computed: {
     ...mapState(['isGridView']),
@@ -304,6 +325,9 @@ export default {
       });
       return folders;
     },
+    allFiles() {
+      return this.$store.state.allFiles;
+    },
   },
   mounted() {
     const token = this.isLoggedIn(this);
@@ -312,8 +336,12 @@ export default {
     this.$store.dispatch('fetchFolders', user.id);
     this.fetchUserFiles(user.id, 0);
     EventBus.$on('filesFetched', this.emitFileLength);
+    console.log(this.$store.state.allFiles);
   },
   methods: {
+    handleSize(size) {
+      return parseInt(size / 1000);
+    },
     isImage(details) {
       if (details) {
         const fileType = details.type.split('/')[1];
