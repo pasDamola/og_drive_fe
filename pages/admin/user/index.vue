@@ -42,7 +42,11 @@
 
           <v-tooltip top>
             <template v-slot:activator="{ on }">
-              <a :href="fileDetails.link" target="_blank" v-on="on">
+              <a
+                :href="`https://docs.google.com/viewerng/viewer?url=${fileDetails.link}`"
+                target="_blank"
+                v-on="on"
+              >
                 <v-icon color="primary" dark>
                   mdi-open-in-new
                 </v-icon>

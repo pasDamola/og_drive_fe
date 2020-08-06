@@ -81,7 +81,22 @@
 
           <v-tooltip top>
             <template v-slot:activator="{ on }">
-              <a :href="fileDetails.link" target="_blank" v-on="on">
+              <a
+                v-if="isImage(fileDetails)"
+                :href="fileDetails.link"
+                target="_blank"
+                v-on="on"
+              >
+                <v-icon color="primary" dark>
+                  mdi-open-in-new
+                </v-icon>
+              </a>
+              <a
+                v-else
+                :href="`https://docs.google.com/viewerng/viewer?url=${fileDetails.link}`"
+                target="_blank"
+                v-on="on"
+              >
                 <v-icon color="primary" dark>
                   mdi-open-in-new
                 </v-icon>
@@ -284,6 +299,25 @@ export default {
     EventBus.$on('filesFetched', this.emitFileLength);
   },
   methods: {
+    isImage(details) {
+      if (details) {
+        const fileType = details.icon.split('.')[1];
+        const types = [
+          'png',
+          'jpeg',
+          'jpg',
+          'gif',
+          'mp4',
+          'mp3',
+          'webp',
+          'svg',
+        ];
+        if (types.includes(fileType)) {
+          return true;
+        }
+        return false;
+      }
+    },
     getUserInitials(fullName) {
       if (fullName) {
         const initials = fullName.split(' ').reduce((join, name) => {
@@ -329,7 +363,6 @@ export default {
       this.showDialog = false;
       const user = this.getUser(this);
       this.loading = true;
-      console.log(`${e}`);
       this.$axios
         .put('/files/single/bin', { _id: `${e}`, user_id: user.id })
         .then(() => {
@@ -348,7 +381,6 @@ export default {
       this.showDialog = false;
       const user = this.getUser(this);
       this.loading = true;
-      console.log(`${e}`);
       this.$axios
         .put('/directory/single/bin', { _id: `${e}`, user_id: user.id })
         .then(() => {
@@ -376,7 +408,6 @@ export default {
         fileDetails.link = data.file.file_url;
         this.fileDetails = fileDetails;
         this.fileDetails.logs = data.logs;
-        console.log(data);
       });
     },
     showFolderDetails(id) {
