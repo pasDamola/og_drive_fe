@@ -451,7 +451,6 @@ export default {
     },
     moveFolderToBin(e) {
       const userInView = this.$store.getters.getUserDetails;
-      console.log('user', userInView.user.ogId);
       this.loading = true;
       this.$axios
         .patch(`super_admin/directory/bin/${e}`)

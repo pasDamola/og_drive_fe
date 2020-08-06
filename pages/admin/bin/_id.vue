@@ -278,7 +278,6 @@ export default {
       this.showDialog = false;
       const user = this.getUser(this);
       this.loading = true;
-      console.log(`${e}`);
       this.$axios
         .put('files/sadmin/single/revert', { _id: `${e}`, user_id: user.id })
         .then(() => {
@@ -297,7 +296,6 @@ export default {
       this.showDialog = false;
       const user = this.getUser(this);
       this.loading = true;
-      console.log(`${e}`);
       this.$axios
         .put('/directory/single/revert', { _id: `${e}`, user_id: user.id })
         .then(() => {

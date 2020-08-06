@@ -121,7 +121,6 @@ export const actions = {
   },
   fetchUserFolders({ commit }, payload) {
     this.$axios.post('admin/files/user', { user_id: payload }).then((res) => {
-      console.log('folders', res.data.directories);
       commit('SAVE_FOLDERS', res.data.directories);
     });
   },
@@ -129,7 +128,6 @@ export const actions = {
     try {
       const response = await this.$axios.get(`files/bin/${user_id}`);
       if (response) {
-        console.log(response.data.data);
         commit('LOAD_ALL_BIN', response.data.data);
         return Promise.resolve(response.data);
       }
@@ -141,7 +139,6 @@ export const actions = {
     try {
       const response = await this.$axios.get(`files/sadmin/bin/${user_id}`);
       if (response) {
-        console.log(response.data.data);
         commit('LOAD_ADMIN_BIN', response.data.data);
         return Promise.resolve(response.data);
       }
@@ -153,7 +150,6 @@ export const actions = {
     try {
       const response = await this.$axios.get(`directory/bin/${user_id}`);
       if (response) {
-        console.log(response.data);
         commit('LOAD_ALL_FOLDER_BIN', response.data.data);
         return Promise.resolve(response.data);
       }
@@ -165,7 +161,6 @@ export const actions = {
     try {
       const response = await this.$axios.get('admin/allUsers');
       if (response) {
-        console.log(response.data);
         commit('LOAD_ALL_USERS', response.data);
         return Promise.resolve(response.data);
       }
@@ -221,7 +216,6 @@ export const actions = {
     try {
       const response = await this.$axios.get(`admin/user/${id}`);
       if (response) {
-        console.log('Response:', response.data);
         commit('LOAD_USER_DETAILS', response.data);
         commit('LOAD_USER_DIRECTORIES', response.data.directories);
         return Promise.resolve(response.data);
@@ -236,7 +230,6 @@ export const actions = {
         user_id: id,
       });
       if (response) {
-        console.log('Response:', response.data);
         commit('LOAD_RECENT_FILES', response.data.data);
         return Promise.resolve(response.data);
       }
@@ -250,7 +243,6 @@ export const actions = {
         `files/sadmin/recent/files/${user_id}`
       );
       if (response) {
-        console.log('Response:', response.data);
         commit('LOAD_ADMIN_RECENT', response.data.data);
         return Promise.resolve(response.data);
       }

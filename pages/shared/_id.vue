@@ -199,7 +199,6 @@ export default {
           this.files = data.files;
           this.folders = data.directories;
           const totalFileLength = this.files.length + this.folders.length;
-          console.log(data);
           EventBus.$emit('fileLength', totalFileLength);
         })
         .catch((err) => {
@@ -226,7 +225,6 @@ export default {
       this.showDrawer = true;
       this.loadingDetails = true;
       this.$axios.get(`directory/${id}`).then(({ data }) => {
-        console.log(data);
         this.loadingDetails = false;
         folderDetails.name = data.directory.dirname;
         folderDetails.lastUpdated = Moment(data.directory.updatedAt).fromNow();

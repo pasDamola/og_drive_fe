@@ -489,7 +489,6 @@ export default {
     },
   },
   mounted() {
-    console.log(this.$route.name);
     const token = this.isLoggedIn(this);
     const user = this.getUser(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;

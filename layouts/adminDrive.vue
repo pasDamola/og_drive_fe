@@ -598,7 +598,6 @@ export default {
       const parentDir = this.$route.params.name || '';
       this.loading = true;
       let user = this.$store.getters.getUserDetails;
-      console.log('user', user);
       const file = e.target.files;
       let formData = new FormData();
       formData.set('user_id', user.user._id);

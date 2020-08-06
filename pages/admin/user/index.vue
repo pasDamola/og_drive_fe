@@ -260,7 +260,6 @@ export default {
       const subFolders = this.getUserDirectories.filter(
         (folder) => !folder.parent_dir
       );
-      console.log('subFOlders:', subFolders);
       const folders = subFolders.filter((el) => {
         return el.dirname
           .toLowerCase()

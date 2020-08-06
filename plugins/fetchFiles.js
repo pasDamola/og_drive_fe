@@ -68,7 +68,6 @@ const mixin = {
           return el !== folder._id;
         });
       }
-      console.log('selectedFolders', this.selectedFolders);
       if (this.selectedFolders.length > 0) {
         EventBus.$emit('folderShowAction', this.selectedFolders);
       } else {

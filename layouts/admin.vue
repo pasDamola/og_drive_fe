@@ -217,7 +217,6 @@ export default {
   mounted() {
     const token = this.isLoggedIn(this);
     this.user = this.getUser(this);
-    console.log(this.user);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     this.loading = true;
     this.fetchUserFiles(this.user.id, 0);
