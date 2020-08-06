@@ -1,5 +1,5 @@
 <template>
-  <div class="file">
+  <div class="file" @click="customDblClick">
     <v-layout align-center justify-space-between>
       <v-icon
         v-if="checked"
@@ -104,6 +104,22 @@ export default {
     },
   },
   methods: {
+    customDblClick() {
+      if (this.touchTime === 0) {
+        // set first click
+        this.touchTime = new Date().getTime();
+      } else {
+        // compare first click to this click and see if they occurred within double click threshold
+        if (new Date().getTime() - this.touchTime < 800) {
+          // double click occurred
+          this.$emit('previewFile');
+          this.touchTime = 0;
+        } else {
+          // not a double click so set as a new first click
+          this.touchTime = new Date().getTime();
+        }
+      }
+    },
     getFileIcon() {
       if (['doc', 'docm', 'dotm', 'docx', 'docb'].includes(this.format)) {
         return '/images/docs.png';
@@ -149,6 +165,7 @@ export default {
 
 <style lang="scss" scoped>
 .file {
+  cursor: pointer;
   border-radius: 5px;
   width: 215px;
   height: 220px;

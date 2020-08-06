@@ -1,5 +1,11 @@
 <template>
   <v-container grid-list-md class="my-drive">
+    <Preview
+      v-if="showPreview"
+      :show="showPreview"
+      :data="previewData"
+      @hide="showPreview = false"
+    />
     <v-navigation-drawer
       v-model="showDrawer"
       temporary
@@ -78,7 +84,6 @@
             </template>
             <span>Download</span>
           </v-tooltip>
-
           <v-tooltip top>
             <template v-slot:activator="{ on }">
               <a
@@ -166,6 +171,7 @@
         @filesSelected="handleMultipleFiles($event, file)"
         @moveToBin="moveToBin"
         @viewDetails="showFileDetails"
+        @previewFile="previewFile(file)"
       />
     </div>
     <v-dialog v-model="showFolderDialog" max-width="360">
@@ -226,12 +232,13 @@ import { mapGetters } from 'vuex';
 import Moment from 'moment';
 import File from '@/components/File';
 import Folder from '@/components/Folder';
+import Preview from '@/components/FilePreview';
 import Loader from '@/components/Loader';
 import { EventBus } from '../plugins/eventBus';
 
 export default {
   layout: 'drive',
-  components: { File, Folder, Loader },
+  components: { File, Folder, Loader, Preview },
   middleware: 'authenticated',
   filters: {
     date(val) {
@@ -263,6 +270,8 @@ export default {
     folderName: '',
     fileToDeleteDetails: [],
     folderToDeleteDetails: [],
+    showPreview: false,
+    previewData: null,
   }),
   computed: {
     ...mapGetters([
@@ -301,7 +310,7 @@ export default {
   methods: {
     isImage(details) {
       if (details) {
-        const fileType = details.icon.split('.')[1];
+        const fileType = details.type.split('/')[1];
         const types = [
           'png',
           'jpeg',
@@ -317,6 +326,19 @@ export default {
         }
         return false;
       }
+    },
+    previewFile(file) {
+      const fileDetails = {
+        type: file.file_type,
+        url: file.file_url,
+      };
+      const isImage = this.isImage(fileDetails);
+      const data = {
+        isImage,
+        ...file,
+      };
+      this.previewData = data;
+      this.showPreview = true;
     },
     getUserInitials(fullName) {
       if (fullName) {
@@ -406,6 +428,7 @@ export default {
         fileDetails.lastUpdated = Moment(data.file.updatedAt).fromNow();
         fileDetails.owner = data.file.user_id.full_name;
         fileDetails.link = data.file.file_url;
+        fileDetails.type = data.file.file_type;
         this.fileDetails = fileDetails;
         this.fileDetails.logs = data.logs;
       });
@@ -415,14 +438,12 @@ export default {
       this.showDrawer = true;
       this.loadingDetails = true;
       this.$axios.get(`directory/${id}`).then(({ data }) => {
-        console.log(data);
         this.loadingDetails = false;
         folderDetails.name = data.directory.dirname;
         folderDetails.lastUpdated = Moment(data.directory.updatedAt).fromNow();
         folderDetails.owner = data.directory.user_id.full_name;
         this.fileDetails = folderDetails;
         this.fileDetails.logs = data.logs;
-        console.log(this.fileDetails);
       });
     },
     emitFileLength() {

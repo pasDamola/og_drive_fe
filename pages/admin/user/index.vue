@@ -1,5 +1,11 @@
 <template>
   <v-container grid-list-md class="my-drive">
+    <Preview
+      v-if="showPreview"
+      :show="showPreview"
+      :data="previewData"
+      @hide="showPreview = false"
+    />
     <v-navigation-drawer
       v-model="showDrawer"
       temporary
@@ -43,6 +49,17 @@
           <v-tooltip top>
             <template v-slot:activator="{ on }">
               <a
+                v-if="isImage(fileDetails)"
+                :href="fileDetails.link"
+                target="_blank"
+                v-on="on"
+              >
+                <v-icon color="primary" dark>
+                  mdi-open-in-new
+                </v-icon>
+              </a>
+              <a
+                v-else
                 :href="`https://docs.google.com/viewerng/viewer?url=${fileDetails.link}`"
                 target="_blank"
                 v-on="on"
@@ -108,6 +125,7 @@
         @filesSelected="handleMultipleFiles($event, file)"
         @deleteFile="handleFileDelete"
         @viewDetails="showFileDetails"
+        @previewFile="previewFile(file)"
       />
     </div>
     <v-dialog v-model="showFolderDialog" max-width="360">
@@ -183,11 +201,12 @@ import Moment from 'moment';
 import File from '@/components/File';
 import Folder from '@/components/Folder';
 import Loader from '@/components/Loader';
+import Preview from '@/components/FilePreview';
 import { EventBus } from '../../../plugins/eventBus';
 
 export default {
   layout: 'admin-drive',
-  components: { File, Folder, Loader },
+  components: { File, Folder, Loader, Preview },
   middleware: 'authenticated',
   data: () => ({
     tempDate: new Date(2020, 3, 22),
@@ -208,6 +227,8 @@ export default {
     folderName: '',
     fileToDeleteDetails: [],
     folderToDeleteDetails: [],
+    showPreview: false,
+    previewData: null,
   }),
   computed: {
     ...mapGetters([
@@ -257,6 +278,38 @@ export default {
     EventBus.$on('filesFetched', this.emitFileLength);
   },
   methods: {
+    isImage(details) {
+      if (details) {
+        const fileType = details.type.split('/')[1];
+        const types = [
+          'png',
+          'jpeg',
+          'jpg',
+          'gif',
+          'mp4',
+          'mp3',
+          'webp',
+          'svg',
+        ];
+        if (types.includes(fileType)) {
+          return true;
+        }
+        return false;
+      }
+    },
+    previewFile(file) {
+      const fileDetails = {
+        type: file.file_type,
+        url: file.file_url,
+      };
+      const isImage = this.isImage(fileDetails);
+      const data = {
+        isImage,
+        ...file,
+      };
+      this.previewData = data;
+      this.showPreview = true;
+    },
     handleFileDelete([id, name]) {
       this.fileToDeleteDetails.push(id, name);
       this.currentFileName = name;
