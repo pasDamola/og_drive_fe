@@ -352,12 +352,20 @@
                 color="rgba(68, 86, 108, 0.042)"
                 class="mx-2"
               >
-                <v-icon size="20" color="rgba(68, 86, 108, 0.7)">
+                <v-icon
+                  size="20"
+                  color="rgba(68, 86, 108, 0.7)"
+                  @click="changeView(true)"
+                >
                   mdi-view-grid
                 </v-icon>
               </v-btn>
               <v-btn small fab elevation="0" color="rgba(68, 86, 108, 0.042)">
-                <v-icon size="23" color="rgba(68, 86, 108, 0.7)">
+                <v-icon
+                  size="23"
+                  color="rgba(68, 86, 108, 0.7)"
+                  @click="changeView(false)"
+                >
                   mdi-view-list
                 </v-icon>
               </v-btn>
@@ -443,6 +451,8 @@ export default {
     pressed: false,
     showAction: false,
     folderShowAction: false,
+    isGridView: true,
+    isListView: false,
     error: { status: false, message: '' },
     alertError: { status: false, message: '' },
     success: { status: false, message: '' },
@@ -878,6 +888,9 @@ export default {
         const token = this.$cookies.get('token');
         this.$store.dispatch('saveAuth', [userDetails, token]);
       });
+    },
+    changeView(view) {
+      this.$store.commit('SET_VIEW_STATE', view);
     },
   },
 };
