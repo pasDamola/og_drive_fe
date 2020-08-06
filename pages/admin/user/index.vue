@@ -61,16 +61,7 @@
       </v-btn>
     </v-snackbar>
     <v-layout align-center justify-space-between row wrap>
-      <v-flex sm12 md2>
-        <v-select
-          v-model="fileType"
-          :items="fileTypes"
-          label="All Types"
-          solo
-          dense
-          class="shadow"
-        ></v-select>
-      </v-flex>
+      <v-flex sm12 md2> </v-flex>
       <v-flex sm12 md3>
         <v-text-field
           v-model="searchFiles"

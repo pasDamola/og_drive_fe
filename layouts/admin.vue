@@ -73,9 +73,7 @@
     >
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <v-spacer />
-      <v-badge color="red" content="6" dot class="mx-5">
-        <v-icon>mdi-bell-outline</v-icon>
-      </v-badge>
+      <img src="/images/logo.png" alt="Outsource Logo" width="100vh" />
       <v-divider vertical />
       <v-menu offset-y>
         <template v-slot:activator="{ on }">
