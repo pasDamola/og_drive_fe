@@ -224,6 +224,7 @@
       elevation="0"
     >
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
+      <img src="/images/logo.png" alt="Outsource Logo" width="100vh" />
       <v-text-field
         :solo="pressed"
         :solo-inverted="!pressed"
@@ -238,7 +239,6 @@
         @blur="pressed = false"
       />
       <v-spacer />
-      <img src="/images/logo.png" alt="Outsource Logo" width="100vh" />
       <v-divider vertical />
       <v-menu offset-y>
         <template v-slot:activator="{ on }">

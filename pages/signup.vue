@@ -27,10 +27,8 @@
               v-model="user.ogId"
               label="OG-ID"
               name="id"
-              maxlength="6"
               placeholder="191852"
               prepend-icon="mdi-account-key-outline"
-              :rules="[rules.required, rules.isNumber]"
               validate-on-blur
             />
             <v-text-field

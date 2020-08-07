@@ -10,6 +10,7 @@ export const state = () => ({
   bin: [],
   binFolders: [],
   adminBin: [],
+  adminBinFolders: [],
   adminRecent: [],
   recents: [],
   allFiles: [],
@@ -65,6 +66,7 @@ export const getters = {
   getUserFolders: (state) => state.userFolders,
   getRecents: (state) => state.recents,
   getAdminBin: (state) => state.adminBin,
+  getAdminBinFolders: (state) => state.adminBinFolders,
   getAdminRecent: (state) => state.adminRecent,
 };
 
@@ -141,6 +143,18 @@ export const actions = {
       const response = await this.$axios.get(`files/sadmin/bin/${user_id}`);
       if (response) {
         commit('LOAD_ADMIN_BIN', response.data.data);
+        return Promise.resolve(response.data);
+      }
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  },
+  async fetchAdminBinFolders({ commit }, user_id) {
+    try {
+      const response = await this.$axios.get(`directory/sadmin/bin/${user_id}`);
+      if (response) {
+        console.log('response', response);
+        commit('LOAD_ADMIN_BIN_DIRECTORY', response.data.data);
         return Promise.resolve(response.data);
       }
     } catch (error) {
@@ -354,6 +368,9 @@ export const mutations = {
   },
   LOAD_ADMIN_BIN(state, bin) {
     state.adminBin = bin;
+  },
+  LOAD_ADMIN_BIN_DIRECTORY(state, binFolder) {
+    state.adminBinFolders = binFolder;
   },
   LOAD_ADMIN_RECENT(state, recent) {
     state.adminRecent = recent;
