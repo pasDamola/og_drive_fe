@@ -32,9 +32,9 @@
         </v-list>
       </v-menu>
     </v-layout>
-    <nuxt-link :to="`/folder/${folderId}`" class="link">
-      <img src="/images/folder.png" alt="Folder icon" />
-    </nuxt-link>
+    <!-- <nuxt-link :to="`/folder/${folderId}`" class="link"> -->
+    <img src="/images/folder.png" alt="Folder icon" />
+    <!-- </nuxt-link> -->
     <p>{{ folderName }}</p>
     <v-layout align-center justify-space-between class="folder-details">
       <!-- <p>1 MB</p> -->

@@ -24,12 +24,6 @@
           <v-list-item v-if="!hideOptions" @click="$emit('revert', fileId)">
             <v-list-item-content>Revert</v-list-item-content>
           </v-list-item>
-          <v-list-item @click="$emit('viewDetails', [fileId, getFileIcon()])">
-            <v-list-item-content>View Details</v-list-item-content>
-          </v-list-item>
-          <v-list-item v-if="!hideOptions" @click="shareFile">
-            <v-list-item-content>Share</v-list-item-content>
-          </v-list-item>
         </v-list>
       </v-menu>
     </v-layout>

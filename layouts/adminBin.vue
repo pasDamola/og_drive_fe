@@ -225,6 +225,7 @@
       elevation="0"
     >
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
+      <img src="/images/logo.png" alt="Outsource Logo" width="100vh" />
       <v-text-field
         :solo="pressed"
         :solo-inverted="!pressed"
@@ -239,7 +240,6 @@
         @blur="pressed = false"
       />
       <v-spacer />
-      <img src="/images/logo.png" alt="Outsource Logo" width="100vh" />
       <v-divider vertical />
       <v-menu offset-y>
         <template v-slot:activator="{ on }">
@@ -292,12 +292,12 @@
                 <!-- <p class="count">({{ fileLength }})</p> -->
               </span>
               <v-layout v-if="showAction" class="full-width" justify-end>
-                <v-btn color="primary" @click="showMoveFolderDialog = true">
+                <!-- <v-btn color="primary" @click="showMoveFolderDialog = true">
                   Move
                 </v-btn>
                 <v-btn text @click="deleteFiles">Delete</v-btn>
-                <v-btn text @click="shareFile">Share</v-btn>
-                <v-btn @click="revertMultiple">
+                <v-btn text @click="shareFile">Share</v-btn> -->
+                <v-btn color="primary" @click="revertMultiple">
                   Revert Files
                 </v-btn>
               </v-layout>
@@ -306,16 +306,13 @@
                 class="full-width"
                 justify-end
               >
-                <v-btn color="primary" @click="showMoveFolderDialog = true">
+                <!-- <v-btn color="primary" @click="showMoveFolderDialog = true">
                   Move
                 </v-btn>
                 <v-btn text @click="deleteFiles">Delete</v-btn>
-                <v-btn text @click="shareFile">Share</v-btn>
-                <v-btn v-if="isBin" text @click="revertMultipleFolders">
+                <v-btn text @click="shareFile">Share</v-btn> -->
+                <v-btn color="primary" @click="revertMultipleFolders">
                   Revert Folders
-                </v-btn>
-                <v-btn v-else text @click="moveMultipleFolders">
-                  Move Folders To Bin
                 </v-btn>
               </v-layout>
             </v-layout>
@@ -576,7 +573,7 @@ export default {
       const user = this.getUser(this);
       this.loading = true;
       this.$axios
-        .put('directory/multiple/revert', {
+        .put('directory/sadmin/multiple/revert', {
           folder_ids: this.folderIds,
           user_id: user.id,
         })

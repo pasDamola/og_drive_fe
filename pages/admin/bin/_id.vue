@@ -171,7 +171,7 @@
 import { mapGetters } from 'vuex';
 import Moment from 'moment';
 import File from '@/components/SuperAdminBinFile';
-import Folder from '@/components/BinFolder';
+import Folder from '@/components/SuperAdminBinFolder';
 import Loader from '@/components/Loader';
 import { EventBus } from '../../../plugins/eventBus';
 
@@ -209,6 +209,7 @@ export default {
       'getFolders',
       'getUser',
       'getAdminBin',
+      'getAdminBinFolders',
       'getBinFolders',
     ]),
     filteredFiles() {
@@ -220,7 +221,7 @@ export default {
       return files;
     },
     filteredFolders() {
-      const subFolders = this.getBinFolders.filter(
+      const subFolders = this.getAdminBinFolders.filter(
         (folder) => !folder.parent_dir
       );
       const folders = subFolders.filter((el) => {
@@ -237,6 +238,7 @@ export default {
     this.$store.dispatch('fetchUser', this.$route.params.id).then(() => {
       const userInView = this.$store.getters.getUserDetails;
       this.$store.dispatch('fetchAdminBinFiles', userInView.user._id);
+      this.$store.dispatch('fetchAdminBinFolders', userInView.user._id);
     });
     // const user = this.getUser(this);
     // this.$store.dispatch('fetchFolders', user.id);
@@ -276,12 +278,16 @@ export default {
     },
     revert(e) {
       this.showDialog = false;
-      const user = this.getUser(this);
+      //const user = this.getUser(this);
+      const userInView = this.$store.getters.getUserDetails;
       this.loading = true;
       this.$axios
-        .put('files/sadmin/single/revert', { _id: `${e}`, user_id: user.id })
+        .put('files/sadmin/single/revert', {
+          _id: `${e}`,
+          user_id: userInView.user._id,
+        })
         .then(() => {
-          this.$store.dispatch('fetchBinFiles', user.id);
+          this.$store.dispatch('fetchAdminBinFiles', userInView.user._id);
           this.loading = false;
           this.success.status = true;
           this.success.message = 'File has successfully been reverted';
@@ -294,12 +300,16 @@ export default {
     },
     revertFolder(e) {
       this.showDialog = false;
-      const user = this.getUser(this);
+      const userInView = this.$store.getters.getUserDetails;
       this.loading = true;
       this.$axios
-        .put('/directory/single/revert', { _id: `${e}`, user_id: user.id })
+        .put('/directory/sadmin/single/revert', {
+          _id: `${e}`,
+          user_id: userInView.user._id,
+        })
         .then(() => {
-          this.$store.dispatch('fetchBinFolders', user.id);
+          window.location.reload();
+          this.$store.dispatch('fetchAdminBinFolders', userInView.user._id);
           this.loading = false;
           this.success.status = true;
           this.success.message = 'Folder has successfully been reverted';
