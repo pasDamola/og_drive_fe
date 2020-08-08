@@ -62,7 +62,10 @@
     </p>
   </v-layout>
 </template>
+
 <script>
+import { mapGetters } from 'vuex';
+
 export default {
   data: () => ({
     isPassword: true,
@@ -82,9 +85,15 @@ export default {
     },
   }),
   computed: {
+    ...mapGetters(['isLoggedIn']),
     isFormValid() {
       return this.user.ogId && this.user.password;
     },
+  },
+  mounted() {
+    if (this.isLoggedIn(this)) {
+      this.$router.push({ path: '/' });
+    }
   },
   methods: {
     logIn() {
@@ -110,7 +119,11 @@ export default {
         .catch((err) => {
           this.loading = false;
           this.error.status = true;
-          this.error.message = err.response.data.message;
+          if (err.response && err.response.data && err.response.data.message) {
+            this.error.message = err.response.data.message;
+          } else {
+            this.error.message = 'Something went wrong. Please try again';
+          }
         });
     },
   },

@@ -2,6 +2,11 @@ import Vue from 'vue';
 import { EventBus } from './eventBus';
 
 const mixin = {
+  watch: {
+    $route() {
+      EventBus.$emit('hideAction');
+    },
+  },
   methods: {
     verifyUser(id) {
       this.$store
@@ -74,6 +79,10 @@ const mixin = {
         EventBus.$emit('hideAction');
       }
       // this.showAction = true;
+    },
+    moveFile(file) {
+      this.selectedFiles = [file];
+      EventBus.$emit('moveSingle', this.selectedFiles);
     },
     fetchUsers() {
       this.$store

@@ -12,7 +12,7 @@
       <v-card-text>
         <v-autocomplete
           v-model="folder"
-          :items="getFolders"
+          :items="allFolders"
           item-text="dirname"
           item-value="_id"
           prepend-icon="mdi-folder"
@@ -29,7 +29,7 @@
         <v-btn
           color="primary px-5"
           :loading="isLoading"
-          :disabled="!folder"
+          :disabled="folder === null"
           @click="moveFolder"
         >
           Move
@@ -54,10 +54,17 @@ export default {
     },
   },
   data: () => ({
-    folder: '',
+    folder: null,
   }),
   computed: {
     ...mapGetters(['getFolders']),
+    allFolders() {
+      const rootFolder = {
+        dirname: 'Root folder',
+        _id: '',
+      };
+      return [...this.getFolders, rootFolder];
+    },
   },
   methods: {
     moveFolder() {

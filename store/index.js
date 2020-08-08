@@ -315,9 +315,10 @@ export const mutations = {
   RESET_BREADCRUMB(state) {
     state.breadCrumbs = [
       {
-        text: 'My drive',
+        text: 'mdi-home',
         href: '/',
         disabled: false,
+        icon: true,
       },
     ];
   },

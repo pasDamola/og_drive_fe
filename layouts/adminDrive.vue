@@ -514,13 +514,17 @@ export default {
     const token = this.isLoggedIn(this);
     const user = this.getUser(this);
     //const userAccount = this.getUserDetails(this);
-    this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+    if (token) {
+      this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+    } else {
+      this.$router.push({ path: '/login' });
+    }
     this.loading = true;
     this.$store.dispatch('fetchUser', this.$route.params.id).then(() => {
       const userInView = this.$store.getters.getUserDetails;
       this.fetchUserFiles(userInView.user._id, 0);
     });
-
+    this.showAction = false;
     EventBus.$on('showAction', (files) => {
       this.fileIds = files;
       this.showAction = true;

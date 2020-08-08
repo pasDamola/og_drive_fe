@@ -15,7 +15,7 @@
     <p class="font-weight-medium body-2">
       Files
     </p>
-    <div class="files mb-5">
+    <div class="files mb-5 pb-5">
       <File
         format="xls"
         name="Letter of appreciation"
