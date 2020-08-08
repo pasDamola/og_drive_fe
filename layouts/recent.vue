@@ -463,9 +463,14 @@ export default {
   mounted() {
     const token = this.isLoggedIn(this);
     const user = this.getUser(this);
-    this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+    if (token) {
+      this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+    } else {
+      this.$router.push({ path: '/login' });
+    }
     this.loading = true;
     this.fetchUserFiles(user.id, 0);
+    this.showAction = false;
     EventBus.$on('showAction', (files) => {
       this.fileIds = files;
       this.showAction = true;

@@ -1,5 +1,11 @@
 <template>
   <div grid-list-md class="my-drive">
+    <Preview
+      v-if="showPreview"
+      :show="showPreview"
+      :data="previewData"
+      @hide="showPreview = false"
+    />
     <v-navigation-drawer
       v-model="showDrawer"
       temporary
@@ -28,6 +34,45 @@
             {{ fileDetails.lastUpdated }}
           </li>
         </ul>
+        <v-divider class="full-width divider" />
+        <div class="trails">
+          <v-list>
+            <div
+              v-for="log in fileDetails.logs"
+              :key="log._id"
+              class="list my-2"
+            >
+              <p class="my-0 pl-6 caption">
+                {{ log.createdAt | date }}
+              </p>
+              <v-list-item>
+                <v-avatar
+                  v-if="log.user_id.picture_pic"
+                  size="35px"
+                  item
+                  class="mx-2"
+                >
+                  <v-img :src="log.user_id.picture_pic" alt="User Image" />
+                </v-avatar>
+                <v-avatar v-else size="35px" color="primary" item class="mx-2">
+                  <span class="white--text font-weight-medium">
+                    {{ getUserInitials(log.user_id.full_name) }}
+                  </span>
+                </v-avatar>
+                <v-list-item-content class="py-1">
+                  <v-list-item-title class="text-capitalize small--text">
+                    {{ log.action }} this {{ log.type }}
+                    {{ log.shared_with && `with ${log.shared_with.full_name}` }}
+                  </v-list-item-title>
+                  <v-list-item-subtitle class="caption">
+                    {{ log.user_id.full_name }}
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+              <v-divider class="divider" />
+            </div>
+          </v-list>
+        </div>
         <v-layout class="file-actions px-8" row justify-space-between>
           <v-tooltip top>
             <template v-slot:activator="{ on }">
@@ -88,13 +133,15 @@
         :folder-id="folder._id"
         class="my-2"
         :last-updated="folder.updatedAt"
-        @deleteFolder="deleteFolder"
+        @foldersSelected="handleMultipleFolders($event, folder)"
+        @moveFolderToBin="moveFolderToBin"
+        @viewDetails="showFolderDetails"
       />
     </div>
     <p class="font-weight-medium body-2">
       Files
     </p>
-    <div class="files mb-5">
+    <div class="files mb-5 pb-5">
       <File
         v-for="file in filteredFiles"
         :key="file.file_url"
@@ -105,8 +152,10 @@
         :last-edited="file.updatedAt"
         class="my-2"
         @filesSelected="handleMultipleFiles($event, file)"
+        @moveFile="moveFile"
         @deleteFile="deleteFile"
         @viewDetails="showFileDetails"
+        @previewFile="previewFile(file)"
       />
     </div>
   </div>
@@ -118,11 +167,20 @@ import Moment from 'moment';
 import Loader from '@/components/Loader';
 import File from '@/components/File';
 import Folder from '@/components/Folder';
+import Preview from '@/components/FilePreview';
 import { EventBus } from '../plugins/eventBus';
 
 export default {
   layout: 'drive',
-  components: { File, Folder, Loader },
+  components: { File, Folder, Loader, Preview },
+  filters: {
+    date(val) {
+      if (val) {
+        return Moment(val).format('MMMM Do YYYY');
+      }
+      return null;
+    },
+  },
   props: {
     folders: {
       type: Array,
@@ -140,10 +198,13 @@ export default {
     fileTypes: ['pdf', 'Spreadsheets', 'Presentations'],
     fileType: '',
     selectedFiles: [],
+    selectedFolders: [],
     allFiles: [],
     showDrawer: false,
     loadingDetails: false,
     fileDetails: '',
+    previewData: null,
+    showPreview: false,
   }),
   computed: {
     ...mapGetters(['getFolders', 'isLoggedIn']),
@@ -172,6 +233,7 @@ export default {
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     this.getFolderDetails();
     EventBus.$on('addedNewFile', this.getFolderDetails);
+    EventBus.$on('moved', this.getFolderDetails);
   },
   beforeDestroy() {
     this.$store.dispatch(
@@ -180,6 +242,51 @@ export default {
     );
   },
   methods: {
+    isImage(details) {
+      if (details) {
+        const fileType = details.type.split('/')[1];
+        const types = [
+          'png',
+          'jpeg',
+          'jpg',
+          'gif',
+          'mp4',
+          'mp3',
+          'webp',
+          'svg',
+        ];
+        if (types.includes(fileType)) {
+          return true;
+        }
+        return false;
+      }
+    },
+    previewFile(file) {
+      const fileDetails = {
+        type: file.file_type,
+        url: file.file_url,
+      };
+      const isImage = this.isImage(fileDetails);
+      const data = {
+        isImage,
+        ...file,
+      };
+      this.previewData = data;
+      this.showPreview = true;
+    },
+    getUserInitials(fullName) {
+      if (fullName) {
+        const initials = fullName.split(' ').reduce((join, name) => {
+          return `${join}${name[0]}`;
+        }, '');
+        if (initials.length > 2) {
+          return `${initials[0]}${initials[1]}`;
+        } else {
+          return initials;
+        }
+      }
+      return null;
+    },
     deleteFolder(e) {
       this.loading = true;
       const user = this.getUser(this);
@@ -233,6 +340,38 @@ export default {
           });
       }
     },
+    moveFolderToBin(e) {
+      this.showDialog = false;
+      const user = this.getUser(this);
+      this.loading = true;
+      this.$axios
+        .put('/directory/single/bin', { _id: `${e}`, user_id: user.id })
+        .then(() => {
+          this.$store.dispatch('fetchFolders', user.id);
+          this.loading = false;
+          this.success.status = true;
+          this.success.message = 'Folder has successfully been moved to bin';
+          EventBus.$emit('hideAction');
+        })
+        .catch((err) => {
+          this.loading = false;
+          this.error.status = true;
+          this.error.message = err.response.data.message;
+        });
+    },
+    showFolderDetails(id) {
+      let folderDetails = {};
+      this.showDrawer = true;
+      this.loadingDetails = true;
+      this.$axios.get(`directory/${id}`).then(({ data }) => {
+        this.loadingDetails = false;
+        folderDetails.name = data.directory.dirname;
+        folderDetails.lastUpdated = Moment(data.directory.updatedAt).fromNow();
+        folderDetails.owner = data.directory.user_id.full_name;
+        this.fileDetails = folderDetails;
+        this.fileDetails.logs = data.logs;
+      });
+    },
     showFileDetails([e, icon]) {
       let fileDetails = {};
       this.showDrawer = true;
@@ -245,6 +384,7 @@ export default {
         fileDetails.owner = data.file.user_id.full_name;
         fileDetails.link = data.file.file_url;
         this.fileDetails = fileDetails;
+        this.fileDetails.logs = data.logs;
       });
     },
     emitFileLength() {
@@ -317,5 +457,14 @@ export default {
     height: fit-content;
     text-decoration: none;
   }
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+}
+
+.small--text {
+  font-size: 14px;
 }
 </style>

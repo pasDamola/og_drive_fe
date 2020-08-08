@@ -217,7 +217,11 @@ export default {
   mounted() {
     const token = this.isLoggedIn(this);
     this.user = this.getUser(this);
-    this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+    if (token) {
+      this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+    } else {
+      this.$router.push({ path: '/login' });
+    }
     this.loading = true;
     this.fetchUserFiles(this.user.id, 0);
   },

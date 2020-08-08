@@ -83,7 +83,7 @@
     <p class="font-weight-medium body-2">
       Today
     </p>
-    <div class="files mb-5">
+    <div class="files mb-5 pb-5">
       <File
         v-for="file in filteredFiles"
         :key="file.file_url"

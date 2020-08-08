@@ -29,8 +29,8 @@
     </v-layout>
     <img :src="getFileIcon()" :alt="`${format} icon`" />
     <p>{{ name | truncate }}</p>
-    <v-layout align-center justify-space-between class="file-details">
-      <p>{{ handleSize }} KB</p>
+    <v-layout align-center justify-space-between class="file-details nowrap">
+      <p class="ellipsis">{{ handleSize }} KB</p>
     </v-layout>
   </div>
 </template>
@@ -165,5 +165,11 @@ export default {
 
 .font-weight-medium {
   opacity: 0.8;
+}
+
+.ellipsis {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.8rem;
 }
 </style>

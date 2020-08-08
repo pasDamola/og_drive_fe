@@ -159,7 +159,7 @@
       <p class="font-weight-medium body-2">
         Files
       </p>
-      <div class="files mb-5">
+      <div class="files mb-5 pb-5">
         <File
           v-for="file in filteredFiles"
           :key="file.file_url"
@@ -170,6 +170,7 @@
           :last-edited="file.updatedAt"
           class="my-2"
           @filesSelected="handleMultipleFiles($event, file)"
+          @moveFile="moveFile"
           @moveToBin="moveToBin"
           @viewDetails="showFileDetails"
           @previewFile="previewFile(file)"
@@ -329,14 +330,19 @@ export default {
       return this.$store.state.allFiles;
     },
   },
+  watch: {
+    $route() {
+      this.$store.dispatch('resetBreadCrumbs');
+    },
+  },
   mounted() {
+    this.$store.dispatch('resetBreadCrumbs');
     const token = this.isLoggedIn(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     const user = this.getUser(this);
     this.$store.dispatch('fetchFolders', user.id);
     this.fetchUserFiles(user.id, 0);
     EventBus.$on('filesFetched', this.emitFileLength);
-    console.log(this.$store.state.allFiles);
   },
   methods: {
     handleSize(size) {

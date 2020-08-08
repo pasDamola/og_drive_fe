@@ -2,7 +2,7 @@
   <v-layout justify-center align-center column>
     <img src="/images/logo.png" alt="Outsource Logo" width="200vh" />
     <h1 class="title text-uppercase my-3">Create your account</h1>
-    <v-stepper v-model="formStepper">
+    <v-stepper v-model="formStepper" class="stepper">
       <v-stepper-header>
         <v-stepper-step :complete="formStepper > 1" step="1">
           Company Details
@@ -358,6 +358,10 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
+.stepper {
+  max-width: 486px;
+}
+
 #user-photo {
   width: 0.1px;
   height: 0.1px;

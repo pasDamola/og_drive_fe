@@ -501,9 +501,14 @@ export default {
   mounted() {
     const token = this.isLoggedIn(this);
     const user = this.getUser(this);
-    this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+    if (token) {
+      this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+    } else {
+      this.$router.push({ path: '/login' });
+    }
     this.loading = true;
     this.fetchUserFiles(user.id, 0);
+    this.showAction = false;
     EventBus.$on('showAction', (files) => {
       this.fileIds = files;
       this.showAction = true;
@@ -522,6 +527,10 @@ export default {
     EventBus.$on('shareFile', (id) => {
       this.fileIds.push(id);
       this.shareFile();
+    });
+    EventBus.$on('moveSingle', (id) => {
+      this.fileIds = id;
+      this.showMoveFolderDialog = true;
     });
     this.$store.dispatch('fetchFolders', user.id);
     this.user = user;
@@ -633,15 +642,17 @@ export default {
         .then(() => {
           const user = this.getUser(this);
           this.loading = true;
+          this.showMoveFolderDialog = false;
           this.buttonLoading = false;
           this.fetchUserFiles(user.id, 0);
+          EventBus.$emit('moved');
         })
         .catch((err) => {
+          this.showMoveFolderDialog = false;
           this.buttonLoading = false;
           this.error.status = true;
           this.error.message = err.response.data.message;
         });
-      this.showMoveFolderDialog = false;
     },
     deleteFiles() {
       this.$axios
