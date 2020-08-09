@@ -351,7 +351,7 @@ export default {
       {
         icon: 'mdi-view-dashboard',
         text: 'Dashboard',
-        to: '/admin',
+        to: '/admin/dashboard',
       },
       {
         icon: 'mdi-account',
