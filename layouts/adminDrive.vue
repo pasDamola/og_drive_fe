@@ -584,7 +584,6 @@ export default {
           this.buttonLoading = false;
           this.loading = false;
           this.fetchUserFiles(user.user._id, 0);
-          this.fetchUser(user.user.ogId);
           this.success.status = true;
           this.success.message = 'Folder has been successfully created';
         })

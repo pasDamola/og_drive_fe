@@ -5,6 +5,15 @@
       :items="allCampaigns.campaigns"
       class="elevation-1"
     >
+      <template v-slot:item._id="{ item }">
+        <span>{{
+          allCampaigns.campaigns
+            .map(function (x) {
+              return x._id;
+            })
+            .indexOf(item._id)
+        }}</span>
+      </template>
       <template v-slot:item.title="{ item }">
         <span>{{
           item.title.charAt(0).toUpperCase() + item.title.slice(1)
@@ -214,6 +223,10 @@ export default {
     loading: false,
     headers: [
       {
+        text: 'Serial #',
+        value: '_id',
+      },
+      {
         text: 'Campaign',
         align: 'start',
         sortable: false,
@@ -222,6 +235,7 @@ export default {
       { text: 'Actions', value: 'actions', sortable: false },
     ],
     desserts: [],
+    camps: [],
     editedIndex: -1,
     error: { status: false, message: '' },
     alertError: { status: false, message: '' },
@@ -261,6 +275,12 @@ export default {
     dialog(val) {
       val || this.close();
     },
+    // itemsWithSno() {
+    //   return this.$store.state.allCampaigns.campaigns.map((d, index) => ({
+    //     ...d,
+    //     sno: index + 1,
+    //   }));
+    // },
   },
   mounted() {
     const token = this.isLoggedIn(this);
