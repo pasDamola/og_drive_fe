@@ -160,6 +160,11 @@ export default {
         text: 'Campaigns',
         to: '/campaign',
       },
+      {
+        icon: 'mdi-trash-can-outline',
+        text: 'Bin',
+        to: '/admin/bin-delete',
+      },
       // {
       //   icon: 'mdi-chevron-up',
       //   'icon-alt': 'mdi-chevron-down',

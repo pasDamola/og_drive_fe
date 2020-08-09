@@ -154,6 +154,16 @@ const mixin = {
           this.loading = false;
         });
     },
+    fetchStuffToDelete() {
+      this.$store
+        .dispatch('fetchAdminStuffToBeDeleted')
+        .then(() => {
+          this.loading = false;
+        })
+        .catch(() => {
+          this.loading = false;
+        });
+    },
     fetchBinFolders(id) {
       this.$store
         .dispatch('fetchBinFolders', id)

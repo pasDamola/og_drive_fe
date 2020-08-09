@@ -5,6 +5,11 @@
       :items="allCampaigns.campaigns"
       class="elevation-1"
     >
+      <template v-slot:item.title="{ item }">
+        <span>{{
+          item.title.charAt(0).toUpperCase() + item.title.slice(1)
+        }}</span>
+      </template>
       <template v-slot:top>
         <v-toolbar flat color="white">
           <v-toolbar-title>All Campaigns</v-toolbar-title>
@@ -13,11 +18,10 @@
             color="primary"
             rounded
             height="40"
-            width="20%"
             class="mx-3 my-5"
             @click="createCampaign"
           >
-            <v-icon class="ml-n5 mx-5">mdi-upload</v-icon>
+            <v-icon class="ml-n5 mx-5">mdi-create</v-icon>
             Create Campaign
           </v-btn>
           <v-dialog v-model="createDialog" max-width="500px">
@@ -224,6 +228,7 @@ export default {
     success: { status: false, message: '' },
     editedItem: {
       title: '',
+      admin_id: null,
     },
     adminItem: {},
     deletedItem: {},
@@ -245,6 +250,7 @@ export default {
       'isLoggedIn',
       'getFolders',
       'getCampaigns',
+      'getUser',
     ]),
     formTitle() {
       return this.editedIndex === -1 ? 'New Item' : 'Edit Item';
@@ -330,6 +336,8 @@ export default {
     },
 
     async editCampaign() {
+      const user = this.getUser(this);
+      this.editedItem.admin_id = user.id;
       this.loading = true;
       try {
         const response = await this.$axios.patch(

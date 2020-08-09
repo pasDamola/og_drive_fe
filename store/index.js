@@ -8,6 +8,8 @@ export const state = () => ({
   isGridView: true,
   user: {},
   bin: [],
+  filesToDelete: [],
+  foldersToDelete: [],
   binFolders: [],
   adminBin: [],
   adminBinFolders: [],
@@ -68,6 +70,8 @@ export const getters = {
   getAdminBin: (state) => state.adminBin,
   getAdminBinFolders: (state) => state.adminBinFolders,
   getAdminRecent: (state) => state.adminRecent,
+  getFilesToDelete: (state) => state.filesToDelete,
+  getFoldersToDelete: (state) => state.foldersToDelete,
 };
 
 export const actions = {
@@ -155,6 +159,22 @@ export const actions = {
       if (response) {
         console.log('response', response);
         commit('LOAD_ADMIN_BIN_DIRECTORY', response.data.data);
+        return Promise.resolve(response.data);
+      }
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  },
+  async fetchAdminStuffToBeDeleted({ commit }) {
+    try {
+      const response = await this.$axios.get('/super_admin/to_delete');
+      if (response) {
+        console.log('response', response.data);
+        commit('LOAD_ADMIN_STUFF_DELETE_FILES', response.data.files_to_delete);
+        commit(
+          'LOAD_ADMIN_STUFF_DELETE_FOLDERS',
+          response.data.folders_to_delete
+        );
         return Promise.resolve(response.data);
       }
     } catch (error) {
@@ -378,5 +398,11 @@ export const mutations = {
   },
   SET_VIEW_STATE(state, view) {
     state.isGridView = view;
+  },
+  LOAD_ADMIN_STUFF_DELETE_FILES(state, filesToDelete) {
+    state.filesToDelete = filesToDelete;
+  },
+  LOAD_ADMIN_STUFF_DELETE_FOLDERS(state, foldersToDelete) {
+    state.foldersToDelete = foldersToDelete;
   },
 };

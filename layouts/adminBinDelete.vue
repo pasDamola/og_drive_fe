@@ -18,12 +18,6 @@
       @closeDialog="closeDialog('showShareDialog')"
       @share="handleFileSharing"
     />
-    <share-dialog
-      :show-dialog="showShareFolderDialog"
-      :is-loading="buttonLoading"
-      @closeDialog="closeDialog('showShareFolderDialog')"
-      @share="handleFolderSharing"
-    />
     <v-dialog v-model="showProfileDialog" max-width="360">
       <v-card>
         <v-card-title class="headline">
@@ -115,19 +109,6 @@
     <v-navigation-drawer v-model="drawer" clipped app class="drawer">
       <v-list dense shaped>
         <v-menu>
-          <template v-slot:activator="{ on }">
-            <v-btn
-              color="primary"
-              rounded
-              height="50"
-              width="93%"
-              class="mx-3 my-5"
-              v-on="on"
-            >
-              <v-icon class="ml-n5 mx-5">mdi-upload</v-icon>
-              New
-            </v-btn>
-          </template>
           <v-list>
             <v-list-item @click="openNewFolderDialog">
               <v-list-item-action>
@@ -232,19 +213,6 @@
     >
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <img src="/images/logo.png" alt="Outsource Logo" width="100vh" />
-      <v-text-field
-        :solo="pressed"
-        :solo-inverted="!pressed"
-        :flat="!pressed"
-        hide-details
-        background-color="#f8fafb"
-        prepend-inner-icon="mdi-magnify"
-        label="Search in drive"
-        class="hidden-sm-and-down search-bar"
-        color="#555"
-        @focus="pressed = true"
-        @blur="pressed = false"
-      />
       <v-spacer />
       <v-divider vertical />
       <v-menu offset-y>
@@ -265,23 +233,17 @@
           </v-btn>
         </template>
         <v-list>
-          <v-list-item @click="showDialog">
+          <v-list-item to="/">
             <v-list-item-icon>
-              <v-icon>mdi-account-edit-outline</v-icon>
+              <v-icon>mdi-home</v-icon>
             </v-list-item-icon>
-            <v-list-item-content>Edit Profile</v-list-item-content>
+            <v-list-item-content>Home</v-list-item-content>
           </v-list-item>
           <v-list-item @click="logout">
             <v-list-item-icon>
               <v-icon>mdi-logout-variant</v-icon>
             </v-list-item-icon>
             <v-list-item-content>Logout</v-list-item-content>
-          </v-list-item>
-          <v-list-item v-if="isAdmin || isSuperAdmin" to="/admin">
-            <v-list-item-icon>
-              <v-icon>mdi-account-supervisor-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>Admin Dashboard</v-list-item-content>
           </v-list-item>
         </v-list>
       </v-menu>
@@ -293,36 +255,32 @@
             <v-layout justify-space-between full-width>
               <span class="row align-center mx-0 font-weight-black text--text">
                 <h2>
-                  Files
+                  Bin
                 </h2>
-                <p class="count">({{ fileLength }})</p>
+                <!-- <p class="count">({{ fileLength }})</p> -->
               </span>
               <v-layout v-if="showAction" class="full-width" justify-end>
-                <v-btn color="primary" @click="showMoveFolderDialog = true">
+                <!-- <v-btn color="primary" @click="showMoveFolderDialog = true">
                   Move
                 </v-btn>
-                <!-- <v-btn text @click="deleteFiles">Delete</v-btn> -->
-                <v-btn text @click="shareFile">Share</v-btn>
-                <v-btn v-if="isBin" text @click="revertMultiple">
-                  Revert Files
+                <v-btn text @click="deleteFiles">Delete</v-btn>
+                <v-btn text @click="shareFile">Share</v-btn> -->
+                <v-btn color="primary" @click="deleteFiles">
+                  Delete Files
                 </v-btn>
-                <v-btn v-else text @click="moveMultiple">Move To Bin</v-btn>
               </v-layout>
               <v-layout
                 v-else-if="folderShowAction"
                 class="full-width"
                 justify-end
               >
-                <v-btn color="primary" @click="showMoveFolderDialog = true">
+                <!-- <v-btn color="primary" @click="showMoveFolderDialog = true">
                   Move
                 </v-btn>
-                <!-- <v-btn text @click="deleteFiles">Delete</v-btn> -->
-                <v-btn text @click="shareFolders">Share</v-btn>
-                <v-btn v-if="isBin" text @click="revertMultipleFolders">
-                  Revert Folders
-                </v-btn>
-                <v-btn v-else text @click="moveMultipleFolders">
-                  Move Folders To Bin
+                <v-btn text @click="deleteFiles">Delete</v-btn>
+                <v-btn text @click="shareFile">Share</v-btn> -->
+                <v-btn color="primary" @click="deleteFolders">
+                  Delete Folders
                 </v-btn>
               </v-layout>
             </v-layout>
@@ -352,20 +310,12 @@
                 color="rgba(68, 86, 108, 0.042)"
                 class="mx-2"
               >
-                <v-icon
-                  size="20"
-                  color="rgba(68, 86, 108, 0.7)"
-                  @click="changeView(true)"
-                >
+                <v-icon size="20" color="rgba(68, 86, 108, 0.7)">
                   mdi-view-grid
                 </v-icon>
               </v-btn>
               <v-btn small fab elevation="0" color="rgba(68, 86, 108, 0.042)">
-                <v-icon
-                  size="23"
-                  color="rgba(68, 86, 108, 0.7)"
-                  @click="changeView(false)"
-                >
+                <v-icon size="23" color="rgba(68, 86, 108, 0.7)">
                   mdi-view-list
                 </v-icon>
               </v-btn>
@@ -399,24 +349,24 @@ export default {
     drawer: null,
     items: [
       {
-        icon: 'mdi-cloud-outline',
-        text: 'My Drive',
-        to: '/',
+        icon: 'mdi-view-dashboard',
+        text: 'Dashboard',
+        to: '/admin',
       },
       {
-        icon: 'mdi-account-multiple-outline',
-        text: 'Shared with me',
-        to: '/shared',
+        icon: 'mdi-account',
+        text: 'User Accounts',
+        to: '/admin/allusers',
       },
       {
-        icon: 'mdi-clock-outline',
-        text: 'Recent',
-        to: '/recent',
+        icon: 'mdi-laptop',
+        text: 'Campaigns',
+        to: '/campaign',
       },
       {
         icon: 'mdi-trash-can-outline',
         text: 'Bin',
-        to: '/bin',
+        to: '/admin/bin-delete',
       },
       // {
       //   icon: 'mdi-chevron-up',
@@ -451,8 +401,6 @@ export default {
     pressed: false,
     showAction: false,
     folderShowAction: false,
-    isGridView: true,
-    isListView: false,
     error: { status: false, message: '' },
     alertError: { status: false, message: '' },
     success: { status: false, message: '' },
@@ -460,7 +408,6 @@ export default {
     folderIds: [],
     fileLength: 0,
     showShareDialog: false,
-    showShareFolderDialog: false,
     user: '',
     showProfileDialog: false,
     profileLoading: false,
@@ -470,7 +417,14 @@ export default {
     },
   }),
   computed: {
-    ...mapGetters(['getBreadCrumbs', 'isLoggedIn', 'getUser', 'getLevel']),
+    ...mapGetters([
+      'getBreadCrumbs',
+      'isLoggedIn',
+      'getUser',
+      'getLevel',
+      'getFilesToDelete',
+      'getFoldersToDelete',
+    ]),
     isAdmin() {
       return this.user.role && this.user.role.toLowerCase() === 'admin';
     },
@@ -495,7 +449,7 @@ export default {
       return null;
     },
     isBin() {
-      return this.$route.name === 'bin';
+      return this.$route.name === `admin/bin/${this.$route.params.id}`;
     },
   },
   mounted() {
@@ -507,8 +461,8 @@ export default {
       this.$router.push({ path: '/login' });
     }
     this.loading = true;
-    this.fetchUserFiles(user.id, 0);
     this.showAction = false;
+    this.fetchUserFiles(user.id, 0);
     EventBus.$on('showAction', (files) => {
       this.fileIds = files;
       this.showAction = true;
@@ -527,10 +481,6 @@ export default {
     EventBus.$on('shareFile', (id) => {
       this.fileIds.push(id);
       this.shareFile();
-    });
-    EventBus.$on('moveSingle', (id) => {
-      this.fileIds = id;
-      this.showMoveFolderDialog = true;
     });
     this.$store.dispatch('fetchFolders', user.id);
     this.user = user;
@@ -578,6 +528,46 @@ export default {
     },
     resetBreadCrumbs() {
       this.$store.dispatch('resetBreadCrumbs');
+    },
+    revertMultiple() {
+      const user = this.getUser(this);
+      this.loading = true;
+      this.$axios
+        .put('files/sadmin/multiple/revert', {
+          file_ids: this.fileIds,
+          user_id: user.id,
+        })
+        .then(() => {
+          window.location.reload();
+          this.loading = false;
+          this.success.status = true;
+          this.success.message = 'Files has been successfully reverted';
+        })
+        .catch((err) => {
+          this.loading = false;
+          this.error.status = true;
+          this.error.message = err.response.data.message;
+        });
+    },
+    revertMultipleFolders() {
+      const user = this.getUser(this);
+      this.loading = true;
+      this.$axios
+        .put('directory/sadmin/multiple/revert', {
+          folder_ids: this.folderIds,
+          user_id: user.id,
+        })
+        .then(() => {
+          window.location.reload();
+          this.loading = false;
+          this.success.status = true;
+          this.success.message = 'Folders has been successfully reverted';
+        })
+        .catch((err) => {
+          this.loading = false;
+          this.error.status = true;
+          this.error.message = err.response.data.message;
+        });
     },
     handleFileUpload(e) {
       const parentDir = this.$route.params.name || '';
@@ -642,25 +632,40 @@ export default {
         .then(() => {
           const user = this.getUser(this);
           this.loading = true;
-          this.showMoveFolderDialog = false;
           this.buttonLoading = false;
           this.fetchUserFiles(user.id, 0);
-          EventBus.$emit('moved');
         })
         .catch((err) => {
-          this.showMoveFolderDialog = false;
           this.buttonLoading = false;
           this.error.status = true;
           this.error.message = err.response.data.message;
         });
+      this.showMoveFolderDialog = false;
     },
     deleteFiles() {
       this.$axios
-        .delete('/files/bulk', { data: { file_id: this.fileIds } })
+        .delete('/files/superAdmin/bulk', { data: { files_id: this.fileIds } })
         .then(() => {
-          const user = this.getUser(this);
-          this.loading = true;
-          this.fetchUserFiles(user.id, 0);
+          this.$store.dispatch('fetchAdminStuffToBeDeleted');
+          this.loading = false;
+          this.success.status = true;
+          this.success.message = 'Files have been deleted';
+          window.location.reload();
+        })
+        .catch((err) => {
+          this.error.status = true;
+          this.error.message = err.response.data.message;
+        });
+    },
+    deleteFolders() {
+      this.$axios
+        .delete('/directory/bulk/dirs', { data: { dir_ids: this.folderIds } })
+        .then(() => {
+          this.$store.dispatch('fetchAdminStuffToBeDeleted');
+          this.loading = false;
+          this.success.status = true;
+          this.success.message = 'Folders have been deleted';
+          window.location.reload();
         })
         .catch((err) => {
           this.error.status = true;
@@ -669,9 +674,6 @@ export default {
     },
     shareFile() {
       this.showShareDialog = true;
-    },
-    shareFolders() {
-      this.showShareFolderDialog = true;
     },
     handleFileSharing(users) {
       const user = this.getUser(this);
@@ -693,113 +695,6 @@ export default {
           this.buttonLoading = false;
           this.error.status = true;
           this.error.message = 'Something went wrong';
-        });
-    },
-    handleFolderSharing(users) {
-      const user = this.getUser(this);
-      const data = {
-        user_id: user.id,
-        user_ids: users,
-        directories: this.folderIds,
-      };
-      this.buttonLoading = true;
-      this.$axios
-        .post('directory/share', data)
-        .then(({ data }) => {
-          this.buttonLoading = false;
-          this.showShareDialog = false;
-          this.success.status = true;
-          this.success.message = data.message;
-        })
-        .catch(() => {
-          this.buttonLoading = false;
-          this.error.status = true;
-          this.error.message = 'Something went wrong';
-        });
-    },
-    revertMultiple() {
-      const user = this.getUser(this);
-      this.loading = true;
-      this.$axios
-        .put('/files/multiple/revert', {
-          file_ids: this.fileIds,
-          user_id: user.id,
-        })
-        .then(() => {
-          this.$store.dispatch('fetchBinFiles', user.id);
-          // this.fetchUserFiles(userInView.user._id, 0);
-          this.loading = false;
-          this.success.status = true;
-          this.success.message = 'Files has been successfully reverted';
-        })
-        .catch((err) => {
-          this.loading = false;
-          this.error.status = true;
-          this.error.message = err.response.data.message;
-        });
-    },
-    moveMultiple() {
-      const user = this.getUser(this);
-      this.loading = true;
-      this.$axios
-        .put('/files/multiple/bin', {
-          file_ids: this.fileIds,
-          user_id: user.id,
-        })
-        .then(() => {
-          // this.$store.dispatch('fetchBinFiles', user.id);
-          this.fetchUserFiles(user.id, 0);
-          this.loading = false;
-          this.success.status = true;
-          this.success.message = 'Files has been successfully moved to Bin';
-        })
-        .catch((err) => {
-          this.loading = false;
-          this.error.status = true;
-          this.error.message = err.response.data.message;
-        });
-    },
-    moveMultipleFolders() {
-      const user = this.getUser(this);
-      this.loading = true;
-      this.$axios
-        .put('directory/multiple/bin', {
-          folder_ids: this.folderIds,
-          user_id: user.id,
-        })
-        .then(() => {
-          // this.$store.dispatch('fetchBinFiles', user.id);
-          this.fetchUserFiles(user.id, 0);
-          this.$store.dispatch('fetchFolders', user.id);
-          this.loading = false;
-          this.success.status = true;
-          this.success.message = 'Folders has been successfully moved to Bin';
-        })
-        .catch((err) => {
-          this.loading = false;
-          this.error.status = true;
-          this.error.message = err.response.data.message;
-        });
-    },
-    revertMultipleFolders() {
-      const user = this.getUser(this);
-      this.loading = true;
-      this.$axios
-        .put('directory/multiple/revert', {
-          folder_ids: this.folderIds,
-          user_id: user.id,
-        })
-        .then(() => {
-          this.$store.dispatch('fetchBinFolders', user.id);
-          // this.fetchUserFiles(userInView.user._id, 0);
-          this.loading = false;
-          this.success.status = true;
-          this.success.message = 'Folders has been successfully reverted';
-        })
-        .catch((err) => {
-          this.loading = false;
-          this.error.status = true;
-          this.error.message = err.response.data.message;
         });
     },
     handleImage(image) {
@@ -898,9 +793,6 @@ export default {
         const token = this.$cookies.get('token');
         this.$store.dispatch('saveAuth', [userDetails, token]);
       });
-    },
-    changeView(view) {
-      this.$store.commit('SET_VIEW_STATE', view);
     },
   },
 };

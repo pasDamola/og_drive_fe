@@ -51,7 +51,6 @@
               item-text="title"
               item-value="title"
               prepend-icon="mdi-account-group-outline"
-              :rules="[rules.required]"
               validate-on-blur
               single-line
             />
@@ -110,7 +109,7 @@
 
           <v-btn
             color="primary"
-            :disabled="error.status"
+            :disabled="signUpSuccess || error.status"
             :loading="loading"
             @click="signUp"
           >
@@ -312,7 +311,7 @@ export default {
           this.loading = false;
           this.signUpSuccess = true;
           this.success.message =
-            'A verification code has been sent to your email address, please verify your account';
+            'A code has been sent to your email address, please verify your account';
           this.savedUser = res.data.user;
         })
         .catch((err) => {
