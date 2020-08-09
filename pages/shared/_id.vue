@@ -102,9 +102,7 @@
         </v-layout>
       </v-layout>
     </v-navigation-drawer>
-    <p class="font-weight-medium body-2">
-      Folders
-    </p>
+    <p class="font-weight-medium body-2">Folders ({{ folders.length }})</p>
     <div class="files mb-5">
       <Folder
         v-for="(folder, index) in folders"
@@ -117,9 +115,7 @@
         @viewDetails="showFolderDetails"
       />
     </div>
-    <p class="font-weight-medium body-2">
-      Files
-    </p>
+    <p class="font-weight-medium body-2">Files ({{ files.length }})</p>
     <div class="files mb-5 pb-5">
       <File
         v-for="file in files"

@@ -135,7 +135,7 @@
       </v-flex>
     </v-layout>
     <p class="font-weight-medium body-2">
-      Folders
+      Folders ({{ filteredFolders.length }})
     </p>
     <div class="files mb-5">
       <SuperAdminFolder
@@ -151,9 +151,7 @@
         @viewDetails="showFolderDetails"
       />
     </div>
-    <p class="font-weight-medium body-2">
-      Files
-    </p>
+    <p class="font-weight-medium body-2">Files ({{ filteredFiles.length }})</p>
     <div class="files mb-5">
       <SuperAdminFile
         v-for="file in filteredFiles"

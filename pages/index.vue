@@ -144,7 +144,7 @@
     </v-layout>
     <template v-if="isGridView">
       <p class="font-weight-medium body-2">
-        Folders
+        Folders ({{ filteredFolders.length }})
       </p>
       <div class="files mb-5">
         <Folder
@@ -160,7 +160,7 @@
         />
       </div>
       <p class="font-weight-medium body-2">
-        Files
+        Files ({{ filteredFiles.length }})
       </p>
       <div class="files mb-5 pb-5">
         <File
