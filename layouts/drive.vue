@@ -385,6 +385,10 @@ import MoveDialog from '@/components/MoveFolder';
 import ShareDialog from '@/components/ShareDialog';
 import Loader from '@/components/Loader';
 import { EventBus } from '../plugins/eventBus';
+// import Vue from 'vue';
+// import titleMixin from '@/mixins/titleMixin';
+
+// Vue.mixin(titleMixin);
 
 export default {
   components: { NewDialog, Loader, MoveDialog, ShareDialog },
@@ -902,6 +906,9 @@ export default {
     changeView(view) {
       this.$store.commit('SET_VIEW_STATE', view);
     },
+  },
+  head() {
+    return { title: `OG-Drive - ${this.$route.name}` };
   },
 };
 </script>

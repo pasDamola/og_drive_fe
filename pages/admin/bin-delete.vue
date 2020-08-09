@@ -214,10 +214,7 @@ export default {
       return files;
     },
     filteredFolders() {
-      const subFolders = this.getFoldersToDelete.filter(
-        (folder) => !folder.parent_dir
-      );
-      const folders = subFolders.filter((el) => {
+      const folders = this.getFoldersToDelete.filter((el) => {
         return el.dirname
           .toLowerCase()
           .includes(this.searchFiles.toLowerCase());
