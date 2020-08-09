@@ -1,5 +1,5 @@
 <template>
-  <div class="file" @click="customDblClick">
+  <div class="file">
     <v-layout align-center justify-space-between>
       <v-icon
         v-if="checked"
@@ -36,7 +36,7 @@
         </v-list>
       </v-menu>
     </v-layout>
-    <img :src="getFileIcon()" :alt="`${format} icon`" />
+    <img :src="getFileIcon()" :alt="`${format} icon`" @click="customDblClick" />
     <p>{{ name | truncate }}</p>
     <v-layout align-center justify-space-between class="file-details nowrap">
       <p class="ellipsis">{{ handleSize }} KB</p>

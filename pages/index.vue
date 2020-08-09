@@ -47,16 +47,19 @@
               </p>
               <v-list-item>
                 <v-avatar
-                  v-if="log.user_id.picture_pic"
+                  v-if="log.user_id && log.user_id.picture_pic"
                   size="35px"
                   item
                   class="mx-2"
                 >
-                  <v-img :src="log.user_id.picture_pic" alt="User Image" />
+                  <v-img
+                    :src="log.user_id && log.user_id.picture_pic"
+                    alt="User Image"
+                  />
                 </v-avatar>
                 <v-avatar v-else size="35px" color="primary" item class="mx-2">
                   <span class="white--text font-weight-medium">
-                    {{ getUserInitials(log.user_id.full_name) }}
+                    {{ getUserInitials(log.user_id && log.user_id.full_name) }}
                   </span>
                 </v-avatar>
                 <v-list-item-content class="py-1">
@@ -65,7 +68,7 @@
                     {{ log.shared_with && `with ${log.shared_with.full_name}` }}
                   </v-list-item-title>
                   <v-list-item-subtitle class="caption">
-                    {{ log.user_id.full_name }}
+                    {{ log.user_id && log.user_id.full_name }}
                   </v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
@@ -548,5 +551,6 @@ export default {
 
 .small--text {
   font-size: 14px;
+  white-space: normal;
 }
 </style>

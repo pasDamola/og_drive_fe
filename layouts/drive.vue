@@ -293,7 +293,7 @@
             <v-layout justify-space-between full-width>
               <span class="row align-center mx-0 font-weight-black text--text">
                 <h2>
-                  Files
+                  Files/Folders
                 </h2>
                 <p class="count">({{ fileLength }})</p>
               </span>

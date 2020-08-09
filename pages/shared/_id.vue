@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container grid-list-md class="my-drive">
     <Loader v-if="isLoading" />
     <v-navigation-drawer
       v-model="showDrawer"
@@ -48,16 +48,19 @@
               </p>
               <v-list-item>
                 <v-avatar
-                  v-if="log.user_id.picture_pic"
+                  v-if="log.user_id && log.user_id.picture_pic"
                   size="35px"
                   item
                   class="mx-2"
                 >
-                  <v-img :src="log.user_id.picture_pic" alt="User Image" />
+                  <v-img
+                    :src="log.user_id && log.user_id.picture_pic"
+                    alt="User Image"
+                  />
                 </v-avatar>
                 <v-avatar v-else size="35px" color="primary" item class="mx-2">
                   <span class="white--text font-weight-medium">
-                    {{ getUserInitials(log.user_id.full_name) }}
+                    {{ getUserInitials(log.user_id && log.user_id.full_name) }}
                   </span>
                 </v-avatar>
                 <v-list-item-content class="py-1">
@@ -66,7 +69,7 @@
                     {{ log.shared_with && `with ${log.shared_with.full_name}` }}
                   </v-list-item-title>
                   <v-list-item-subtitle class="caption">
-                    {{ log.user_id.full_name }}
+                    {{ log.user_id && log.user_id.full_name }}
                   </v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
@@ -238,6 +241,18 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.my-drive {
+  padding: 20px;
+  height: calc(100vh - 16vh);
+  padding-bottom: 50px;
+  position: relative;
+  overflow-y: auto;
+  .link {
+    text-decoration: none;
+    color: rgba($color: #000000, $alpha: 0.87);
+  }
+}
+
 .files {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(215px, 215px));
@@ -261,6 +276,11 @@ export default {
     text-decoration: none;
   }
 }
+
+.trails {
+  width: 100%;
+}
+
 .divider {
   width: 100%;
   height: 1px;
@@ -268,5 +288,6 @@ export default {
 
 .small--text {
   font-size: 14px;
+  white-space: normal;
 }
 </style>
