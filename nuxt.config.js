@@ -48,7 +48,8 @@ export default {
   modules: ['@nuxtjs/axios', 'cookie-universal-nuxt'],
   // Axios setup
   axios: {
-    baseURL: 'https://guarded-cliffs-51823.herokuapp.com/',
+    // baseURL: 'https://guarded-cliffs-51823.herokuapp.com/',
+    baseURL: 'http://34.244.118.199/',
   },
   /*
    ** vuetify module configuration
