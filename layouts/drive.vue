@@ -568,6 +568,7 @@ export default {
           this.loading = true;
           this.fetchUserFiles(user.id, 0);
           this.$store.dispatch('fetchFolders', user.id);
+          EventBus.$emit('addedNewFolder');
         })
         .catch((err) => {
           this.buttonLoading = false;

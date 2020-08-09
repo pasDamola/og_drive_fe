@@ -90,7 +90,7 @@ export default {
       return this.user.ogId && this.user.password;
     },
   },
-  mounted() {
+  created() {
     if (this.isLoggedIn(this)) {
       this.$router.push({ path: '/' });
     }

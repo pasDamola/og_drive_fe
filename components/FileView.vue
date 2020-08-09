@@ -234,6 +234,7 @@ export default {
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     this.getFolderDetails();
     EventBus.$on('addedNewFile', this.getFolderDetails);
+    EventBus.$on('addedNewFolder', this.getFolderDetails);
     EventBus.$on('moved', this.getFolderDetails);
   },
   beforeDestroy() {
