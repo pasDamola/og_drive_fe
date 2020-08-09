@@ -340,7 +340,13 @@ export default {
       return this.$store.state.userFolders.directories;
     },
   },
+  watch: {
+    $route() {
+      this.resetBreadCrumbs();
+    },
+  },
   mounted() {
+    this.resetBreadCrumbs();
     const token = this.isLoggedIn(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     //const user = this.getUser(this);
@@ -445,6 +451,9 @@ export default {
           this.error.status = true;
           this.error.message = err.response.data.message;
         });
+    },
+    resetBreadCrumbs() {
+      this.$store.dispatch('resetAdminBreadCrumbs', this.id);
     },
     moveToBin(e) {
       const userInView = this.$store.getters.getUserDetails;

@@ -274,7 +274,7 @@
             </v-list-item-icon>
             <v-list-item-content>Logout</v-list-item-content>
           </v-list-item>
-          <v-list-item v-if="isAdmin || isSuperAdmin" to="/admin">
+          <v-list-item v-if="isAdmin || isSuperAdmin" to="/admin/dashboard">
             <v-list-item-icon>
               <v-icon>mdi-account-supervisor-outline</v-icon>
             </v-list-item-icon>
@@ -337,6 +337,18 @@
               </template>
               <template v-slot:item="{ item }">
                 <v-breadcrumbs-item
+                  v-if="item.icon"
+                  :to="`/admin/user/${$route.params.id}`"
+                  nuxt
+                  :disabled="false"
+                  exact
+                  class="breadcrumb"
+                >
+                  <v-icon v-if="item.icon">{{ item.text }}</v-icon>
+                  <span v-else>{{ item.text.toUpperCase() }}</span>
+                </v-breadcrumbs-item>
+                <v-breadcrumbs-item
+                  v-else
                   :to="item.href"
                   nuxt
                   :disabled="item.disabled"
@@ -527,7 +539,7 @@ export default {
   mounted() {
     const token = this.isLoggedIn(this);
     const user = this.getUser(this);
-    //const userAccount = this.getUserDetails(this);
+    this.resetBreadCrumbs();
     if (token) {
       this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     } else {
@@ -629,6 +641,7 @@ export default {
           this.$store.dispatch('fetchUserFolders', user.user._id);
           this.success.status = true;
           this.success.message = 'Folder has been successfully created';
+          EventBus.$emit('addedNewFolder');
         })
         .catch((err) => {
           this.buttonLoading = false;
