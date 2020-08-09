@@ -227,6 +227,7 @@
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <img src="/images/logo.png" alt="Outsource Logo" width="100vh" />
       <v-text-field
+        v-if="showSearch"
         :solo="pressed"
         :solo-inverted="!pressed"
         :flat="!pressed"
@@ -481,6 +482,13 @@ export default {
         }
       }
       return null;
+    },
+    showSearch() {
+      const paths = ['/bin', '/recent'];
+      if (paths.includes(this.$route.path)) {
+        return false;
+      }
+      return true;
     },
     isBin() {
       return this.$route.name === 'bin';

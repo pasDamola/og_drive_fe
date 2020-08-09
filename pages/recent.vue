@@ -194,6 +194,14 @@ export default {
       'getRecents',
     ]),
     filteredFiles() {
+      if (this.globalSearchFiles) {
+        const files = this.globalSearchFiles.filter((el) => {
+          return el.filename
+            .toLowerCase()
+            .includes(this.searchFiles.toLowerCase());
+        });
+        return files;
+      }
       const files = this.getRecents.filter((el) => {
         return el.filename
           .toLowerCase()
@@ -201,15 +209,22 @@ export default {
       });
       return files;
     },
-    // filteredFolders() {
-    //   const subFolders = this.getFolders.filter((folder) => !folder.parent_dir);
-    //   const folders = subFolders.filter((el) => {
-    //     return el.dirname
-    //       .toLowerCase()
-    //       .includes(this.searchFiles.toLowerCase());
-    //   });
-    //   return folders;
-    // },
+    filteredFolders() {
+      if (this.globalSearchDirectories) {
+        const folders = this.globalSearchDirectories.filter((el) => {
+          return el.dirname
+            .toLowerCase()
+            .includes(this.searchFiles.toLowerCase());
+        });
+        return folders;
+      }
+      const folders = this.getFolders.filter((el) => {
+        return el.dirname
+          .toLowerCase()
+          .includes(this.searchFiles.toLowerCase());
+      });
+      return folders;
+    },
   },
   mounted() {
     const token = this.isLoggedIn(this);

@@ -102,10 +102,10 @@
         </v-layout>
       </v-layout>
     </v-navigation-drawer>
-    <p class="font-weight-medium body-2">Folders ({{ folders.length }})</p>
+    <p class="font-weight-medium body-2">Folders ({{ allFolders.length }})</p>
     <div class="files mb-5">
       <Folder
-        v-for="(folder, index) in folders"
+        v-for="(folder, index) in allFolders"
         :key="index"
         :folder-name="folder.dirname"
         :folder-id="folder._id"
@@ -115,10 +115,10 @@
         @viewDetails="showFolderDetails"
       />
     </div>
-    <p class="font-weight-medium body-2">Files ({{ files.length }})</p>
+    <p class="font-weight-medium body-2">Files ({{ allFiles.length }})</p>
     <div class="files mb-5 pb-5">
       <File
-        v-for="file in files"
+        v-for="file in allFiles"
         :key="file.file_url"
         :format="file.file_extension"
         :name="file.filename"
@@ -163,6 +163,18 @@ export default {
   }),
   computed: {
     ...mapGetters(['getUser', 'isLoggedIn']),
+    allFiles() {
+      if (this.globalSearchFiles) {
+        return this.globalSearchFiles;
+      }
+      return this.files;
+    },
+    allFolders() {
+      if (this.globalSearchDirectories) {
+        return this.globalSearchDirectories;
+      }
+      return this.folders;
+    },
   },
   mounted() {
     const token = this.isLoggedIn(this);

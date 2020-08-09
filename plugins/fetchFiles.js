@@ -2,12 +2,45 @@ import Vue from 'vue';
 import { EventBus } from './eventBus';
 
 const mixin = {
+  data: () => ({
+    globalSearchDirectories: null,
+    globalSearchFiles: null,
+  }),
   watch: {
     $route() {
+      this.globalSearch = '';
       EventBus.$emit('hideAction');
     },
   },
+  mounted() {
+    EventBus.$on('searchFound', this.handleGlobalSearch);
+    EventBus.$on('clearSearch', this.clearGlobalSearch);
+  },
   methods: {
+    customDblClick() {
+      if (this.touchTime === 0) {
+        // set first click
+        this.touchTime = new Date().getTime();
+      } else {
+        // compare first click to this click and see if they occurred within double click threshold
+        if (new Date().getTime() - this.touchTime < 800) {
+          // double click occurred
+          this.$emit('previewFile');
+          this.touchTime = 0;
+        } else {
+          // not a double click so set as a new first click
+          this.touchTime = new Date().getTime();
+        }
+      }
+    },
+    handleGlobalSearch(e) {
+      this.globalSearchDirectories = e.directories;
+      this.globalSearchFiles = e.files;
+    },
+    clearGlobalSearch() {
+      this.globalSearchDirectories = null;
+      this.globalSearchFiles = null;
+    },
     verifyUser(id) {
       this.$store
         .dispatch('verifyUser', id)

@@ -226,6 +226,9 @@
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <img src="/images/logo.png" alt="Outsource Logo" width="100vh" />
       <v-text-field
+        v-if="showSearch"
+        v-model="globalSearch"
+        :loading="searching"
         :solo="pressed"
         :solo-inverted="!pressed"
         :flat="!pressed"
@@ -237,6 +240,7 @@
         color="#555"
         @focus="pressed = true"
         @blur="pressed = false"
+        @input="debounceSearch"
       />
       <v-spacer />
       <v-divider vertical />
@@ -395,11 +399,11 @@ export default {
         text: 'Drive',
         to: `/admin/user/${v.$route.params.id}`,
       },
-      {
-        icon: 'mdi-account-multiple-outline',
-        text: 'Shared with this User',
-        to: '#',
-      },
+      // {
+      //   icon: 'mdi-account-multiple-outline',
+      //   text: 'Shared with this User',
+      //   to: '#',
+      // },
       {
         icon: 'mdi-clock-outline',
         text: 'Recent',
@@ -459,6 +463,9 @@ export default {
       username: '',
     },
     files: [],
+    globalSearch: '',
+    debounce: '',
+    searching: false,
   }),
   computed: {
     ...mapGetters([
@@ -491,6 +498,13 @@ export default {
     },
     id() {
       return this.$route.params.id;
+    },
+    showSearch() {
+      const paths = ['/bin', '/admin/recent'];
+      if (paths.includes(this.$route.path)) {
+        return false;
+      }
+      return true;
     },
     getUserInitials() {
       const full_name = this.user.full_name;
@@ -548,6 +562,34 @@ export default {
     this.user = user;
   },
   methods: {
+    debounceSearch() {
+      clearTimeout(this.debounce);
+      this.debounce = setTimeout(this.searchDrive, 1500);
+    },
+    searchDrive() {
+      if (this.globalSearch.length > 0) {
+        this.searching = true;
+        const data = {
+          user_id: localStorage.getItem('currentUserId'),
+          string: this.globalSearch,
+        };
+        this.$axios
+          .post('users/search/directories', data)
+          .then(({ data }) => {
+            this.searching = false;
+            if (data.files.length > 0 || data.directories.length > 0) {
+              EventBus.$emit('searchFound', data);
+            }
+          })
+          .catch(() => {
+            this.searching = false;
+            this.error.status = true;
+            this.error.message = 'Something went wrong, Please try again';
+          });
+      } else {
+        EventBus.$emit('clearSearch');
+      }
+    },
     openNewFolderDialog() {
       this.showNewFolderDialog = true;
     },

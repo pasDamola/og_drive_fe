@@ -302,6 +302,14 @@ export default {
       return this.allUsers.find((user) => user.ogId === this.id);
     },
     filteredFiles() {
+      if (this.globalSearchFiles) {
+        const files = this.globalSearchFiles.filter((el) => {
+          return el.filename
+            .toLowerCase()
+            .includes(this.searchFiles.toLowerCase());
+        });
+        return files;
+      }
       const files = this.getFiles.filter((el) => {
         return el.filename
           .toLowerCase()
@@ -310,6 +318,14 @@ export default {
       return files;
     },
     filteredFolders() {
+      if (this.globalSearchDirectories) {
+        const folders = this.globalSearchDirectories.filter((el) => {
+          return el.dirname
+            .toLowerCase()
+            .includes(this.searchFiles.toLowerCase());
+        });
+        return folders;
+      }
       const subFolders = this.getUserDirectories.filter(
         (folder) => !folder.parent_dir
       );
