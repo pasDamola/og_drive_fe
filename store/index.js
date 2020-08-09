@@ -157,7 +157,6 @@ export const actions = {
     try {
       const response = await this.$axios.get(`directory/sadmin/bin/${user_id}`);
       if (response) {
-        console.log('response', response);
         commit('LOAD_ADMIN_BIN_DIRECTORY', response.data.data);
         return Promise.resolve(response.data);
       }
@@ -169,7 +168,6 @@ export const actions = {
     try {
       const response = await this.$axios.get('/super_admin/to_delete');
       if (response) {
-        console.log('response', response.data);
         commit('LOAD_ADMIN_STUFF_DELETE_FILES', response.data.files_to_delete);
         commit(
           'LOAD_ADMIN_STUFF_DELETE_FOLDERS',

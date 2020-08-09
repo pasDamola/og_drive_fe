@@ -302,6 +302,7 @@ export default {
       this.dialog = true;
     },
     async userLogin(item) {
+      localStorage.setItem('currentUserId', item._id);
       this.loading = true;
       try {
         const response = await this.$axios.get(`admin/user/${item.ogId}`);

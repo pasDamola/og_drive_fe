@@ -47,16 +47,19 @@
               </p>
               <v-list-item>
                 <v-avatar
-                  v-if="log.user_id.picture_pic"
+                  v-if="log.user_id && log.user_id.picture_pic"
                   size="35px"
                   item
                   class="mx-2"
                 >
-                  <v-img :src="log.user_id.picture_pic" alt="User Image" />
+                  <v-img
+                    :src="log.user_id && log.user_id.picture_pic"
+                    alt="User Image"
+                  />
                 </v-avatar>
                 <v-avatar v-else size="35px" color="primary" item class="mx-2">
                   <span class="white--text font-weight-medium">
-                    {{ getUserInitials(log.user_id.full_name) }}
+                    {{ getUserInitials(log.user_id && log.user_id.full_name) }}
                   </span>
                 </v-avatar>
                 <v-list-item-content class="py-1">
@@ -65,7 +68,7 @@
                     {{ log.shared_with && `with ${log.shared_with.full_name}` }}
                   </v-list-item-title>
                   <v-list-item-subtitle class="caption">
-                    {{ log.user_id.full_name }}
+                    {{ log.user_id && log.user_id.full_name }}
                   </v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
@@ -141,7 +144,7 @@
     </v-layout>
     <template v-if="isGridView">
       <p class="font-weight-medium body-2">
-        Folders
+        Folders ({{ filteredFolders.length }})
       </p>
       <div class="files mb-5">
         <Folder
@@ -157,7 +160,7 @@
         />
       </div>
       <p class="font-weight-medium body-2">
-        Files
+        Files ({{ filteredFiles.length }})
       </p>
       <div class="files mb-5 pb-5">
         <File
@@ -310,6 +313,14 @@ export default {
       'getUser',
     ]),
     filteredFiles() {
+      if (this.globalSearchFiles) {
+        const files = this.globalSearchFiles.filter((el) => {
+          return el.filename
+            .toLowerCase()
+            .includes(this.searchFiles.toLowerCase());
+        });
+        return files;
+      }
       const files = this.getFiles.filter((el) => {
         return el.filename
           .toLowerCase()
@@ -318,6 +329,14 @@ export default {
       return files;
     },
     filteredFolders() {
+      if (this.globalSearchDirectories) {
+        const folders = this.globalSearchDirectories.filter((el) => {
+          return el.dirname
+            .toLowerCase()
+            .includes(this.searchFiles.toLowerCase());
+        });
+        return folders;
+      }
       const subFolders = this.getFolders.filter((folder) => !folder.parent_dir);
       const folders = subFolders.filter((el) => {
         return el.dirname
@@ -548,5 +567,6 @@ export default {
 
 .small--text {
   font-size: 14px;
+  white-space: normal;
 }
 </style>

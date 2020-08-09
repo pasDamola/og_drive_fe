@@ -27,7 +27,7 @@
         </v-list>
       </v-menu>
     </v-layout>
-    <img :src="getFileIcon()" :alt="`${format} icon`" />
+    <img :src="getFileIcon()" :alt="`${format} icon`" @click="customDblClick" />
     <p>{{ name | truncate }}</p>
     <v-layout align-center justify-space-between class="file-details nowrap">
       <p class="ellipsis">{{ handleSize }} KB</p>

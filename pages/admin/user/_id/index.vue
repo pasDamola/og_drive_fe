@@ -135,7 +135,7 @@
       </v-flex>
     </v-layout>
     <p class="font-weight-medium body-2">
-      Folders
+      Folders ({{ filteredFolders.length }})
     </p>
     <div class="files mb-5">
       <SuperAdminFolder
@@ -151,9 +151,7 @@
         @viewDetails="showFolderDetails"
       />
     </div>
-    <p class="font-weight-medium body-2">
-      Files
-    </p>
+    <p class="font-weight-medium body-2">Files ({{ filteredFiles.length }})</p>
     <div class="files mb-5">
       <SuperAdminFile
         v-for="file in filteredFiles"
@@ -304,6 +302,14 @@ export default {
       return this.allUsers.find((user) => user.ogId === this.id);
     },
     filteredFiles() {
+      if (this.globalSearchFiles) {
+        const files = this.globalSearchFiles.filter((el) => {
+          return el.filename
+            .toLowerCase()
+            .includes(this.searchFiles.toLowerCase());
+        });
+        return files;
+      }
       const files = this.getFiles.filter((el) => {
         return el.filename
           .toLowerCase()
@@ -312,6 +318,14 @@ export default {
       return files;
     },
     filteredFolders() {
+      if (this.globalSearchDirectories) {
+        const folders = this.globalSearchDirectories.filter((el) => {
+          return el.dirname
+            .toLowerCase()
+            .includes(this.searchFiles.toLowerCase());
+        });
+        return folders;
+      }
       const subFolders = this.getUserDirectories.filter(
         (folder) => !folder.parent_dir
       );

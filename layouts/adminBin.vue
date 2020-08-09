@@ -226,7 +226,7 @@
     >
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <img src="/images/logo.png" alt="Outsource Logo" width="100vh" />
-      <v-text-field
+      <!-- <v-text-field
         :solo="pressed"
         :solo-inverted="!pressed"
         :flat="!pressed"
@@ -238,7 +238,7 @@
         color="#555"
         @focus="pressed = true"
         @blur="pressed = false"
-      />
+      /> -->
       <v-spacer />
       <v-divider vertical />
       <v-menu offset-y>
