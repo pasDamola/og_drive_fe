@@ -300,7 +300,7 @@
                 <v-btn color="primary" @click="showMoveFolderDialog = true">
                   Move
                 </v-btn>
-                <v-btn text @click="deleteFiles">Delete</v-btn>
+                <!-- <v-btn text @click="deleteFiles">Delete</v-btn> -->
                 <v-btn text @click="shareFile">Share</v-btn>
                 <v-btn v-if="isBin" text @click="revertFilesFromBin">
                   Revert Files
@@ -315,7 +315,7 @@
                 <v-btn color="primary" @click="showMoveFolderDialog = true">
                   Move
                 </v-btn>
-                <v-btn text @click="deleteFiles">Delete</v-btn>
+                <!-- <v-btn text @click="deleteFiles">Delete</v-btn> -->
                 <v-btn text @click="shareFolders">Share</v-btn>
                 <v-btn v-if="isBin" text @click="revertMultipleFolders">
                   Revert Folders
@@ -584,7 +584,7 @@ export default {
           this.buttonLoading = false;
           this.loading = false;
           this.fetchUserFiles(user.user._id, 0);
-          this.$store.dispatch('fetchUserFolders', user.user._id);
+          this.fetchUser(user.user.ogId);
           this.success.status = true;
           this.success.message = 'Folder has been successfully created';
         })
@@ -869,6 +869,9 @@ export default {
           this.error.status = true;
           this.error.message = err.response.data.message;
         });
+    },
+    head() {
+      return { title: `OG-Drive - ${this.$route.name}` };
     },
   },
 };

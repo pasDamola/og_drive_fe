@@ -207,7 +207,7 @@ export default {
     showPreview: false,
   }),
   computed: {
-    ...mapGetters(['getFolders', 'isLoggedIn']),
+    ...mapGetters(['getFolders', 'isLoggedIn', 'getUserDirectories']),
     filteredFiles() {
       const files = this.allFiles.filter((el) => {
         return el.filename
@@ -217,7 +217,7 @@ export default {
       return files;
     },
     filteredFolders() {
-      const subFolders = this.getFolders.filter(
+      const subFolders = this.getUserDirectories.filter(
         (folder) => folder.parent_dir === this.$route.params.name
       );
       const folders = subFolders.filter((el) => {

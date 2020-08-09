@@ -30,12 +30,12 @@
           <v-list-item v-if="!hideOptions" @click="shareFile">
             <v-list-item-content>Share</v-list-item-content>
           </v-list-item>
-          <v-list-item
+          <!-- <v-list-item
             v-if="!hideOptions"
             @click="$emit('deleteFile', [fileId, name])"
           >
             <v-list-item-content>Delete</v-list-item-content>
-          </v-list-item>
+          </v-list-item> -->
         </v-list>
       </v-menu>
     </v-layout>

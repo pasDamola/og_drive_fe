@@ -812,6 +812,9 @@ export default {
       });
     },
   },
+  head() {
+    return { title: `OG-Drive - ${this.$route.name}` };
+  },
 };
 </script>
 

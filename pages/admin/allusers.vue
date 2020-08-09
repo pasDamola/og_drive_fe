@@ -6,7 +6,7 @@
         :items="allUsers.users"
         class="elevation-1"
         :search="search"
-        height="70vh"
+        height="50vh"
         fixed-header
       >
         <template v-slot:top>

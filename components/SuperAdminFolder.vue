@@ -22,9 +22,9 @@
           <v-list-item @click="$emit('moveFolderToBin', folderId)">
             <v-list-item-content>Move To Bin</v-list-item-content>
           </v-list-item>
-          <v-list-item @click="$emit('deleteFolder', [folderId, folderName])">
+          <!-- <v-list-item @click="$emit('deleteFolder', [folderId, folderName])">
             <v-list-item-content>Delete Folder</v-list-item-content>
-          </v-list-item>
+          </v-list-item> -->
           <v-list-item @click="$emit('viewDetails', folderId)">
             <v-list-item-content>View Details</v-list-item-content>
           </v-list-item>
