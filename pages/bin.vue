@@ -321,6 +321,11 @@ export default {
       EventBus.$emit('fileLength', length);
     },
   },
+  head() {
+    return {
+      title: 'Bin',
+    };
+  },
 };
 </script>
 

@@ -387,6 +387,11 @@ export default {
       EventBus.$emit('fileLength', length);
     },
   },
+  head() {
+    return {
+      title: 'Users Drive',
+    };
+  },
 };
 </script>
 

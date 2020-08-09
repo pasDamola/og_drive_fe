@@ -234,6 +234,7 @@ export default {
       const subFolders = this.getFolders.filter(
         (folder) => folder.parent_dir === this.$route.params.name
       );
+      console.log(this.getFolders);
       const folders = subFolders.filter((el) => {
         return el.dirname
           .toLowerCase()
@@ -251,7 +252,7 @@ export default {
   },
   beforeDestroy() {
     this.$store.dispatch(
-      'removeBreadCrumb',
+      'removeAdminBreadCrumb',
       `/folder/${this.$route.params.name}`
     );
   },
@@ -338,12 +339,14 @@ export default {
         this.$axios
           .get(`directory/${this.$route.params.name}`)
           .then(({ data }) => {
+            console.log(data);
             this.loading = false;
-            this.$store.dispatch('addBreadCrumbs', {
+            this.$store.dispatch('addAdminBreadCrumbs', {
               text: data.directory.dirname,
               href: window.location.pathname,
               disabled: true,
             });
+            this.$emit('folderName', data.directory.dirname);
             this.$store.dispatch('saveCurrentLevel', data.directory.level);
             this.allFiles = data.files;
             this.emitFileLength();
@@ -402,10 +405,7 @@ export default {
       });
     },
     emitFileLength() {
-      const subFolders = this.getFolders.filter(
-        (folder) => folder.parent_dir === this.$route.params.name
-      );
-      const length = subFolders.length + this.allFiles.length;
+      const length = this.filteredFolders.length + this.allFiles.length;
       EventBus.$emit('fileLength', length);
     },
   },

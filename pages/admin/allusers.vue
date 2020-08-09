@@ -474,6 +474,11 @@ export default {
       //this.close();
     },
   },
+  head() {
+    return {
+      title: 'Users',
+    };
+  },
 };
 </script>
 

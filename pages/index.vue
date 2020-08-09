@@ -511,6 +511,11 @@ export default {
       EventBus.$emit('fileLength', length);
     },
   },
+  head() {
+    return {
+      title: 'Home',
+    };
+  },
 };
 </script>
 

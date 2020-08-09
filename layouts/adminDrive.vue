@@ -331,7 +331,7 @@
             </v-layout>
           </v-toolbar-title>
           <v-layout justify-space-between align-center>
-            <v-breadcrumbs :items="getBreadCrumbs" class="px-0">
+            <v-breadcrumbs :items="getAdminBreadCrumbs" class="px-0">
               <template v-slot:divider>
                 <v-icon>mdi-chevron-right</v-icon>
               </template>
@@ -469,7 +469,7 @@ export default {
   }),
   computed: {
     ...mapGetters([
-      'getBreadCrumbs',
+      'getAdminBreadCrumbs',
       'isLoggedIn',
       'getUser',
       'getLevel',
@@ -638,7 +638,7 @@ export default {
       this.showNewFolderDialog = false;
     },
     resetBreadCrumbs() {
-      this.$store.dispatch('resetBreadCrumbs');
+      this.$store.dispatch('resetAdminBreadCrumbs', this.id);
     },
     handleFileUpload(e) {
       const parentDir = this.$route.params.name || '';

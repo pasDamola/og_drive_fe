@@ -510,10 +510,14 @@ export default {
       });
     },
     emitFileLength() {
-      const subFolders = this.getFolders.filter((folder) => !folder.parent_dir);
-      const length = subFolders.length + this.getFiles.length;
+      const length = this.filteredFolders.length + this.getFiles.length;
       EventBus.$emit('fileLength', length);
     },
+  },
+  head() {
+    return {
+      title: 'Users Drive',
+    };
   },
 };
 </script>
