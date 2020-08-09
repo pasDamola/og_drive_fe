@@ -218,10 +218,7 @@ export default {
       return files;
     },
     filteredFolders() {
-      const subFolders = this.getBinFolders.filter(
-        (folder) => !folder.parent_dir
-      );
-      const folders = subFolders.filter((el) => {
+      const folders = this.getBinFolders.filter((el) => {
         return el.dirname
           .toLowerCase()
           .includes(this.searchFiles.toLowerCase());

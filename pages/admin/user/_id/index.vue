@@ -243,7 +243,7 @@ import SuperAdminFile from '@/components/SuperAdminFile';
 import SuperAdminFolder from '@/components/SuperAdminFolder';
 import Loader from '@/components/Loader';
 import Preview from '@/components/FilePreview';
-import { EventBus } from '../../../plugins/eventBus';
+import { EventBus } from '@/plugins/eventBus';
 
 export default {
   layout: 'adminDrive',
