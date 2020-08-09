@@ -277,7 +277,7 @@
             </v-list-item-icon>
             <v-list-item-content>Logout</v-list-item-content>
           </v-list-item>
-          <v-list-item v-if="isAdmin || isSuperAdmin" to="/admin">
+          <v-list-item v-if="isAdmin || isSuperAdmin" to="/admin/dashboard">
             <v-list-item-icon>
               <v-icon>mdi-account-supervisor-outline</v-icon>
             </v-list-item-icon>

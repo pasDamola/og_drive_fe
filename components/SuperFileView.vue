@@ -1,5 +1,5 @@
 <template>
-  <v-container grid-list-md class="my-drive">
+  <div grid-list-md class="my-drive">
     <Preview
       v-if="showPreview"
       :show="showPreview"
@@ -76,7 +76,7 @@
         <v-layout class="file-actions px-8" row justify-space-between>
           <v-tooltip top>
             <template v-slot:activator="{ on }">
-              <a :href="fileDetails.link" download v-on="on">
+              <a :href="fileDetails.link" target="_blank" download v-on="on">
                 <v-icon color="primary" dark>
                   mdi-cloud-download-outline
                 </v-icon>
@@ -99,18 +99,6 @@
       </v-layout>
     </v-navigation-drawer>
     <Loader v-if="loading" />
-    <v-snackbar v-if="error.status" v-model="error.status" :timeout="5000">
-      {{ error.message }}
-      <v-btn color="pink" text @click="error.status = false">
-        Close
-      </v-btn>
-    </v-snackbar>
-    <v-snackbar v-else v-model="success.status" :timeout="5000">
-      {{ success.message }}
-      <v-btn color="green" text @click="success.status = false">
-        Close
-      </v-btn>
-    </v-snackbar>
     <v-layout align-center justify-space-between row wrap>
       <v-flex sm12 md2>
         <v-select
@@ -138,24 +126,23 @@
       Folders
     </p>
     <div class="files mb-5">
-      <SuperAdminFolder
+      <Folder
         v-for="(folder, index) in filteredFolders"
         :key="index"
         :folder-name="folder.dirname"
         :folder-id="folder._id"
         class="my-2"
         :last-updated="folder.updatedAt"
-        @deleteFolder="handleFolderDelete"
-        @moveFolderToBin="moveFolderToBin"
         @foldersSelected="handleMultipleFolders($event, folder)"
+        @moveFolderToBin="moveFolderToBin"
         @viewDetails="showFolderDetails"
       />
     </div>
     <p class="font-weight-medium body-2">
       Files
     </p>
-    <div class="files mb-5">
-      <SuperAdminFile
+    <div class="files mb-5 pb-5">
+      <File
         v-for="file in filteredFiles"
         :key="file.file_url"
         :format="file.file_extension"
@@ -165,92 +152,27 @@
         :last-edited="file.updatedAt"
         class="my-2"
         @filesSelected="handleMultipleFiles($event, file)"
-        @moveToBin="moveToBin"
+        @moveFile="moveFile"
+        @deleteFile="deleteFile"
         @viewDetails="showFileDetails"
-        @deleteFile="handleFileDelete"
         @previewFile="previewFile(file)"
       />
     </div>
-    <v-dialog v-model="showFolderDialog" max-width="360">
-      <v-card>
-        <v-card-title class="headline">
-          Delete Folder
-        </v-card-title>
-
-        <v-card-text>
-          <p>
-            This is going to permanently remove this folder and all its content
-            from your drive. Enter the file name below to delete.
-            <b>File Name: {{ currentFolderName }}</b>
-          </p>
-          <v-text-field v-model="folderName" label="Folder Name" />
-        </v-card-text>
-
-        <v-card-actions>
-          <v-spacer></v-spacer>
-
-          <v-btn color="darken-1" text @click="showFolderDialog = false">
-            Cancel
-          </v-btn>
-
-          <v-btn
-            color="red px-5"
-            :disabled="!folderName || folderName !== currentFolderName"
-            @click="deleteFolder(folderToDeleteDetails[0])"
-          >
-            Delete
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <v-dialog v-model="showDialog" max-width="360">
-      <v-card>
-        <v-card-title class="headline">
-          Delete File
-        </v-card-title>
-
-        <v-card-text>
-          <p>
-            This is going to permanently remove this file from your drive. Enter
-            the file name below to delete.
-            <b>File Name: {{ currentFileName }}</b>
-          </p>
-          <v-text-field v-model="fileName" label="File Name" />
-        </v-card-text>
-
-        <v-card-actions>
-          <v-spacer></v-spacer>
-
-          <v-btn color="darken-1" text @click="showDialog = false">
-            Cancel
-          </v-btn>
-
-          <v-btn
-            color="red px-5"
-            :disabled="!fileName || fileName !== currentFileName"
-            @click="deleteFile(fileToDeleteDetails[0])"
-          >
-            Delete
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </v-container>
+  </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex';
 import Moment from 'moment';
-import SuperAdminFile from '@/components/SuperAdminFile';
-import SuperAdminFolder from '@/components/SuperAdminFolder';
 import Loader from '@/components/Loader';
+import File from '@/components/SuperAdminFile';
+import Folder from '@/components/SuperAdminFolder';
 import Preview from '@/components/FilePreview';
-import { EventBus } from '../../../plugins/eventBus';
+import { EventBus } from '../plugins/eventBus';
 
 export default {
   layout: 'adminDrive',
-  components: { SuperAdminFile, SuperAdminFolder, Loader, Preview },
-  middleware: 'authenticated',
+  components: { File, Folder, Loader, Preview },
   filters: {
     date(val) {
       if (val) {
@@ -259,52 +181,35 @@ export default {
       return null;
     },
   },
+  props: {
+    folders: {
+      type: Array,
+      default: () => {},
+    },
+    fileKey: {
+      type: String,
+      default: '',
+    },
+  },
   data: () => ({
-    tempDate: new Date(2020, 3, 22),
+    routeName: '',
+    loading: false,
     searchFiles: '',
     fileTypes: ['pdf', 'Spreadsheets', 'Presentations'],
     fileType: '',
     selectedFiles: [],
     selectedFolders: [],
-    loading: false,
-    error: { status: false, message: '' },
-    success: { status: false, message: '' },
+    allFiles: [],
+    showDrawer: false,
     loadingDetails: false,
     fileDetails: '',
-    showDrawer: false,
-    currentFileName: '',
-    currentFolderName: '',
-    showDialog: false,
-    showFolderDialog: false,
-    fileName: '',
-    folderName: '',
-    fileToDeleteDetails: [],
-    folderToDeleteDetails: [],
-    showPreview: false,
     previewData: null,
+    showPreview: false,
   }),
   computed: {
-    ...mapGetters([
-      'getBreadCrumbs',
-      'getFiles',
-      'isLoggedIn',
-      'getFolders',
-      'getUser',
-      'getUserDirectories',
-      'getUserDetails',
-      'getUserFolders',
-    ]),
-    allUsers() {
-      return this.$store.state.allUsers.users;
-    },
-    id() {
-      return this.$route.params.id;
-    },
-    user() {
-      return this.allUsers.find((user) => user.ogId === this.id);
-    },
+    ...mapGetters(['getFolders', 'isLoggedIn']),
     filteredFiles() {
-      const files = this.getFiles.filter((el) => {
+      const files = this.allFiles.filter((el) => {
         return el.filename
           .toLowerCase()
           .includes(this.searchFiles.toLowerCase());
@@ -312,8 +217,8 @@ export default {
       return files;
     },
     filteredFolders() {
-      const subFolders = this.getUserDirectories.filter(
-        (folder) => !folder.parent_dir
+      const subFolders = this.getFolders.filter(
+        (folder) => folder.parent_dir === this.$route.params.name
       );
       const folders = subFolders.filter((el) => {
         return el.dirname
@@ -322,19 +227,19 @@ export default {
       });
       return folders;
     },
-    userDirectories() {
-      return this.$store.state.userFolders.directories;
-    },
   },
   mounted() {
     const token = this.isLoggedIn(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
-    //const user = this.getUser(this);
-    this.$store.dispatch('fetchUser', this.$route.params.id).then(() => {
-      const userInView = this.$store.getters.getUserDetails;
-      this.fetchUserFiles(userInView.user._id, 0);
-    });
-    EventBus.$on('filesFetched', this.emitFileLength);
+    this.getFolderDetails();
+    EventBus.$on('addedNewFile', this.getFolderDetails);
+    EventBus.$on('moved', this.getFolderDetails);
+  },
+  beforeDestroy() {
+    this.$store.dispatch(
+      'removeBreadCrumb',
+      `/folder/${this.$route.params.name}`
+    );
   },
   methods: {
     isImage(details) {
@@ -382,49 +287,30 @@ export default {
       }
       return null;
     },
-    handleFileDelete([id, name]) {
-      this.fileToDeleteDetails.push(id, name);
-      this.currentFileName = name;
-      this.showDialog = true;
-    },
-    handleFolderDelete([id, name]) {
-      this.folderToDeleteDetails.push(id, name);
-      this.currentFolderName = name;
-      this.showFolderDialog = true;
-    },
     deleteFolder(e) {
-      this.showFolderDialog = false;
       this.loading = true;
-      const userInView = this.$store.getters.getUserDetails;
-      // const user = this.getUser(this);
+      const user = this.getUser(this);
       this.$axios
-        .delete(`directory/${e}`)
+        .delete(`directory/deleteDirectory/${e}`)
         .then(() => {
-          this.loading = false;
-          this.success.status = true;
-          this.success.message = 'Folder has been deleted';
-          this.folderName = '';
-          this.fetchUserFiles(userInView.user._id, 0);
-          this.$store.dispatch('fetchUserFolders', userInView.user._id);
-          this.emitFileLength();
+          EventBus.$emit('hideAction');
+          this.getFolderDetails();
+          this.$store.dispatch('fetchFolders', user.id);
         })
         .catch((err) => {
+          EventBus.$emit('hideAction');
           this.loading = false;
           this.error.status = true;
           this.error.message = err.response.data.message;
         });
     },
     deleteFile(e) {
-      this.showDialog = false;
-      const userInView = this.$store.getters.getUserDetails;
       this.loading = true;
       this.$axios
-        .delete(`/files/${e}`)
+        .delete('/files', { data: { file_id: e } })
         .then(() => {
-          this.fetchUserFiles(userInView.user._id, 0);
+          this.getFolderDetails();
           this.loading = false;
-          this.success.status = true;
-          this.success.message = 'File has been deleted';
         })
         .catch((err) => {
           this.loading = false;
@@ -432,55 +318,46 @@ export default {
           this.error.message = err.response.data.message;
         });
     },
-    moveToBin(e) {
-      const userInView = this.$store.getters.getUserDetails;
-      this.loading = true;
-      this.$axios
-        .post('/super_admin/file/bin', { file_id: e })
-        .then(() => {
-          this.fetchUserFiles(userInView.user._id, 0);
-          this.loading = false;
-          this.success.status = true;
-          this.success.message = 'File has been moved to Bin';
-        })
-        .catch((err) => {
-          this.loading = false;
-          this.error.status = true;
-          this.error.message = err.response.data.message;
-        });
+    getFolderDetails() {
+      if (this.$route.params.name !== undefined) {
+        this.loading = true;
+        this.$axios
+          .get(`directory/${this.$route.params.name}`)
+          .then(({ data }) => {
+            this.loading = false;
+            this.$store.dispatch('addBreadCrumbs', {
+              text: data.directory.dirname,
+              href: window.location.pathname,
+              disabled: true,
+            });
+            this.$store.dispatch('saveCurrentLevel', data.directory.level);
+            this.allFiles = data.files;
+            this.emitFileLength();
+          })
+          .catch(() => {
+            this.loading = false;
+            // console.log(err.response);
+          });
+      }
     },
     moveFolderToBin(e) {
-      const userInView = this.$store.getters.getUserDetails;
+      this.showDialog = false;
+      const user = this.getUser(this);
       this.loading = true;
       this.$axios
-        .patch(`super_admin/directory/bin/${e}`)
+        .put('/directory/single/bin', { _id: `${e}`, user_id: user.id })
         .then(() => {
-          this.fetchUser(userInView.user.ogId);
+          this.$store.dispatch('fetchFolders', user.id);
           this.loading = false;
           this.success.status = true;
-          this.success.message = 'Folder has been moved to Bin';
+          this.success.message = 'Folder has successfully been moved to bin';
+          EventBus.$emit('hideAction');
         })
         .catch((err) => {
           this.loading = false;
           this.error.status = true;
           this.error.message = err.response.data.message;
         });
-    },
-    showFileDetails([e, icon]) {
-      let fileDetails = {};
-      this.showDrawer = true;
-      this.loadingDetails = true;
-      fileDetails.icon = icon;
-      this.$axios.get(`files/${e}`).then(({ data }) => {
-        this.loadingDetails = false;
-        fileDetails.name = data.file.filename;
-        fileDetails.lastUpdated = Moment(data.file.updatedAt).fromNow();
-        fileDetails.owner = data.file.user_id.full_name;
-        fileDetails.link = data.file.file_url;
-        fileDetails.type = data.file.file_type;
-        this.fileDetails = fileDetails;
-        this.fileDetails.logs = data.logs;
-      });
     },
     showFolderDetails(id) {
       let folderDetails = {};
@@ -495,9 +372,26 @@ export default {
         this.fileDetails.logs = data.logs;
       });
     },
+    showFileDetails([e, icon]) {
+      let fileDetails = {};
+      this.showDrawer = true;
+      this.loadingDetails = true;
+      fileDetails.icon = icon;
+      this.$axios.get(`files/${e}`).then(({ data }) => {
+        this.loadingDetails = false;
+        fileDetails.name = data.file.filename;
+        fileDetails.lastUpdated = Moment(data.file.updatedAt).fromNow();
+        fileDetails.owner = data.file.user_id.full_name;
+        fileDetails.link = data.file.file_url;
+        this.fileDetails = fileDetails;
+        this.fileDetails.logs = data.logs;
+      });
+    },
     emitFileLength() {
-      const subFolders = this.getFolders.filter((folder) => !folder.parent_dir);
-      const length = subFolders.length + this.getFiles.length;
+      const subFolders = this.getFolders.filter(
+        (folder) => folder.parent_dir === this.$route.params.name
+      );
+      const length = subFolders.length + this.allFiles.length;
       EventBus.$emit('fileLength', length);
     },
   },
@@ -505,6 +399,21 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.toolbar::v-deep {
+  min-height: 100px;
+  .v-toolbar__content {
+    display: block;
+    padding: 0;
+  }
+}
+
+.count {
+  margin-bottom: 0;
+  margin-left: 5px;
+  font-size: 1.5em;
+  opacity: 0.7;
+}
+
 .my-drive {
   padding: 20px;
   height: calc(100vh - 16vh);
@@ -521,7 +430,7 @@ export default {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(215px, 215px));
   justify-content: center;
-  gap: 10px;
+  gap: 15px;
 
   @media only screen and (min-width: 768px) {
     justify-content: flex-start;

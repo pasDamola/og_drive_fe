@@ -31,7 +31,10 @@
         </v-list>
       </v-menu>
     </v-layout>
-    <nuxt-link :to="`/folder/${folderId}`" class="link">
+    <nuxt-link
+      :to="`/admin/user/${$route.params.id}/folder/${folderId}`"
+      class="link"
+    >
       <img src="/images/folder.png" alt="Folder icon" />
     </nuxt-link>
     <p>{{ folderName }}</p>
