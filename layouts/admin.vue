@@ -262,9 +262,6 @@ export default {
         });
       this.showNewFolderDialog = false;
     },
-    resetBreadCrumbs() {
-      this.$store.dispatch('resetBreadCrumbs');
-    },
     handleFileUpload(e) {
       this.loading = true;
       const user = JSON.parse(JSON.stringify(this.$cookies.get('user')));

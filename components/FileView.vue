@@ -360,6 +360,7 @@ export default {
               href: window.location.pathname,
               disabled: true,
             });
+            this.$emit('folderName', data.directory.dirname);
             this.$store.dispatch('saveCurrentLevel', data.directory.level);
             this.allFiles = data.files;
             this.emitFileLength();

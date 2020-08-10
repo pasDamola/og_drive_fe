@@ -77,6 +77,11 @@ export default {
         });
     },
   },
+  head() {
+    return {
+      title: 'Reset Password',
+    };
+  },
 };
 </script>
 <style lang="scss" scoped></style>

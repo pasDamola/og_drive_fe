@@ -340,7 +340,13 @@ export default {
       return this.$store.state.userFolders.directories;
     },
   },
+  watch: {
+    $route() {
+      this.resetBreadCrumbs();
+    },
+  },
   mounted() {
+    this.resetBreadCrumbs();
     const token = this.isLoggedIn(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     //const user = this.getUser(this);
@@ -446,6 +452,9 @@ export default {
           this.error.message = err.response.data.message;
         });
     },
+    resetBreadCrumbs() {
+      this.$store.dispatch('resetAdminBreadCrumbs', this.id);
+    },
     moveToBin(e) {
       const userInView = this.$store.getters.getUserDetails;
       this.loading = true;
@@ -510,10 +519,14 @@ export default {
       });
     },
     emitFileLength() {
-      const subFolders = this.getFolders.filter((folder) => !folder.parent_dir);
-      const length = subFolders.length + this.getFiles.length;
+      const length = this.filteredFolders.length + this.getFiles.length;
       EventBus.$emit('fileLength', length);
     },
+  },
+  head() {
+    return {
+      title: 'Users Drive',
+    };
   },
 };
 </script>

@@ -245,6 +245,11 @@ export default {
       });
     },
   },
+  head() {
+    return {
+      title: 'Shared with me',
+    };
+  },
 };
 </script>
 

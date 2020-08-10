@@ -1,7 +1,7 @@
 <template>
   <v-container grid-list-md class="my-drive">
     <Loader v-if="loading" />
-    <file-view :key="fileKey" />
+    <file-view :key="fileKey" @folderName="saveFolderName" />
   </v-container>
 </template>
 
@@ -24,6 +24,7 @@ export default {
     allFolders: [],
     level: '',
     fileKey: 'hello',
+    folderName: '',
   }),
   computed: {
     ...mapGetters(['getBreadCrumbs', 'getFolders', 'isLoggedIn', 'getUser']),
@@ -53,6 +54,16 @@ export default {
     const token = this.isLoggedIn(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     this.routeName = this.$route.params.name;
+  },
+  methods: {
+    saveFolderName(e) {
+      this.folderName = e;
+    },
+  },
+  head() {
+    return {
+      title: this.folderName,
+    };
   },
 };
 </script>

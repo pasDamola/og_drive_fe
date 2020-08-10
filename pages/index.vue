@@ -181,17 +181,11 @@
       </div>
     </template>
     <template v-else>
-      <v-data-table :headers="headers" :items="allFiles">
-        <template v-slot:item.updatedAt="{ item }">
-          <span>{{ new Date(item.updatedAt).toLocaleString() }}</span>
-        </template>
-        <template v-slot:item.file_size="{ item }">
-          <span>{{ handleSize(item.file_size) }} KB</span>
-        </template>
-        <template v-slot:item.created_by>
-          <span>me</span>
-        </template>
-      </v-data-table>
+      <v-data-table
+        :headers="headers"
+        :items="allData"
+        @click:row="handleRowClicked"
+      />
     </template>
     <v-dialog v-model="showFolderDialog" max-width="360">
       <v-card>
@@ -296,11 +290,11 @@ export default {
         text: 'Name',
         align: 'start',
         sortable: false,
-        value: 'filename',
+        value: 'name',
       },
-      { text: 'Owner', value: 'created_by' },
-      { text: 'Last Modified', value: 'updatedAt' },
-      { text: 'File Size', value: 'file_size' },
+      { text: 'Owner', value: 'shared' },
+      { text: 'Last Modified', value: 'modified' },
+      { text: 'File Size', value: 'size' },
     ],
   }),
   computed: {
@@ -345,8 +339,34 @@ export default {
       });
       return folders;
     },
-    allFiles() {
-      return this.$store.state.allFiles;
+    allData() {
+      const folders = this.filteredFolders.map((el) => {
+        const obj = {
+          name: el.dirname,
+          shared: el.user_id === this.id ? 'Me' : 'Shared',
+          modified: Moment(el.createdAt).format('MMMM Do YYYY, h:mm:ss a'),
+          size: '---',
+          clickable: false,
+          fullData: el,
+        };
+        return obj;
+      });
+      const files = this.filteredFiles.map((el) => {
+        const obj = {
+          name: el.filename,
+          shared: el.user_id._id === this.id ? 'Me' : 'Shared',
+          modified: Moment(el.createdAt).format('MMMM Do YYYY, h:mm:ss a'),
+          size: `${this.handleSize(el.file_size)}KB`,
+          clickable: true,
+          fullData: el,
+        };
+        return obj;
+      });
+      const allData = [...folders, ...files];
+      return allData;
+    },
+    id() {
+      return this.getUser(this).id;
     },
   },
   watch: {
@@ -384,6 +404,11 @@ export default {
           return true;
         }
         return false;
+      }
+    },
+    handleRowClicked(item) {
+      if (item.clickable) {
+        this.previewFile(item.fullData);
       }
     },
     previewFile(file) {
@@ -510,6 +535,11 @@ export default {
       const length = subFolders.length + this.getFiles.length;
       EventBus.$emit('fileLength', length);
     },
+  },
+  head() {
+    return {
+      title: 'Home',
+    };
   },
 };
 </script>

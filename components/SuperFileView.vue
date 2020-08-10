@@ -198,6 +198,7 @@ export default {
     selectedFiles: [],
     selectedFolders: [],
     allFiles: [],
+    allFolders: [],
     showDrawer: false,
     loadingDetails: false,
     fileDetails: '',
@@ -231,8 +232,8 @@ export default {
         });
         return folders;
       }
-      const subFolders = this.getFolders.filter(
-        (folder) => folder.parent_dir === this.$route.params.name
+      const subFolders = this.allFolders.filter(
+        (folder) => folder.parent_dir._id === this.$route.params.name
       );
       const folders = subFolders.filter((el) => {
         return el.dirname
@@ -247,12 +248,13 @@ export default {
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     this.getFolderDetails();
     EventBus.$on('addedNewFile', this.getFolderDetails);
+    EventBus.$on('addedNewFolder', this.getFolderDetails);
     EventBus.$on('moved', this.getFolderDetails);
   },
   beforeDestroy() {
     this.$store.dispatch(
-      'removeBreadCrumb',
-      `/folder/${this.$route.params.name}`
+      'removeAdminBreadCrumb',
+      `/admin/user/${this.$route.params.id}/folder/${this.$route.params.name}`
     );
   },
   methods: {
@@ -339,13 +341,15 @@ export default {
           .get(`directory/${this.$route.params.name}`)
           .then(({ data }) => {
             this.loading = false;
-            this.$store.dispatch('addBreadCrumbs', {
+            this.$store.dispatch('addAdminBreadCrumbs', {
               text: data.directory.dirname,
               href: window.location.pathname,
               disabled: true,
             });
+            this.$emit('folderName', data.directory.dirname);
             this.$store.dispatch('saveCurrentLevel', data.directory.level);
             this.allFiles = data.files;
+            this.allFolders = data.directories;
             this.emitFileLength();
           })
           .catch(() => {
@@ -402,10 +406,7 @@ export default {
       });
     },
     emitFileLength() {
-      const subFolders = this.getFolders.filter(
-        (folder) => folder.parent_dir === this.$route.params.name
-      );
-      const length = subFolders.length + this.allFiles.length;
+      const length = this.filteredFolders.length + this.allFiles.length;
       EventBus.$emit('fileLength', length);
     },
   },

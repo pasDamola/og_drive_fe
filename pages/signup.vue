@@ -354,6 +354,11 @@ export default {
       this.$router.push({ path: '/login' });
     },
   },
+  head() {
+    return {
+      title: 'Signup',
+    };
+  },
 };
 </script>
 <style lang="scss" scoped>

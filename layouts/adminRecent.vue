@@ -368,11 +368,11 @@ export default {
         text: 'Drive',
         to: `/admin/user/${v.$route.params.id}`,
       },
-      {
-        icon: 'mdi-account-multiple-outline',
-        text: 'Shared with this User',
-        to: '#',
-      },
+      // {
+      //   icon: 'mdi-account-multiple-outline',
+      //   text: 'Shared with this User',
+      //   to: '#',
+      // },
       {
         icon: 'mdi-clock-outline',
         text: 'Recent',
@@ -525,7 +525,7 @@ export default {
       this.showNewFolderDialog = false;
     },
     resetBreadCrumbs() {
-      this.$store.dispatch('resetBreadCrumbs');
+      this.$store.dispatch('resetAdminBreadCrumbs', this.$route.params.id);
     },
     handleFileUpload(e) {
       const parentDir = this.$route.params.name || '';
