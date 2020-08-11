@@ -31,7 +31,7 @@
                     <v-row>
                       <v-col cols="12" sm="6" md="4">
                         <v-text-field
-                          v-model="editedItem.fullName"
+                          v-model="editedItem.full_name"
                           label="Full Name"
                         ></v-text-field>
                       </v-col>
@@ -43,7 +43,7 @@
                       </v-col>
                       <v-col cols="12" sm="6" md="4">
                         <v-text-field
-                          v-model="editedItem.newOgId"
+                          v-model="editedItem.ogId"
                           label="OGID"
                         ></v-text-field>
                       </v-col>
@@ -54,10 +54,16 @@
                         ></v-text-field>
                       </v-col>
                       <v-col cols="12" sm="6" md="4">
-                        <v-text-field
+                        <v-select
+                          ref="department"
                           v-model="editedItem.department"
-                          label="Department"
-                        ></v-text-field>
+                          :items="allCampaigns.campaigns"
+                          name="department"
+                          label="campaigns"
+                          item-text="title"
+                          item-value="title"
+                          single-line
+                        />
                       </v-col>
                     </v-row>
                   </v-container>
@@ -266,6 +272,8 @@ export default {
     success: { status: false, message: '' },
     editedItem: {
       username: '',
+      ogId: '',
+      full_name: '',
       newogId: '',
       email: '',
       department: '',
@@ -283,6 +291,9 @@ export default {
     formTitle() {
       return this.editedIndex === -1 ? 'New Item' : 'Edit Item';
     },
+    allCampaigns() {
+      return this.$store.state.allCampaigns;
+    },
   },
 
   watch: {
@@ -294,6 +305,7 @@ export default {
     const token = this.isLoggedIn(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     this.fetchUsers();
+    this.fetchCampaigns();
   },
   methods: {
     editItem(item) {
@@ -358,6 +370,8 @@ export default {
 
     async save() {
       this.loading = true;
+      this.editedItem.newogId = this.editedItem.ogId;
+      this.editedItem.fullName = this.editedItem.full_name;
       try {
         const response = await this.$axios.patch(
           `admin/updateUser/${this.editedItem.ogId}`,
