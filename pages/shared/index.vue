@@ -35,7 +35,7 @@
           class="mx-2 user-avatar"
         >
           <span class="white--text font-weight-medium">
-            {{ getUserInitials }}
+            {{ sharer.initials }}
           </span>
         </v-avatar>
         <p class="subtitle-2 font-weight-black my-3">{{ sharer.full_name }}</p>
@@ -106,6 +106,16 @@ export default {
           this.error.message = 'Something went wrong, Please try again';
         });
     },
+    getInitials(fullName) {
+      const initials = fullName.split(' ').reduce((join, name) => {
+        return `${join}${name[0]}`;
+      }, '');
+      if (initials.length > 2) {
+        return `${initials[0]}${initials[1]}`;
+      } else {
+        return initials;
+      }
+    },
     handleObjData(data) {
       const keys = Object.keys(data);
       const result = [];
@@ -114,6 +124,7 @@ export default {
           const obj = {
             id: key,
             full_name: data[key].full_name,
+            initials: this.getInitials(data[key].full_name),
             picture: data[key].profile_pic,
           };
           result.push(obj);
