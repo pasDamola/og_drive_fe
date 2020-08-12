@@ -148,6 +148,7 @@
         @deleteFolder="handleFolderDelete"
         @moveFolderToBin="moveFolderToBin"
         @foldersSelected="handleMultipleFolders($event, folder)"
+        @moveFolder="moveFolder"
         @viewDetails="showFolderDetails"
       />
     </div>
@@ -163,6 +164,7 @@
         :last-edited="file.updatedAt"
         class="my-2"
         @filesSelected="handleMultipleFiles($event, file)"
+        @moveFile="moveFile"
         @moveToBin="moveToBin"
         @viewDetails="showFileDetails"
         @deleteFile="handleFileDelete"
@@ -355,8 +357,15 @@ export default {
       this.fetchUserFiles(userInView.user._id, 0);
     });
     EventBus.$on('filesFetched', this.emitFileLength);
+    EventBus.$on('moved', this.fetchUser);
   },
   methods: {
+    fetchUser() {
+      this.$store.dispatch('fetchUser', this.$route.params.id).then(() => {
+        const userInView = this.$store.getters.getUserDetails;
+        this.fetchUserFiles(userInView.user._id, 0);
+      });
+    },
     isImage(details) {
       if (details) {
         const fileType = details.type.split('/')[1];

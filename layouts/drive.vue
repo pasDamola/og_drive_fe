@@ -7,6 +7,12 @@
       @createFolder="createFolder"
     />
     <move-dialog
+      :show-dialog="showMoveFileDialog"
+      :is-loading="buttonLoading"
+      @closeDialog="closeDialog('showMoveFileDialog')"
+      @moveFolder="moveFile"
+    />
+    <move-dialog
       :show-dialog="showMoveFolderDialog"
       :is-loading="buttonLoading"
       @closeDialog="closeDialog('showMoveFolderDialog')"
@@ -302,7 +308,7 @@
                 <p class="count">({{ fileLength }})</p>
               </span>
               <v-layout v-if="showAction" class="full-width" justify-end>
-                <v-btn color="primary" @click="showMoveFolderDialog = true">
+                <v-btn color="primary" @click="showMoveFileDialog = true">
                   Move
                 </v-btn>
                 <!-- <v-btn text @click="deleteFiles">Delete</v-btn> -->
@@ -427,6 +433,7 @@ export default {
     buttonLoading: false,
     showNewFolderDialog: false,
     showMoveFolderDialog: false,
+    showMoveFileDialog: false,
     pressed: false,
     showAction: false,
     folderShowAction: false,
@@ -520,6 +527,10 @@ export default {
     });
     EventBus.$on('moveSingle', (id) => {
       this.fileIds = id;
+      this.showMoveFileDialog = true;
+    });
+    EventBus.$on('moveSingleFolder', (id) => {
+      this.folderIds = id;
       this.showMoveFolderDialog = true;
     });
     this.$store.dispatch('fetchFolders', user.id);
@@ -650,7 +661,7 @@ export default {
           this.error.message = err.response.data.message;
         });
     },
-    moveFolder(e) {
+    moveFile(e) {
       this.buttonLoading = true;
       const data = {
         file_id: this.fileIds,
@@ -658,6 +669,33 @@ export default {
       };
       this.$axios
         .put('files/move/bulk', data)
+        .then(() => {
+          const user = this.getUser(this);
+          this.loading = true;
+          this.showMoveFileDialog = false;
+          this.buttonLoading = false;
+          this.fetchUserFiles(user.id, 0);
+          EventBus.$emit('moved');
+        })
+        .catch((err) => {
+          this.showMoveFileDialog = false;
+          this.buttonLoading = false;
+          this.error.status = true;
+          if (err.response.data.message) {
+            this.error.message = err.response.data.message;
+          } else {
+            this.error.message = 'Something went wrong';
+          }
+        });
+    },
+    moveFolder(e) {
+      this.buttonLoading = true;
+      const data = {
+        dir_ids: this.folderIds,
+        parent_dir: e,
+      };
+      this.$axios
+        .post('directory/bulk/move', data)
         .then(() => {
           const user = this.getUser(this);
           this.loading = true;
@@ -670,7 +708,11 @@ export default {
           this.showMoveFolderDialog = false;
           this.buttonLoading = false;
           this.error.status = true;
-          this.error.message = err.response.data.message;
+          if (err.response.data.message) {
+            this.error.message = err.response.data.message;
+          } else {
+            this.error.message = 'Something went wrong';
+          }
         });
     },
     deleteFiles() {

@@ -1,5 +1,17 @@
 <template>
   <div grid-list-md class="my-drive">
+    <v-snackbar v-if="error.status" v-model="error.status" :timeout="5000">
+      {{ error.message }}
+      <v-btn color="pink" text @click="error.status = false">
+        Close
+      </v-btn>
+    </v-snackbar>
+    <v-snackbar v-else v-model="success.status" :timeout="5000">
+      {{ success.message }}
+      <v-btn color="green" text @click="success.status = false">
+        Close
+      </v-btn>
+    </v-snackbar>
     <Preview
       v-if="showPreview"
       :show="showPreview"
@@ -137,6 +149,7 @@
         class="my-2"
         :last-updated="folder.updatedAt"
         @foldersSelected="handleMultipleFolders($event, folder)"
+        @moveFolder="moveFolder"
         @moveFolderToBin="moveFolderToBin"
         @viewDetails="showFolderDetails"
       />
@@ -154,6 +167,7 @@
         class="my-2"
         @filesSelected="handleMultipleFiles($event, file)"
         @moveFile="moveFile"
+        @moveToBin="moveToBin"
         @deleteFile="deleteFile"
         @viewDetails="showFileDetails"
         @previewFile="previewFile(file)"
@@ -208,9 +222,11 @@ export default {
     showPreview: false,
     globalSearchDirectories: null,
     globalSearchFiles: null,
+    error: { status: false, message: '' },
+    success: { status: false, message: '' },
   }),
   computed: {
-    ...mapGetters(['getFolders', 'isLoggedIn']),
+    ...mapGetters(['getFolders', 'isLoggedIn', 'getUser']),
     filteredFiles() {
       if (this.globalSearchFiles) {
         const files = this.globalSearchFiles.filter((el) => {
@@ -329,6 +345,24 @@ export default {
         })
         .catch((err) => {
           EventBus.$emit('hideAction');
+          this.loading = false;
+          this.error.status = true;
+          this.error.message = err.response.data.message;
+        });
+    },
+    moveToBin(e) {
+      this.showDialog = false;
+      const user = this.getUser(this);
+      this.loading = true;
+      this.$axios
+        .put('/files/single/bin', { _id: `${e}`, user_id: user.id })
+        .then(() => {
+          this.fetchUserFiles(user.id, 0);
+          this.loading = false;
+          this.success.status = true;
+          this.success.message = 'File has successfully been moved to bin';
+        })
+        .catch((err) => {
           this.loading = false;
           this.error.status = true;
           this.error.message = err.response.data.message;

@@ -154,6 +154,7 @@
           :folder-id="folder._id"
           class="my-2"
           :last-updated="folder.updatedAt"
+          @moveFolder="moveFolder"
           @foldersSelected="handleMultipleFolders($event, folder)"
           @moveFolderToBin="moveFolderToBin"
           @viewDetails="showFolderDetails"
@@ -378,14 +379,18 @@ export default {
     this.$store.dispatch('resetBreadCrumbs');
     const token = this.isLoggedIn(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
-    const user = this.getUser(this);
-    this.$store.dispatch('fetchFolders', user.id);
-    this.fetchUserFiles(user.id, 0);
+    this.getAllFiles();
     EventBus.$on('filesFetched', this.emitFileLength);
+    EventBus.$on('moved', this.getAllFiles);
   },
   methods: {
     handleSize(size) {
       return parseInt(size / 1000);
+    },
+    getAllFiles() {
+      const user = this.getUser(this);
+      this.$store.dispatch('fetchFolders', user.id);
+      this.fetchUserFiles(user.id, 0);
     },
     isImage(details) {
       if (details) {

@@ -36,6 +36,9 @@
           >
             <v-list-item-content>Delete</v-list-item-content>
           </v-list-item>
+          <v-list-item v-if="!hideOptions" @click="$emit('moveFile', fileId)">
+            <v-list-item-content>Move</v-list-item-content>
+          </v-list-item>
         </v-list>
       </v-menu>
     </v-layout>
@@ -118,42 +121,6 @@ export default {
           // not a double click so set as a new first click
           this.touchTime = new Date().getTime();
         }
-      }
-    },
-    getFileIcon() {
-      if (['doc', 'docm', 'dotm', 'docx', 'docb'].includes(this.format)) {
-        return '/images/docs.png';
-      } else if (
-        ['xls', 'xlsx', 'xlsm', 'xltx', 'xltm'].includes(this.format)
-      ) {
-        return '/images/sheet.png';
-      } else if (
-        [
-          'pptx',
-          'pptm',
-          'ppt',
-          'pptm',
-          'ppsx',
-          'sldm',
-          'potx',
-          'ppam',
-        ].includes(this.format)
-      ) {
-        return '/images/slides.png';
-      } else if (this.format === 'pdf') {
-        return '/images/pdf.png';
-      } else if (this.format === 'html') {
-        return '/images/html.png';
-      } else if (this.format === 'png') {
-        return '/images/png.png';
-      } else if (['jpg', 'jpeg'].includes(this.format)) {
-        return '/images/jpg.png';
-      } else if (this.format === 'csv') {
-        return '/images/csv.png';
-      } else if (this.format === 'txt') {
-        return '/images/txt.png';
-      } else {
-        return '/images/file.png';
       }
     },
     shareFile() {

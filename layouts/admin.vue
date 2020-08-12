@@ -289,6 +289,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+body {
+  overflow: hidden;
+}
+
 .app-bar {
   border-bottom: 0.6px solid rgba(0, 0, 0, 0.2) !important;
 }

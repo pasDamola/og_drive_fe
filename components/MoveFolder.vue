@@ -61,7 +61,7 @@ export default {
     allFolders() {
       const rootFolder = {
         dirname: 'Root folder',
-        _id: '',
+        _id: '0',
       };
       return [...this.getFolders, rootFolder];
     },

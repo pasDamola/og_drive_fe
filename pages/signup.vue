@@ -29,6 +29,7 @@
               name="id"
               placeholder="191852"
               prepend-icon="mdi-account-key-outline"
+              :rules="[rules.required]"
               validate-on-blur
             />
             <v-text-field
@@ -52,6 +53,7 @@
               item-value="title"
               prepend-icon="mdi-account-group-outline"
               validate-on-blur
+              :rules="[rules.required]"
               single-line
             />
           </div>
