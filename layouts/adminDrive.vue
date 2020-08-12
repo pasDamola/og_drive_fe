@@ -724,8 +724,8 @@ export default {
     moveFile(e) {
       this.buttonLoading = true;
       const data = {
-        files: this.fileIds,
-        directory_id: e,
+        file_id: this.fileIds,
+        directory_id: e === '0' ? '' : e,
       };
       this.$axios
         .patch('admin/file/move/bulk', data)
@@ -734,9 +734,9 @@ export default {
           this.loading = true;
           this.buttonLoading = false;
           this.fetchUserFiles(userInView.user._id, 0);
-          this.fetcUserFolders(userInView.user._id, 0);
         })
         .catch((err) => {
+          console.log(err);
           this.buttonLoading = false;
           this.error.status = true;
           if (err.response && err.response.data && err.response.data.message) {
@@ -754,13 +754,13 @@ export default {
         parent_dir: e,
       };
       this.$axios
-        .post('directory/bulk/move', data)
+        .post('admin/directory/move', data)
         .then(() => {
-          const user = this.getUser(this);
+          const userInView = this.$store.getters.getUserDetails;
           this.loading = true;
           this.showMoveFolderDialog = false;
           this.buttonLoading = false;
-          this.fetchUserFiles(user.id, 0);
+          this.fetchUserFiles(userInView.user._id, 0);
           EventBus.$emit('moved');
         })
         .catch((err) => {

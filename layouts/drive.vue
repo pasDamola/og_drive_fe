@@ -665,7 +665,7 @@ export default {
       this.buttonLoading = true;
       const data = {
         file_id: this.fileIds,
-        directory_id: e,
+        parent_dir: e,
       };
       this.$axios
         .put('files/move/bulk', data)

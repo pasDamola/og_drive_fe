@@ -57,13 +57,13 @@ export default {
     folder: '',
   }),
   computed: {
-    ...mapGetters(['getFolders']),
+    ...mapGetters(['getUserDirectories']),
     allFolders() {
       const rootFolder = {
         dirname: 'Root folder',
         _id: '0',
       };
-      return [...this.getFolders, rootFolder];
+      return [...this.getUserDirectories, rootFolder];
     },
   },
   methods: {

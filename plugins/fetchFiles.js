@@ -110,7 +110,15 @@ const mixin = {
           this.loading = false;
           EventBus.$emit('filesFetched');
         })
-        .catch(() => {
+        .catch((err) => {
+          if (err.response) {
+            this.$cookies.remove('token');
+            this.$cookies.remove('user');
+            const statusCodes = [401, 403, 404];
+            if (statusCodes.includes(err.response.status)) {
+              this.$router.push({ path: '/login' });
+            }
+          }
           this.loading = false;
         });
     },

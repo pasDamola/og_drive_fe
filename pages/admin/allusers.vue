@@ -1,29 +1,29 @@
 <template>
   <v-container>
-      <v-data-table
-        :headers="headers"
-        :items="allUsers.users"
-        class="elevation-1"
-        :search="search"
-        height="50vh"
-        fixed-header
-      >
-        <template v-slot:top>
-          <v-toolbar flat color="white">
-            <v-toolbar-title>All Users</v-toolbar-title>
-            <v-spacer></v-spacer>
-            <v-text-field
-              v-model="search"
-              append-icon="mdi-magnify"
-              label="Search"
-              single-line
-              hide-details
-            ></v-text-field>
-            <v-dialog v-model="dialog" max-width="500px">
-              <v-card>
-                <v-card-title>
-                  <span class="headline">{{ formTitle }}</span>
-                </v-card-title>
+    <v-data-table
+      :headers="headers"
+      :items="allUsers.users"
+      class="elevation-1"
+      :search="search"
+      height="50vh"
+      fixed-header
+    >
+      <template v-slot:top>
+        <v-toolbar flat color="white">
+          <v-toolbar-title>All Users</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-text-field
+            v-model="search"
+            append-icon="mdi-magnify"
+            label="Search"
+            single-line
+            hide-details
+          ></v-text-field>
+          <v-dialog v-model="dialog" max-width="500px">
+            <v-card>
+              <v-card-title>
+                <span class="headline">{{ formTitle }}</span>
+              </v-card-title>
 
               <v-card-text>
                 <v-container>

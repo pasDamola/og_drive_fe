@@ -1,5 +1,11 @@
 <template>
   <v-container grid-list-md>
+    <v-snackbar v-if="error.status" v-model="error.status" :timeout="5000">
+      {{ error.message }}
+      <v-btn color="red" text @click="error.status = false">
+        Close
+      </v-btn>
+    </v-snackbar>
     <Loader v-if="isLoading" />
     <p class="font-weight-medium body-2">
       Users that have shared files/folders with you
@@ -52,6 +58,7 @@ export default {
     user: '',
     sharers: '',
     isLoading: false,
+    error: { status: false, message: '' },
   }),
   computed: {
     ...mapGetters(['isLoggedIn', 'getUser']),
@@ -93,8 +100,10 @@ export default {
           });
           this.isLoading = false;
         })
-        .catch((err) => {
-          throw Error(err);
+        .catch(() => {
+          this.isLoading = false;
+          this.error.status = true;
+          this.error.message = 'Something went wrong, Please try again';
         });
     },
     handleObjData(data) {
@@ -104,8 +113,8 @@ export default {
         keys.forEach((key) => {
           const obj = {
             id: key,
-            full_name: data[keys].full_name,
-            picture: data[keys].profile_pic,
+            full_name: data[key].full_name,
+            picture: data[key].profile_pic,
           };
           result.push(obj);
         });

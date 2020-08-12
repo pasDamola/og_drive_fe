@@ -134,6 +134,7 @@
         class="my-2"
         :last-updated="folder.updatedAt"
         @foldersSelected="handleMultipleFolders($event, folder)"
+        @moveFolder="moveFolder"
         @moveFolderToBin="moveFolderToBin"
         @viewDetails="showFolderDetails"
       />
