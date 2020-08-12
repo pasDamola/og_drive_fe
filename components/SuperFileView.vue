@@ -207,7 +207,7 @@ export default {
     showPreview: false,
   }),
   computed: {
-    ...mapGetters(['getFolders', 'isLoggedIn']),
+    ...mapGetters(['getFolders', 'isLoggedIn', 'getUserDirectories']),
     filteredFiles() {
       if (this.globalSearchFiles) {
         const files = this.globalSearchFiles.filter((el) => {

@@ -45,7 +45,7 @@ export default {
     },
     filteredFolders() {
       const routeName = this.routeName;
-      const subFolders = this.getUserFolders.filter(
+      const subFolders = this.getUserDirectories.filter(
         (folder) => folder.parent_dir === routeName
       );
       return subFolders;

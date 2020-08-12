@@ -24,6 +24,7 @@ export const state = () => ({
   totalDirectories: [],
   userDirectories: [],
   hello: 'hello',
+  allStuff: [],
   breadCrumbs: [
     {
       text: 'mdi-home',
@@ -86,6 +87,7 @@ export const getters = {
   getAdminRecent: (state) => state.adminRecent,
   getFilesToDelete: (state) => state.filesToDelete,
   getFoldersToDelete: (state) => state.foldersToDelete,
+  getAllFilesAndDirectories: (state) => state.allStuff,
 };
 
 export const actions = {
@@ -124,6 +126,7 @@ export const actions = {
       const response = await this.$axios.post('files/user', { user_id, level });
       if (response) {
         commit('SAVE_USER_FILES', response.data);
+        commit('LOAD_ALL_STUFF', response.data);
         return Promise.resolve(response.data);
       }
     } catch (error) {
@@ -147,6 +150,7 @@ export const actions = {
   fetchFolders({ commit }, payload) {
     this.$axios.post('users/directories', { user_id: payload }).then((res) => {
       commit('SAVE_USER_FOLDERS', res.data);
+      commit('LOAD_ALL_STUFF', res.data);
     });
   },
   fetchUserFolders({ commit }, payload) {
@@ -465,5 +469,8 @@ export const mutations = {
   },
   LOAD_ADMIN_STUFF_DELETE_FOLDERS(state, foldersToDelete) {
     state.foldersToDelete = foldersToDelete;
+  },
+  LOAD_ALL_STUFF(state, stuff) {
+    state.allStuff = stuff;
   },
 };
