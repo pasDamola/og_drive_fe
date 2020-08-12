@@ -28,6 +28,48 @@
             {{ fileDetails.lastUpdated }}
           </li>
         </ul>
+        <v-divider class="full-width divider" />
+        <div class="trails">
+          <v-list>
+            <div
+              v-for="log in fileDetails.logs"
+              :key="log._id"
+              class="list my-2"
+            >
+              <p class="my-0 pl-6 caption">
+                {{ log.createdAt | date }}
+              </p>
+              <v-list-item>
+                <v-avatar
+                  v-if="log.user_id && log.user_id.picture_pic"
+                  size="35px"
+                  item
+                  class="mx-2"
+                >
+                  <v-img
+                    :src="log.user_id && log.user_id.picture_pic"
+                    alt="User Image"
+                  />
+                </v-avatar>
+                <v-avatar v-else size="35px" color="primary" item class="mx-2">
+                  <span class="white--text font-weight-medium">
+                    {{ getUserInitials(log.user_id && log.user_id.full_name) }}
+                  </span>
+                </v-avatar>
+                <v-list-item-content class="py-1">
+                  <v-list-item-title class="text-capitalize small--text">
+                    {{ log.action }} this {{ log.type }}
+                    {{ log.shared_with && `with ${log.shared_with.full_name}` }}
+                  </v-list-item-title>
+                  <v-list-item-subtitle class="caption">
+                    {{ log.user_id && log.user_id.full_name }}
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+              <v-divider class="divider" />
+            </div>
+          </v-list>
+        </div>
         <v-layout class="file-actions px-8" row justify-space-between>
           <v-tooltip top>
             <template v-slot:activator="{ on }">
@@ -81,8 +123,21 @@
       </v-flex>
     </v-layout>
     <p class="font-weight-medium body-2">
-      Today
+      Folders ({{ filteredFolders.length }})
     </p>
+    <div class="files mb-5 pb-5">
+      <Folder
+        v-for="(folder, index) in filteredFolders"
+        :key="index"
+        :folder-name="folder.dirname"
+        :folder-id="folder._id"
+        class="my-2"
+        :last-updated="folder.updatedAt"
+        hide-options
+        @viewDetails="showFolderDetails"
+      />
+    </div>
+    <p class="font-weight-medium body-2">Files ({{ filteredFiles.length }})</p>
     <div class="files mb-5 pb-5">
       <File
         v-for="file in filteredFiles"
@@ -96,9 +151,6 @@
         @viewDetails="showFileDetails"
       />
     </div>
-    <p class="font-weight-medium body-2">
-      Yesterday
-    </p>
     <v-dialog v-model="showFolderDialog" max-width="360">
       <v-card>
         <v-card-title class="headline">
@@ -156,13 +208,22 @@
 import { mapGetters } from 'vuex';
 import Moment from 'moment';
 import File from '@/components/RecentFile';
+import Folder from '@/components/RecentFolder';
 import Loader from '@/components/Loader';
 import { EventBus } from '../plugins/eventBus';
 
 export default {
   layout: 'drive',
-  components: { File, Loader },
+  components: { File, Loader, Folder },
   middleware: 'authenticated',
+  filters: {
+    date(val) {
+      if (val) {
+        return Moment(val).format('MMMM Do YYYY');
+      }
+      return null;
+    },
+  },
   data: () => ({
     tempDate: new Date(2020, 3, 22),
     searchFiles: '',
@@ -194,6 +255,14 @@ export default {
       'getRecents',
     ]),
     filteredFiles() {
+      if (this.globalSearchFiles) {
+        const files = this.globalSearchFiles.filter((el) => {
+          return el.filename
+            .toLowerCase()
+            .includes(this.searchFiles.toLowerCase());
+        });
+        return files;
+      }
       const files = this.getRecents.filter((el) => {
         return el.filename
           .toLowerCase()
@@ -201,15 +270,22 @@ export default {
       });
       return files;
     },
-    // filteredFolders() {
-    //   const subFolders = this.getFolders.filter((folder) => !folder.parent_dir);
-    //   const folders = subFolders.filter((el) => {
-    //     return el.dirname
-    //       .toLowerCase()
-    //       .includes(this.searchFiles.toLowerCase());
-    //   });
-    //   return folders;
-    // },
+    filteredFolders() {
+      if (this.globalSearchDirectories) {
+        const folders = this.globalSearchDirectories.filter((el) => {
+          return el.dirname
+            .toLowerCase()
+            .includes(this.searchFiles.toLowerCase());
+        });
+        return folders;
+      }
+      const folders = this.getFolders.filter((el) => {
+        return el.dirname
+          .toLowerCase()
+          .includes(this.searchFiles.toLowerCase());
+      });
+      return folders;
+    },
   },
   mounted() {
     const token = this.isLoggedIn(this);
@@ -221,6 +297,54 @@ export default {
     this.fetchRecentFiles(user.id);
   },
   methods: {
+    handleSize(size) {
+      return parseInt(size / 1000);
+    },
+    isImage(details) {
+      if (details) {
+        const fileType = details.type.split('/')[1];
+        const types = [
+          'png',
+          'jpeg',
+          'jpg',
+          'gif',
+          'mp4',
+          'mp3',
+          'webp',
+          'svg',
+        ];
+        if (types.includes(fileType)) {
+          return true;
+        }
+        return false;
+      }
+    },
+    previewFile(file) {
+      const fileDetails = {
+        type: file.file_type,
+        url: file.file_url,
+      };
+      const isImage = this.isImage(fileDetails);
+      const data = {
+        isImage,
+        ...file,
+      };
+      this.previewData = data;
+      this.showPreview = true;
+    },
+    getUserInitials(fullName) {
+      if (fullName) {
+        const initials = fullName.split(' ').reduce((join, name) => {
+          return `${join}${name[0]}`;
+        }, '');
+        if (initials.length > 2) {
+          return `${initials[0]}${initials[1]}`;
+        } else {
+          return initials;
+        }
+      }
+      return null;
+    },
     handleFileDelete([id, name]) {
       this.fileToDeleteDetails.push(id, name);
       this.currentFileName = name;
@@ -263,11 +387,29 @@ export default {
         this.fileDetails = fileDetails;
       });
     },
+    showFolderDetails(id) {
+      let folderDetails = {};
+      this.showDrawer = true;
+      this.loadingDetails = true;
+      this.$axios.get(`directory/${id}`).then(({ data }) => {
+        this.loadingDetails = false;
+        folderDetails.name = data.directory.dirname;
+        folderDetails.lastUpdated = Moment(data.directory.updatedAt).fromNow();
+        folderDetails.owner = data.directory.user_id.full_name;
+        this.fileDetails = folderDetails;
+        this.fileDetails.logs = data.logs;
+      });
+    },
     emitFileLength() {
       const subFolders = this.getFolders.filter((folder) => !folder.parent_dir);
       const length = subFolders.length + this.getFiles.length;
       EventBus.$emit('fileLength', length);
     },
+  },
+  head() {
+    return {
+      title: 'Recent',
+    };
   },
 };
 </script>
@@ -316,5 +458,15 @@ export default {
     height: fit-content;
     text-decoration: none;
   }
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+}
+
+.small--text {
+  font-size: 14px;
+  white-space: normal;
 }
 </style>

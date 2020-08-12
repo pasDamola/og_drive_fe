@@ -1,7 +1,7 @@
 <template>
   <v-container grid-list-md class="my-drive">
     <Loader v-if="loading" />
-    <file-view :key="fileKey" />
+    <file-view :key="fileKey" @folderName="saveFolderName" />
   </v-container>
 </template>
 
@@ -24,6 +24,7 @@ export default {
     allFolders: [],
     level: '',
     fileKey: 'hello',
+    folderName: '',
   }),
   computed: {
     ...mapGetters([
@@ -65,6 +66,16 @@ export default {
       this.fetchUserFiles(userInView.user._id, 0);
       this.$store.dispatch('fetchUserFolders', userInView.user._id);
     });
+  },
+  methods: {
+    saveFolderName(e) {
+      this.folderName = e;
+    },
+  },
+  head() {
+    return {
+      title: this.folderName,
+    };
   },
 };
 </script>

@@ -27,7 +27,7 @@
         </v-list>
       </v-menu>
     </v-layout>
-    <img :src="getFileIcon()" :alt="`${format} icon`" />
+    <img :src="getFileIcon()" :alt="`${format} icon`" @click="customDblClick" />
     <p>{{ name | truncate }}</p>
     <v-layout align-center justify-space-between class="file-details nowrap">
       <p class="ellipsis">{{ handleSize }} KB</p>
@@ -92,48 +92,6 @@ export default {
     },
   },
   methods: {
-    getFileIcon() {
-      if (
-        ['doc', 'docm', 'dotm', 'docx', 'docb'].includes(
-          this.format.toLowerCase()
-        )
-      ) {
-        return '/images/docs.png';
-      } else if (
-        ['xls', 'xlsx', 'xlsm', 'xltx', 'xltm'].includes(
-          this.format.toLowerCase()
-        )
-      ) {
-        return '/images/sheet.png';
-      } else if (
-        [
-          'pptx',
-          'pptm',
-          'ppt',
-          'pptm',
-          'ppsx',
-          'sldm',
-          'potx',
-          'ppam',
-        ].includes(this.format.toLowerCase())
-      ) {
-        return '/images/slides.png';
-      } else if (this.format.toLowerCase() === 'pdf') {
-        return '/images/pdf.png';
-      } else if (this.format.toLowerCase() === 'html') {
-        return '/images/html.png';
-      } else if (this.format.toLowerCase() === 'png') {
-        return '/images/png.png';
-      } else if (['jpg', 'jpeg'].includes(this.format.toLowerCase())) {
-        return '/images/jpg.png';
-      } else if (this.format.toLowerCase() === 'csv') {
-        return '/images/csv.png';
-      } else if (this.format.toLowerCase() === 'txt') {
-        return '/images/txt.png';
-      } else {
-        return '/images/file.png';
-      }
-    },
     shareFile() {
       EventBus.$emit('shareFile', this.fileId);
     },

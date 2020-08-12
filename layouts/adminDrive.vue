@@ -7,6 +7,12 @@
       @createFolder="createFolder"
     />
     <move-dialog
+      :show-dialog="showMoveFileDialog"
+      :is-loading="buttonLoading"
+      @closeDialog="closeDialog('showMoveFileDialog')"
+      @moveFolder="moveFile"
+    />
+    <move-dialog
       :show-dialog="showMoveFolderDialog"
       :is-loading="buttonLoading"
       @closeDialog="closeDialog('showMoveFolderDialog')"
@@ -226,6 +232,9 @@
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <img src="/images/logo.png" alt="Outsource Logo" width="100vh" />
       <v-text-field
+        v-if="showSearch"
+        v-model="globalSearch"
+        :loading="searching"
         :solo="pressed"
         :solo-inverted="!pressed"
         :flat="!pressed"
@@ -237,6 +246,7 @@
         color="#555"
         @focus="pressed = true"
         @blur="pressed = false"
+        @input="debounceSearch"
       />
       <v-spacer />
       <v-divider vertical />
@@ -270,7 +280,7 @@
             </v-list-item-icon>
             <v-list-item-content>Logout</v-list-item-content>
           </v-list-item>
-          <v-list-item v-if="isAdmin || isSuperAdmin" to="/admin">
+          <v-list-item v-if="isAdmin || isSuperAdmin" to="/admin/dashboard">
             <v-list-item-icon>
               <v-icon>mdi-account-supervisor-outline</v-icon>
             </v-list-item-icon>
@@ -292,12 +302,12 @@
             <v-layout justify-space-between full-width>
               <span class="row align-center mx-0 font-weight-black text--text">
                 <h2>
-                  Files
+                  Files/Folders
                 </h2>
                 <p class="count">({{ fileLength }})</p>
               </span>
               <v-layout v-if="showAction" class="full-width" justify-end>
-                <v-btn color="primary" @click="showMoveFolderDialog = true">
+                <v-btn color="primary" @click="showMoveFileDialog = true">
                   Move
                 </v-btn>
                 <!-- <v-btn text @click="deleteFiles">Delete</v-btn> -->
@@ -327,12 +337,24 @@
             </v-layout>
           </v-toolbar-title>
           <v-layout justify-space-between align-center>
-            <v-breadcrumbs :items="getBreadCrumbs" class="px-0">
+            <v-breadcrumbs :items="getAdminBreadCrumbs" class="px-0">
               <template v-slot:divider>
                 <v-icon>mdi-chevron-right</v-icon>
               </template>
               <template v-slot:item="{ item }">
                 <v-breadcrumbs-item
+                  v-if="item.icon"
+                  :to="`/admin/user/${$route.params.id}`"
+                  nuxt
+                  :disabled="false"
+                  exact
+                  class="breadcrumb"
+                >
+                  <v-icon v-if="item.icon">{{ item.text }}</v-icon>
+                  <span v-else>{{ item.text.toUpperCase() }}</span>
+                </v-breadcrumbs-item>
+                <v-breadcrumbs-item
+                  v-else
                   :to="item.href"
                   nuxt
                   :disabled="item.disabled"
@@ -395,11 +417,11 @@ export default {
         text: 'Drive',
         to: `/admin/user/${v.$route.params.id}`,
       },
-      {
-        icon: 'mdi-account-multiple-outline',
-        text: 'Shared with this User',
-        to: '#',
-      },
+      // {
+      //   icon: 'mdi-account-multiple-outline',
+      //   text: 'Shared with this User',
+      //   to: '#',
+      // },
       {
         icon: 'mdi-clock-outline',
         text: 'Recent',
@@ -440,6 +462,7 @@ export default {
     buttonLoading: false,
     showNewFolderDialog: false,
     showMoveFolderDialog: false,
+    showMoveFileDialog: false,
     pressed: false,
     showAction: false,
     folderShowAction: false,
@@ -459,10 +482,13 @@ export default {
       username: '',
     },
     files: [],
+    globalSearch: '',
+    debounce: '',
+    searching: false,
   }),
   computed: {
     ...mapGetters([
-      'getBreadCrumbs',
+      'getAdminBreadCrumbs',
       'isLoggedIn',
       'getUser',
       'getLevel',
@@ -492,6 +518,13 @@ export default {
     id() {
       return this.$route.params.id;
     },
+    showSearch() {
+      const paths = ['/bin', '/admin/recent'];
+      if (paths.includes(this.$route.path)) {
+        return false;
+      }
+      return true;
+    },
     getUserInitials() {
       const full_name = this.user.full_name;
       if (full_name) {
@@ -513,7 +546,7 @@ export default {
   mounted() {
     const token = this.isLoggedIn(this);
     const user = this.getUser(this);
-    //const userAccount = this.getUserDetails(this);
+    this.resetBreadCrumbs();
     if (token) {
       this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     } else {
@@ -537,6 +570,10 @@ export default {
       this.showAction = false;
       this.folderShowAction = false;
     });
+    EventBus.$on('moveSingleFolder', (id) => {
+      this.folderIds = id;
+      this.showMoveFolderDialog = true;
+    });
     EventBus.$on('fileLength', (length) => {
       this.fileLength = length;
     });
@@ -544,10 +581,42 @@ export default {
       this.fileIds.push(id);
       this.shareFile();
     });
+    EventBus.$on('moveSingle', (id) => {
+      this.fileIds = id;
+      this.showMoveFileDialog = true;
+    });
     // this.$store.dispatch('fetchUserFolders', user.id);
     this.user = user;
   },
   methods: {
+    debounceSearch() {
+      clearTimeout(this.debounce);
+      this.debounce = setTimeout(this.searchDrive, 1500);
+    },
+    searchDrive() {
+      if (this.globalSearch.length > 0) {
+        this.searching = true;
+        const data = {
+          user_id: localStorage.getItem('currentUserId'),
+          string: this.globalSearch,
+        };
+        this.$axios
+          .post('users/search/directories', data)
+          .then(({ data }) => {
+            this.searching = false;
+            if (data.files.length > 0 || data.directories.length > 0) {
+              EventBus.$emit('searchFound', data);
+            }
+          })
+          .catch(() => {
+            this.searching = false;
+            this.error.status = true;
+            this.error.message = 'Something went wrong, Please try again';
+          });
+      } else {
+        EventBus.$emit('clearSearch');
+      }
+    },
     openNewFolderDialog() {
       this.showNewFolderDialog = true;
     },
@@ -587,6 +656,7 @@ export default {
           this.fetchUser(user.user.ogId);
           this.success.status = true;
           this.success.message = 'Folder has been successfully created';
+          EventBus.$emit('addedNewFolder');
         })
         .catch((err) => {
           this.buttonLoading = false;
@@ -596,7 +666,7 @@ export default {
       this.showNewFolderDialog = false;
     },
     resetBreadCrumbs() {
-      this.$store.dispatch('resetBreadCrumbs');
+      this.$store.dispatch('resetAdminBreadCrumbs', this.id);
     },
     handleFileUpload(e) {
       const parentDir = this.$route.params.name || '';
@@ -651,14 +721,14 @@ export default {
           this.error.message = err.response.data.message;
         });
     },
-    moveFolder(e) {
+    moveFile(e) {
       this.buttonLoading = true;
       const data = {
-        file_id: this.fileIds,
+        files: this.fileIds,
         directory_id: e,
       };
       this.$axios
-        .put('admin/file/move/bulk', data)
+        .patch('admin/file/move/bulk', data)
         .then(() => {
           const userInView = this.$store.getters.getUserDetails;
           this.loading = true;
@@ -669,9 +739,40 @@ export default {
         .catch((err) => {
           this.buttonLoading = false;
           this.error.status = true;
-          this.error.message = err.response.data.message;
+          if (err.response && err.response.data && err.response.data.message) {
+            this.error.message = err.response.data.message;
+          } else {
+            this.error.message = 'Something went wrong, please try again';
+          }
         });
-      this.showMoveFolderDialog = false;
+      this.showMoveFileDialog = false;
+    },
+    moveFolder(e) {
+      this.buttonLoading = true;
+      const data = {
+        dir_ids: this.folderIds,
+        parent_dir: e,
+      };
+      this.$axios
+        .post('directory/bulk/move', data)
+        .then(() => {
+          const user = this.getUser(this);
+          this.loading = true;
+          this.showMoveFolderDialog = false;
+          this.buttonLoading = false;
+          this.fetchUserFiles(user.id, 0);
+          EventBus.$emit('moved');
+        })
+        .catch((err) => {
+          this.showMoveFolderDialog = false;
+          this.buttonLoading = false;
+          this.error.status = true;
+          if (err.response.data.message) {
+            this.error.message = err.response.data.message;
+          } else {
+            this.error.message = 'Something went wrong';
+          }
+        });
     },
     deleteFiles() {
       const userInView = this.$store.getters.getUserDetails;

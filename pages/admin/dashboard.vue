@@ -68,5 +68,10 @@ export default {
     this.fetchAllFiles();
     this.fetchAllDirectories();
   },
+  head() {
+    return {
+      title: 'Admin',
+    };
+  },
 };
 </script>

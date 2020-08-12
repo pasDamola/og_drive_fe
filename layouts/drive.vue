@@ -7,6 +7,12 @@
       @createFolder="createFolder"
     />
     <move-dialog
+      :show-dialog="showMoveFileDialog"
+      :is-loading="buttonLoading"
+      @closeDialog="closeDialog('showMoveFileDialog')"
+      @moveFolder="moveFile"
+    />
+    <move-dialog
       :show-dialog="showMoveFolderDialog"
       :is-loading="buttonLoading"
       @closeDialog="closeDialog('showMoveFolderDialog')"
@@ -233,9 +239,12 @@
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <img src="/images/logo.png" alt="Outsource Logo" width="100vh" />
       <v-text-field
+        v-if="showSearch"
+        v-model="globalSearch"
         :solo="pressed"
         :solo-inverted="!pressed"
         :flat="!pressed"
+        :loading="searching"
         hide-details
         background-color="#f8fafb"
         prepend-inner-icon="mdi-magnify"
@@ -244,6 +253,7 @@
         color="#555"
         @focus="pressed = true"
         @blur="pressed = false"
+        @input="debounceSearch"
       />
       <v-spacer />
       <v-divider vertical />
@@ -293,12 +303,12 @@
             <v-layout justify-space-between full-width>
               <span class="row align-center mx-0 font-weight-black text--text">
                 <h2>
-                  Files
+                  Files/Folders
                 </h2>
                 <p class="count">({{ fileLength }})</p>
               </span>
               <v-layout v-if="showAction" class="full-width" justify-end>
-                <v-btn color="primary" @click="showMoveFolderDialog = true">
+                <v-btn color="primary" @click="showMoveFileDialog = true">
                   Move
                 </v-btn>
                 <!-- <v-btn text @click="deleteFiles">Delete</v-btn> -->
@@ -385,10 +395,6 @@ import MoveDialog from '@/components/MoveFolder';
 import ShareDialog from '@/components/ShareDialog';
 import Loader from '@/components/Loader';
 import { EventBus } from '../plugins/eventBus';
-// import Vue from 'vue';
-// import titleMixin from '@/mixins/titleMixin';
-
-// Vue.mixin(titleMixin);
 
 export default {
   components: { NewDialog, Loader, MoveDialog, ShareDialog },
@@ -422,36 +428,12 @@ export default {
         text: 'Bin',
         to: '/bin',
       },
-      // {
-      //   icon: 'mdi-chevron-up',
-      //   'icon-alt': 'mdi-chevron-down',
-      //   text: 'Labels',
-      //   model: true,
-      //   children: [{ icon: 'mdi-plus', text: 'Create label' }],
-      // },
-      // {
-      //   icon: 'mdi-chevron-up',
-      //   'icon-alt': 'mdi-chevron-down',
-      //   text: 'More',
-      //   model: false,
-      //   children: [
-      //     { text: 'Import' },
-      //     { text: 'Export' },
-      //     { text: 'Print' },
-      //     { text: 'Undo changes' },
-      //     { text: 'Other contacts' },
-      //   ],
-      // },
-      // { icon: 'mdi-settings', text: 'Settings' },
-      // { icon: 'mdi-message', text: 'Send feedback' },
-      // { icon: 'mdi-help-circle', text: 'Help' },
-      // { icon: 'mdi-cellphone-link', text: 'App downloads' },
-      // { icon: 'mdi-keyboard', text: 'Go to the old version' },
     ],
     loading: false,
     buttonLoading: false,
     showNewFolderDialog: false,
     showMoveFolderDialog: false,
+    showMoveFileDialog: false,
     pressed: false,
     showAction: false,
     folderShowAction: false,
@@ -472,6 +454,9 @@ export default {
       full_name: '',
       username: '',
     },
+    globalSearch: '',
+    debounce: '',
+    searching: false,
   }),
   computed: {
     ...mapGetters(['getBreadCrumbs', 'isLoggedIn', 'getUser', 'getLevel']),
@@ -483,6 +468,13 @@ export default {
     },
     disableBtn() {
       return !this.updateUser.full_name || !this.updateUser.username;
+    },
+    showSearch() {
+      const paths = ['/bin', '/recent'];
+      if (paths.includes(this.$route.path)) {
+        return false;
+      }
+      return true;
     },
     getUserInitials() {
       const full_name = this.user.full_name;
@@ -511,6 +503,7 @@ export default {
       this.$router.push({ path: '/login' });
     }
     this.loading = true;
+    this.search = '';
     this.fetchUserFiles(user.id, 0);
     this.showAction = false;
     EventBus.$on('showAction', (files) => {
@@ -534,6 +527,10 @@ export default {
     });
     EventBus.$on('moveSingle', (id) => {
       this.fileIds = id;
+      this.showMoveFileDialog = true;
+    });
+    EventBus.$on('moveSingleFolder', (id) => {
+      this.folderIds = id;
       this.showMoveFolderDialog = true;
     });
     this.$store.dispatch('fetchFolders', user.id);
@@ -572,6 +569,7 @@ export default {
           this.loading = true;
           this.fetchUserFiles(user.id, 0);
           this.$store.dispatch('fetchFolders', user.id);
+          EventBus.$emit('addedNewFolder');
         })
         .catch((err) => {
           this.buttonLoading = false;
@@ -579,6 +577,34 @@ export default {
           this.error.message = err.response.data.message;
         });
       this.showNewFolderDialog = false;
+    },
+    debounceSearch() {
+      clearTimeout(this.debounce);
+      this.debounce = setTimeout(this.searchDrive, 1500);
+    },
+    searchDrive() {
+      if (this.globalSearch.length > 0) {
+        this.searching = true;
+        const data = {
+          user_id: this.user.id,
+          string: this.globalSearch,
+        };
+        this.$axios
+          .post('users/search/directories', data)
+          .then(({ data }) => {
+            this.searching = false;
+            if (data.files.length > 0 || data.directories.length > 0) {
+              EventBus.$emit('searchFound', data);
+            }
+          })
+          .catch(() => {
+            this.searching = false;
+            this.error.status = true;
+            this.error.message = 'Something went wrong, Please try again';
+          });
+      } else {
+        EventBus.$emit('clearSearch');
+      }
     },
     resetBreadCrumbs() {
       this.$store.dispatch('resetBreadCrumbs');
@@ -635,7 +661,7 @@ export default {
           this.error.message = err.response.data.message;
         });
     },
-    moveFolder(e) {
+    moveFile(e) {
       this.buttonLoading = true;
       const data = {
         file_id: this.fileIds,
@@ -643,6 +669,33 @@ export default {
       };
       this.$axios
         .put('files/move/bulk', data)
+        .then(() => {
+          const user = this.getUser(this);
+          this.loading = true;
+          this.showMoveFileDialog = false;
+          this.buttonLoading = false;
+          this.fetchUserFiles(user.id, 0);
+          EventBus.$emit('moved');
+        })
+        .catch((err) => {
+          this.showMoveFileDialog = false;
+          this.buttonLoading = false;
+          this.error.status = true;
+          if (err.response.data.message) {
+            this.error.message = err.response.data.message;
+          } else {
+            this.error.message = 'Something went wrong';
+          }
+        });
+    },
+    moveFolder(e) {
+      this.buttonLoading = true;
+      const data = {
+        dir_ids: this.folderIds,
+        parent_dir: e,
+      };
+      this.$axios
+        .post('directory/bulk/move', data)
         .then(() => {
           const user = this.getUser(this);
           this.loading = true;
@@ -655,7 +708,11 @@ export default {
           this.showMoveFolderDialog = false;
           this.buttonLoading = false;
           this.error.status = true;
-          this.error.message = err.response.data.message;
+          if (err.response.data.message) {
+            this.error.message = err.response.data.message;
+          } else {
+            this.error.message = 'Something went wrong';
+          }
         });
     },
     deleteFiles() {

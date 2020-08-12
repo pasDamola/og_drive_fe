@@ -7,7 +7,7 @@ export default {
    ** Headers of the page
    */
   head: {
-    titleTemplate: '%s - ' + process.env.npm_package_name,
+    titleTemplate: 'OG-Drive | %s',
     title: process.env.npm_package_name || '',
     meta: [
       { charset: 'utf-8' },
@@ -48,7 +48,8 @@ export default {
   modules: ['@nuxtjs/axios', 'cookie-universal-nuxt'],
   // Axios setup
   axios: {
-    baseURL: 'https://guarded-cliffs-51823.herokuapp.com/',
+    // baseURL: 'https://guarded-cliffs-51823.herokuapp.com/',
+    baseURL: 'http://34.244.118.199/',
   },
   /*
    ** vuetify module configuration

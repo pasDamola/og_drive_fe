@@ -47,16 +47,19 @@
               </p>
               <v-list-item>
                 <v-avatar
-                  v-if="log.user_id.picture_pic"
+                  v-if="log.user_id && log.user_id.picture_pic"
                   size="35px"
                   item
                   class="mx-2"
                 >
-                  <v-img :src="log.user_id.picture_pic" alt="User Image" />
+                  <v-img
+                    :src="log.user_id && log.user_id.picture_pic"
+                    alt="User Image"
+                  />
                 </v-avatar>
                 <v-avatar v-else size="35px" color="primary" item class="mx-2">
                   <span class="white--text font-weight-medium">
-                    {{ getUserInitials(log.user_id.full_name) }}
+                    {{ getUserInitials(log.user_id && log.user_id.full_name) }}
                   </span>
                 </v-avatar>
                 <v-list-item-content class="py-1">
@@ -65,7 +68,7 @@
                     {{ log.shared_with && `with ${log.shared_with.full_name}` }}
                   </v-list-item-title>
                   <v-list-item-subtitle class="caption">
-                    {{ log.user_id.full_name }}
+                    {{ log.user_id && log.user_id.full_name }}
                   </v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
@@ -141,7 +144,7 @@
     </v-layout>
     <template v-if="isGridView">
       <p class="font-weight-medium body-2">
-        Folders
+        Folders ({{ filteredFolders.length }})
       </p>
       <div class="files mb-5">
         <Folder
@@ -151,13 +154,14 @@
           :folder-id="folder._id"
           class="my-2"
           :last-updated="folder.updatedAt"
+          @moveFolder="moveFolder"
           @foldersSelected="handleMultipleFolders($event, folder)"
           @moveFolderToBin="moveFolderToBin"
           @viewDetails="showFolderDetails"
         />
       </div>
       <p class="font-weight-medium body-2">
-        Files
+        Files ({{ filteredFiles.length }})
       </p>
       <div class="files mb-5 pb-5">
         <File
@@ -178,17 +182,11 @@
       </div>
     </template>
     <template v-else>
-      <v-data-table :headers="headers" :items="allFiles">
-        <template v-slot:item.updatedAt="{ item }">
-          <span>{{ new Date(item.updatedAt).toLocaleString() }}</span>
-        </template>
-        <template v-slot:item.file_size="{ item }">
-          <span>{{ handleSize(item.file_size) }} KB</span>
-        </template>
-        <template v-slot:item.created_by>
-          <span>me</span>
-        </template>
-      </v-data-table>
+      <v-data-table
+        :headers="headers"
+        :items="allData"
+        @click:row="handleRowClicked"
+      />
     </template>
     <v-dialog v-model="showFolderDialog" max-width="360">
       <v-card>
@@ -293,11 +291,11 @@ export default {
         text: 'Name',
         align: 'start',
         sortable: false,
-        value: 'filename',
+        value: 'name',
       },
-      { text: 'Owner', value: 'created_by' },
-      { text: 'Last Modified', value: 'updatedAt' },
-      { text: 'File Size', value: 'file_size' },
+      { text: 'Owner', value: 'shared' },
+      { text: 'Last Modified', value: 'modified' },
+      { text: 'File Size', value: 'size' },
     ],
   }),
   computed: {
@@ -310,6 +308,14 @@ export default {
       'getUser',
     ]),
     filteredFiles() {
+      if (this.globalSearchFiles) {
+        const files = this.globalSearchFiles.filter((el) => {
+          return el.filename
+            .toLowerCase()
+            .includes(this.searchFiles.toLowerCase());
+        });
+        return files;
+      }
       const files = this.getFiles.filter((el) => {
         return el.filename
           .toLowerCase()
@@ -318,6 +324,14 @@ export default {
       return files;
     },
     filteredFolders() {
+      if (this.globalSearchDirectories) {
+        const folders = this.globalSearchDirectories.filter((el) => {
+          return el.dirname
+            .toLowerCase()
+            .includes(this.searchFiles.toLowerCase());
+        });
+        return folders;
+      }
       const subFolders = this.getFolders.filter((folder) => !folder.parent_dir);
       const folders = subFolders.filter((el) => {
         return el.dirname
@@ -326,8 +340,34 @@ export default {
       });
       return folders;
     },
-    allFiles() {
-      return this.$store.state.allFiles;
+    allData() {
+      const folders = this.filteredFolders.map((el) => {
+        const obj = {
+          name: el.dirname,
+          shared: el.user_id === this.id ? 'Me' : 'Shared',
+          modified: Moment(el.createdAt).format('MMMM Do YYYY, h:mm:ss a'),
+          size: '---',
+          clickable: false,
+          fullData: el,
+        };
+        return obj;
+      });
+      const files = this.filteredFiles.map((el) => {
+        const obj = {
+          name: el.filename,
+          shared: el.user_id._id === this.id ? 'Me' : 'Shared',
+          modified: Moment(el.createdAt).format('MMMM Do YYYY, h:mm:ss a'),
+          size: `${this.handleSize(el.file_size)}KB`,
+          clickable: true,
+          fullData: el,
+        };
+        return obj;
+      });
+      const allData = [...folders, ...files];
+      return allData;
+    },
+    id() {
+      return this.getUser(this).id;
     },
   },
   watch: {
@@ -339,14 +379,18 @@ export default {
     this.$store.dispatch('resetBreadCrumbs');
     const token = this.isLoggedIn(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
-    const user = this.getUser(this);
-    this.$store.dispatch('fetchFolders', user.id);
-    this.fetchUserFiles(user.id, 0);
+    this.getAllFiles();
     EventBus.$on('filesFetched', this.emitFileLength);
+    EventBus.$on('moved', this.getAllFiles);
   },
   methods: {
     handleSize(size) {
       return parseInt(size / 1000);
+    },
+    getAllFiles() {
+      const user = this.getUser(this);
+      this.$store.dispatch('fetchFolders', user.id);
+      this.fetchUserFiles(user.id, 0);
     },
     isImage(details) {
       if (details) {
@@ -365,6 +409,11 @@ export default {
           return true;
         }
         return false;
+      }
+    },
+    handleRowClicked(item) {
+      if (item.clickable) {
+        this.previewFile(item.fullData);
       }
     },
     previewFile(file) {
@@ -492,6 +541,11 @@ export default {
       EventBus.$emit('fileLength', length);
     },
   },
+  head() {
+    return {
+      title: 'Home',
+    };
+  },
 };
 </script>
 
@@ -548,5 +602,6 @@ export default {
 
 .small--text {
   font-size: 14px;
+  white-space: normal;
 }
 </style>

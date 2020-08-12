@@ -1,5 +1,17 @@
 <template>
   <div grid-list-md class="my-drive">
+    <v-snackbar v-if="error.status" v-model="error.status" :timeout="5000">
+      {{ error.message }}
+      <v-btn color="pink" text @click="error.status = false">
+        Close
+      </v-btn>
+    </v-snackbar>
+    <v-snackbar v-else v-model="success.status" :timeout="5000">
+      {{ success.message }}
+      <v-btn color="green" text @click="success.status = false">
+        Close
+      </v-btn>
+    </v-snackbar>
     <Preview
       v-if="showPreview"
       :show="showPreview"
@@ -47,16 +59,19 @@
               </p>
               <v-list-item>
                 <v-avatar
-                  v-if="log.user_id.picture_pic"
+                  v-if="log.user_id && log.user_id.picture_pic"
                   size="35px"
                   item
                   class="mx-2"
                 >
-                  <v-img :src="log.user_id.picture_pic" alt="User Image" />
+                  <v-img
+                    :src="log.user_id && log.user_id.picture_pic"
+                    alt="User Image"
+                  />
                 </v-avatar>
                 <v-avatar v-else size="35px" color="primary" item class="mx-2">
                   <span class="white--text font-weight-medium">
-                    {{ getUserInitials(log.user_id.full_name) }}
+                    {{ getUserInitials(log.user_id && log.user_id.full_name) }}
                   </span>
                 </v-avatar>
                 <v-list-item-content class="py-1">
@@ -65,7 +80,7 @@
                     {{ log.shared_with && `with ${log.shared_with.full_name}` }}
                   </v-list-item-title>
                   <v-list-item-subtitle class="caption">
-                    {{ log.user_id.full_name }}
+                    {{ log.user_id && log.user_id.full_name }}
                   </v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
@@ -123,7 +138,7 @@
       </v-flex>
     </v-layout>
     <p class="font-weight-medium body-2">
-      Folders
+      Folders ({{ filteredFolders.length }})
     </p>
     <div class="files mb-5">
       <Folder
@@ -134,13 +149,12 @@
         class="my-2"
         :last-updated="folder.updatedAt"
         @foldersSelected="handleMultipleFolders($event, folder)"
+        @moveFolder="moveFolder"
         @moveFolderToBin="moveFolderToBin"
         @viewDetails="showFolderDetails"
       />
     </div>
-    <p class="font-weight-medium body-2">
-      Files
-    </p>
+    <p class="font-weight-medium body-2">Files ({{ filteredFiles.length }})</p>
     <div class="files mb-5 pb-5">
       <File
         v-for="file in filteredFiles"
@@ -153,6 +167,7 @@
         class="my-2"
         @filesSelected="handleMultipleFiles($event, file)"
         @moveFile="moveFile"
+        @moveToBin="moveToBin"
         @deleteFile="deleteFile"
         @viewDetails="showFileDetails"
         @previewFile="previewFile(file)"
@@ -205,10 +220,22 @@ export default {
     fileDetails: '',
     previewData: null,
     showPreview: false,
+    globalSearchDirectories: null,
+    globalSearchFiles: null,
+    error: { status: false, message: '' },
+    success: { status: false, message: '' },
   }),
   computed: {
-    ...mapGetters(['getFolders', 'isLoggedIn']),
+    ...mapGetters(['getFolders', 'isLoggedIn', 'getUser']),
     filteredFiles() {
+      if (this.globalSearchFiles) {
+        const files = this.globalSearchFiles.filter((el) => {
+          return el.filename
+            .toLowerCase()
+            .includes(this.searchFiles.toLowerCase());
+        });
+        return files;
+      }
       const files = this.allFiles.filter((el) => {
         return el.filename
           .toLowerCase()
@@ -217,6 +244,14 @@ export default {
       return files;
     },
     filteredFolders() {
+      if (this.globalSearchDirectories) {
+        const folders = this.globalSearchDirectories.filter((el) => {
+          return el.dirname
+            .toLowerCase()
+            .includes(this.searchFiles.toLowerCase());
+        });
+        return folders;
+      }
       const subFolders = this.getFolders.filter(
         (folder) => folder.parent_dir === this.$route.params.name
       );
@@ -233,7 +268,10 @@ export default {
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     this.getFolderDetails();
     EventBus.$on('addedNewFile', this.getFolderDetails);
+    EventBus.$on('addedNewFolder', this.getFolderDetails);
     EventBus.$on('moved', this.getFolderDetails);
+    EventBus.$on('searchFound', this.handleGlobalSearch);
+    EventBus.$on('clearSearch', this.clearGlobalSearch);
   },
   beforeDestroy() {
     this.$store.dispatch(
@@ -242,6 +280,14 @@ export default {
     );
   },
   methods: {
+    handleGlobalSearch(e) {
+      this.globalSearchDirectories = e.directories;
+      this.globalSearchFiles = e.files;
+    },
+    clearGlobalSearch() {
+      this.globalSearchDirectories = null;
+      this.globalSearchFiles = null;
+    },
     isImage(details) {
       if (details) {
         const fileType = details.type.split('/')[1];
@@ -304,6 +350,24 @@ export default {
           this.error.message = err.response.data.message;
         });
     },
+    moveToBin(e) {
+      this.showDialog = false;
+      const user = this.getUser(this);
+      this.loading = true;
+      this.$axios
+        .put('/files/single/bin', { _id: `${e}`, user_id: user.id })
+        .then(() => {
+          this.fetchUserFiles(user.id, 0);
+          this.loading = false;
+          this.success.status = true;
+          this.success.message = 'File has successfully been moved to bin';
+        })
+        .catch((err) => {
+          this.loading = false;
+          this.error.status = true;
+          this.error.message = err.response.data.message;
+        });
+    },
     deleteFile(e) {
       this.loading = true;
       this.$axios
@@ -330,6 +394,7 @@ export default {
               href: window.location.pathname,
               disabled: true,
             });
+            this.$emit('folderName', data.directory.dirname);
             this.$store.dispatch('saveCurrentLevel', data.directory.level);
             this.allFiles = data.files;
             this.emitFileLength();
@@ -466,5 +531,6 @@ export default {
 
 .small--text {
   font-size: 14px;
+  white-space: normal;
 }
 </style>

@@ -527,7 +527,7 @@ export default {
       this.showNewFolderDialog = false;
     },
     resetBreadCrumbs() {
-      this.$store.dispatch('resetBreadCrumbs');
+      this.$store.dispatch('resetAdminBreadCrumbs', this.$route.params.id);
     },
     revertMultiple() {
       const user = this.getUser(this);

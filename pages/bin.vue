@@ -81,7 +81,7 @@
       </v-flex>
     </v-layout>
     <p class="font-weight-medium body-2">
-      Folders
+      Folders ({{ filteredFolders.length }})
     </p>
     <div class="files mb-5">
       <Folder
@@ -96,9 +96,7 @@
         @foldersSelected="handleMultipleFolders($event, folder)"
       />
     </div>
-    <p class="font-weight-medium body-2">
-      Files
-    </p>
+    <p class="font-weight-medium body-2">Files ({{ filteredFiles.length }})</p>
     <div class="files mb-5 pb-5">
       <File
         v-for="file in filteredFiles"
@@ -322,6 +320,11 @@ export default {
       const length = subFolders.length + this.getFiles.length;
       EventBus.$emit('fileLength', length);
     },
+  },
+  head() {
+    return {
+      title: 'Bin',
+    };
   },
 };
 </script>

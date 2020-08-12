@@ -20,7 +20,6 @@
           placeholder="191852"
           prepend-icon="mdi-account-outline"
           class="mx-3 my-4"
-          :rules="[rules.isNumber]"
           validate-on-blur
         />
         <div class="mx-3 my-4">
@@ -79,6 +78,7 @@ export default {
       message: '',
     },
     rules: {
+      required: (value) => !!value || 'Required.',
       isNumber: (value) => {
         return /^[0-9]+$/.test(value) || 'ID can only contain numbers';
       },
@@ -90,7 +90,7 @@ export default {
       return this.user.ogId && this.user.password;
     },
   },
-  mounted() {
+  created() {
     if (this.isLoggedIn(this)) {
       this.$router.push({ path: '/' });
     }
@@ -126,6 +126,11 @@ export default {
           }
         });
     },
+  },
+  head() {
+    return {
+      title: 'Login',
+    };
   },
 };
 </script>

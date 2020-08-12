@@ -227,6 +227,7 @@
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <img src="/images/logo.png" alt="Outsource Logo" width="100vh" />
       <v-text-field
+        v-if="showSearch"
         :solo="pressed"
         :solo-inverted="!pressed"
         :flat="!pressed"
@@ -271,7 +272,7 @@
             </v-list-item-icon>
             <v-list-item-content>Logout</v-list-item-content>
           </v-list-item>
-          <v-list-item v-if="isAdmin || isSuperAdmin" to="/admin">
+          <v-list-item v-if="isAdmin || isSuperAdmin" to="/admin/dashboard">
             <v-list-item-icon>
               <v-icon>mdi-account-supervisor-outline</v-icon>
             </v-list-item-icon>
@@ -481,6 +482,13 @@ export default {
         }
       }
       return null;
+    },
+    showSearch() {
+      const paths = ['/bin', '/recent'];
+      if (paths.includes(this.$route.path)) {
+        return false;
+      }
+      return true;
     },
     isBin() {
       return this.$route.name === 'bin';

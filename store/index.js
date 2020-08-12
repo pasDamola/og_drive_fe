@@ -33,12 +33,26 @@ export const state = () => ({
       icon: true,
     },
   ],
+  adminBreadCrumbs: [
+    {
+      text: 'mdi-home',
+      href: '/admin/user',
+      disabled: false,
+      icon: true,
+    },
+  ],
   level: 0,
 });
 
 export const getters = {
   getBreadCrumbs: (state) => {
     return state.breadCrumbs.filter((el, index, self) => {
+      const elIndex = self.findIndex((element) => element.href === el.href);
+      return index === elIndex;
+    });
+  },
+  getAdminBreadCrumbs: (state) => {
+    return state.adminBreadCrumbs.filter((el, index, self) => {
       const elIndex = self.findIndex((element) => element.href === el.href);
       return index === elIndex;
     });
@@ -80,11 +94,20 @@ export const actions = {
   addBreadCrumbs({ commit }, payload) {
     commit('ADD_BREADCRUMB', payload);
   },
+  addAdminBreadCrumbs({ commit }, payload) {
+    commit('ADD_ADMIN_BREADCRUMB', payload);
+  },
   resetBreadCrumbs({ commit }) {
     commit('RESET_BREADCRUMB');
   },
+  resetAdminBreadCrumbs({ commit }, id) {
+    commit('RESET_ADMIN_BREADCRUMB', id);
+  },
   removeBreadCrumb({ commit }, payload) {
     commit('REMOVE_BREADCRUMB', payload);
+  },
+  removeAdminBreadCrumb({ commit }, payload) {
+    commit('REMOVE_ADMIN_BREADCRUMB', payload);
   },
   // eslint-disable-next-line
   saveAuth({ commit }, [user, token]) {
@@ -161,7 +184,6 @@ export const actions = {
     try {
       const response = await this.$axios.get(`directory/sadmin/bin/${user_id}`);
       if (response) {
-        console.log('response', response);
         commit('LOAD_ADMIN_BIN_DIRECTORY', response.data.data);
         return Promise.resolve(response.data);
       }
@@ -173,7 +195,6 @@ export const actions = {
     try {
       const response = await this.$axios.get('/super_admin/to_delete');
       if (response) {
-        console.log('response', response.data);
         commit('LOAD_ADMIN_STUFF_DELETE_FILES', response.data.files_to_delete);
         commit(
           'LOAD_ADMIN_STUFF_DELETE_FOLDERS',
@@ -328,6 +349,28 @@ export const mutations = {
 
     state.breadCrumbs = [...filtered];
   },
+  ADD_ADMIN_BREADCRUMB(state, payload) {
+    const breadCrumbs = [...state.adminBreadCrumbs];
+    // Enable breadcrumbs
+    breadCrumbs.forEach((breadCrumb) => {
+      breadCrumb.disabled = false;
+    });
+
+    breadCrumbs.push(payload);
+
+    breadCrumbs.forEach((el) => {
+      if (el.href === payload.href) {
+        el.disabled = true;
+      }
+    });
+    // Remove duplicate breadcrumbs
+    const filtered = breadCrumbs.filter((el, index, self) => {
+      const elIndex = self.findIndex((element) => element.href === el.href);
+      return index === elIndex;
+    });
+
+    state.adminBreadCrumbs = [...filtered];
+  },
   REMOVE_BREADCRUMB(state, payload) {
     const breadCrumbs = [...state.breadCrumbs];
     const index = breadCrumbs.findIndex((el) => el.href === payload);
@@ -336,11 +379,29 @@ export const mutations = {
       state.breadCrumbs = [...breadCrumbs.slice(0, index + 1)];
     }
   },
+  REMOVE_ADMIN_BREADCRUMB(state, payload) {
+    const breadCrumbs = [...state.adminBreadCrumbs];
+    const index = breadCrumbs.findIndex((el) => el.href === payload);
+    // Remove current page from breadcrumb
+    if (index > -1) {
+      state.adminBreadCrumbs = [...breadCrumbs.slice(0, index + 1)];
+    }
+  },
   RESET_BREADCRUMB(state) {
     state.breadCrumbs = [
       {
         text: 'mdi-home',
         href: '/',
+        disabled: false,
+        icon: true,
+      },
+    ];
+  },
+  RESET_ADMIN_BREADCRUMB(state, id) {
+    state.adminBreadCrumbs = [
+      {
+        text: 'mdi-home',
+        href: `/admin/user/${id}`,
         disabled: false,
         icon: true,
       },

@@ -32,6 +32,12 @@
           <v-list-item @click="$emit('viewDetails', folderId)">
             <v-list-item-content>View Details</v-list-item-content>
           </v-list-item>
+          <v-list-item
+            v-if="!hideOptions"
+            @click="$emit('moveFolder', folderId)"
+          >
+            <v-list-item-content>Move</v-list-item-content>
+          </v-list-item>
         </v-list>
       </v-menu>
     </v-layout>

@@ -113,6 +113,11 @@ export default {
       return result;
     },
   },
+  head() {
+    return {
+      title: 'Shared',
+    };
+  },
 };
 </script>
 

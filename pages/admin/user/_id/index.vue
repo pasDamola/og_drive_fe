@@ -135,7 +135,7 @@
       </v-flex>
     </v-layout>
     <p class="font-weight-medium body-2">
-      Folders
+      Folders ({{ filteredFolders.length }})
     </p>
     <div class="files mb-5">
       <SuperAdminFolder
@@ -148,12 +148,11 @@
         @deleteFolder="handleFolderDelete"
         @moveFolderToBin="moveFolderToBin"
         @foldersSelected="handleMultipleFolders($event, folder)"
+        @moveFolder="moveFolder"
         @viewDetails="showFolderDetails"
       />
     </div>
-    <p class="font-weight-medium body-2">
-      Files
-    </p>
+    <p class="font-weight-medium body-2">Files ({{ filteredFiles.length }})</p>
     <div class="files mb-5">
       <SuperAdminFile
         v-for="file in filteredFiles"
@@ -165,6 +164,7 @@
         :last-edited="file.updatedAt"
         class="my-2"
         @filesSelected="handleMultipleFiles($event, file)"
+        @moveFile="moveFile"
         @moveToBin="moveToBin"
         @viewDetails="showFileDetails"
         @deleteFile="handleFileDelete"
@@ -304,6 +304,14 @@ export default {
       return this.allUsers.find((user) => user.ogId === this.id);
     },
     filteredFiles() {
+      if (this.globalSearchFiles) {
+        const files = this.globalSearchFiles.filter((el) => {
+          return el.filename
+            .toLowerCase()
+            .includes(this.searchFiles.toLowerCase());
+        });
+        return files;
+      }
       const files = this.getFiles.filter((el) => {
         return el.filename
           .toLowerCase()
@@ -312,6 +320,14 @@ export default {
       return files;
     },
     filteredFolders() {
+      if (this.globalSearchDirectories) {
+        const folders = this.globalSearchDirectories.filter((el) => {
+          return el.dirname
+            .toLowerCase()
+            .includes(this.searchFiles.toLowerCase());
+        });
+        return folders;
+      }
       const subFolders = this.getUserDirectories.filter(
         (folder) => !folder.parent_dir
       );
@@ -326,7 +342,13 @@ export default {
       return this.$store.state.userFolders.directories;
     },
   },
+  watch: {
+    $route() {
+      this.resetBreadCrumbs();
+    },
+  },
   mounted() {
+    this.resetBreadCrumbs();
     const token = this.isLoggedIn(this);
     this.$axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     //const user = this.getUser(this);
@@ -335,8 +357,15 @@ export default {
       this.fetchUserFiles(userInView.user._id, 0);
     });
     EventBus.$on('filesFetched', this.emitFileLength);
+    EventBus.$on('moved', this.fetchUser);
   },
   methods: {
+    fetchUser() {
+      this.$store.dispatch('fetchUser', this.$route.params.id).then(() => {
+        const userInView = this.$store.getters.getUserDetails;
+        this.fetchUserFiles(userInView.user._id, 0);
+      });
+    },
     isImage(details) {
       if (details) {
         const fileType = details.type.split('/')[1];
@@ -432,6 +461,9 @@ export default {
           this.error.message = err.response.data.message;
         });
     },
+    resetBreadCrumbs() {
+      this.$store.dispatch('resetAdminBreadCrumbs', this.id);
+    },
     moveToBin(e) {
       const userInView = this.$store.getters.getUserDetails;
       this.loading = true;
@@ -496,10 +528,14 @@ export default {
       });
     },
     emitFileLength() {
-      const subFolders = this.getFolders.filter((folder) => !folder.parent_dir);
-      const length = subFolders.length + this.getFiles.length;
+      const length = this.filteredFolders.length + this.getFiles.length;
       EventBus.$emit('fileLength', length);
     },
+  },
+  head() {
+    return {
+      title: 'Users Drive',
+    };
   },
 };
 </script>

@@ -269,6 +269,11 @@ export default {
       EventBus.$emit('fileLength', length);
     },
   },
+  head() {
+    return {
+      title: 'Users Recent',
+    };
+  },
 };
 </script>
 
