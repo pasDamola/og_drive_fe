@@ -7,6 +7,12 @@
       @createFolder="createFolder"
     />
     <move-dialog
+      :show-dialog="showMoveFileDialog"
+      :is-loading="buttonLoading"
+      @closeDialog="closeDialog('showMoveFileDialog')"
+      @moveFolder="moveFile"
+    />
+    <move-dialog
       :show-dialog="showMoveFolderDialog"
       :is-loading="buttonLoading"
       @closeDialog="closeDialog('showMoveFolderDialog')"
@@ -301,7 +307,7 @@
                 <p class="count">({{ fileLength }})</p>
               </span>
               <v-layout v-if="showAction" class="full-width" justify-end>
-                <v-btn color="primary" @click="showMoveFolderDialog = true">
+                <v-btn color="primary" @click="showMoveFileDialog = true">
                   Move
                 </v-btn>
                 <v-btn text @click="deleteFiles">Delete</v-btn>
@@ -456,6 +462,7 @@ export default {
     buttonLoading: false,
     showNewFolderDialog: false,
     showMoveFolderDialog: false,
+    showMoveFileDialog: false,
     pressed: false,
     showAction: false,
     folderShowAction: false,
@@ -563,12 +570,20 @@ export default {
       this.showAction = false;
       this.folderShowAction = false;
     });
+    EventBus.$on('moveSingleFolder', (id) => {
+      this.folderIds = id;
+      this.showMoveFolderDialog = true;
+    });
     EventBus.$on('fileLength', (length) => {
       this.fileLength = length;
     });
     EventBus.$on('shareFile', (id) => {
       this.fileIds.push(id);
       this.shareFile();
+    });
+    EventBus.$on('moveSingle', (id) => {
+      this.fileIds = id;
+      this.showMoveFileDialog = true;
     });
     // this.$store.dispatch('fetchUserFolders', user.id);
     this.user = user;
@@ -706,14 +721,14 @@ export default {
           this.error.message = err.response.data.message;
         });
     },
-    moveFolder(e) {
+    moveFile(e) {
       this.buttonLoading = true;
       const data = {
-        file_id: this.fileIds,
+        files: this.fileIds,
         directory_id: e,
       };
       this.$axios
-        .put('admin/file/move/bulk', data)
+        .patch('admin/file/move/bulk', data)
         .then(() => {
           const userInView = this.$store.getters.getUserDetails;
           this.loading = true;
@@ -724,9 +739,40 @@ export default {
         .catch((err) => {
           this.buttonLoading = false;
           this.error.status = true;
-          this.error.message = err.response.data.message;
+          if (err.response && err.response.data && err.response.data.message) {
+            this.error.message = err.response.data.message;
+          } else {
+            this.error.message = 'Something went wrong, please try again';
+          }
         });
-      this.showMoveFolderDialog = false;
+      this.showMoveFileDialog = false;
+    },
+    moveFolder(e) {
+      this.buttonLoading = true;
+      const data = {
+        dir_ids: this.folderIds,
+        parent_dir: e,
+      };
+      this.$axios
+        .post('directory/bulk/move', data)
+        .then(() => {
+          const user = this.getUser(this);
+          this.loading = true;
+          this.showMoveFolderDialog = false;
+          this.buttonLoading = false;
+          this.fetchUserFiles(user.id, 0);
+          EventBus.$emit('moved');
+        })
+        .catch((err) => {
+          this.showMoveFolderDialog = false;
+          this.buttonLoading = false;
+          this.error.status = true;
+          if (err.response.data.message) {
+            this.error.message = err.response.data.message;
+          } else {
+            this.error.message = 'Something went wrong';
+          }
+        });
     },
     deleteFiles() {
       const userInView = this.$store.getters.getUserDetails;

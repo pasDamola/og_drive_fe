@@ -12,7 +12,7 @@
       <v-card-text>
         <v-autocomplete
           v-model="folder"
-          :items="getFolders"
+          :items="allFolders"
           item-text="dirname"
           item-value="_id"
           prepend-icon="mdi-folder"
@@ -58,6 +58,13 @@ export default {
   }),
   computed: {
     ...mapGetters(['getFolders']),
+    allFolders() {
+      const rootFolder = {
+        dirname: 'Root folder',
+        _id: '0',
+      };
+      return [...this.getFolders, rootFolder];
+    },
   },
   methods: {
     moveFolder() {

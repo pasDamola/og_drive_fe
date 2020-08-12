@@ -17,6 +17,48 @@ const mixin = {
     EventBus.$on('clearSearch', this.clearGlobalSearch);
   },
   methods: {
+    getFileIcon() {
+      if (
+        ['doc', 'docm', 'dotm', 'docx', 'docb'].includes(
+          this.format.toLowerCase()
+        )
+      ) {
+        return '/images/docs.png';
+      } else if (
+        ['xls', 'xlsx', 'xlsm', 'xltx', 'xltm'].includes(
+          this.format.toLowerCase()
+        )
+      ) {
+        return '/images/sheet.png';
+      } else if (
+        [
+          'pptx',
+          'pptm',
+          'ppt',
+          'pptm',
+          'ppsx',
+          'sldm',
+          'potx',
+          'ppam',
+        ].includes(this.format.toLowerCase())
+      ) {
+        return '/images/slides.png';
+      } else if (this.format.toLowerCase() === 'pdf') {
+        return '/images/pdf.png';
+      } else if (this.format.toLowerCase() === 'html') {
+        return '/images/html.png';
+      } else if (this.format.toLowerCase() === 'png') {
+        return '/images/png.png';
+      } else if (['jpg', 'jpeg'].includes(this.format.toLowerCase())) {
+        return '/images/jpg.png';
+      } else if (this.format.toLowerCase() === 'csv') {
+        return '/images/csv.png';
+      } else if (this.format.toLowerCase() === 'txt') {
+        return '/images/txt.png';
+      } else {
+        return '/images/file.png';
+      }
+    },
     customDblClick() {
       if (this.touchTime === 0) {
         // set first click
@@ -116,6 +158,10 @@ const mixin = {
     moveFile(file) {
       this.selectedFiles = [file];
       EventBus.$emit('moveSingle', this.selectedFiles);
+    },
+    moveFolder(folder) {
+      this.selectedFolders = [folder];
+      EventBus.$emit('moveSingleFolder', this.selectedFolders);
     },
     fetchUsers() {
       this.$store
